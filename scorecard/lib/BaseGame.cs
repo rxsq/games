@@ -1,0 +1,361 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using System.Threading;
+using Timer = System.Threading.Timer;
+using scorecard.lib;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Text;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Drawing;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+public abstract class BaseGame
+{
+    protected List<UdpHandler> udpHandlers;
+    protected Dictionary<UdpHandler, List<string>> handlerDevices;
+    protected Dictionary<UdpHandler, HashSet<int>> activeIndices;
+    protected Random random = new Random();
+    public TimeSpan Duration { get; protected set; }
+    public double Progress { get; protected set; }
+
+    protected MusicPlayer musicPlayer;
+    protected int lifeLine = 5;
+    protected Timer iterationTimer;
+    private string logFile = "log1.log";
+     protected int iterations = 0;
+    private int score;
+    protected GameConfig config;
+    private string status { get; set; }
+    protected int level = 1;
+    protected List<string> gameColors = new List<string>();
+
+    public string Status
+    {
+        get { return status; }
+        set
+        {
+            status = value;
+
+            OnStatusChanged(status);
+
+        }
+    }
+    public int Level
+    {
+        get { return level; }
+        set
+        {
+            level = value;
+
+            OnLevelChanged(level);
+
+        }
+    }
+    public int Score
+    {
+        get { return score; }
+        set
+        {
+            score = value;
+            OnScoreChanged(score);
+            //labelScore.Text = $"Score: {score}";
+            LogData($"Score: {score}");
+        }
+    }
+    public int LifeLine
+    {
+        get { return lifeLine; }
+        set
+        {
+            lifeLine = value;
+            OnLifelineChanged(value);
+            //  LogData($"GameLost lifeLine: {lifeLine}");
+        }
+    }
+    protected int IterationTime { get { return (config.MaxIterationTime - (Level - 1) * config.ReductionTimeEachLevel) * 1000; } }
+    public event EventHandler<int> ScoreChanged;
+    public event EventHandler<int> LifeLineChanged;
+    public event EventHandler<int> LevelChanged;
+    public event EventHandler<string> StatusChanged;
+    protected virtual void OnStatusChanged(string newStatus)
+    {
+        StatusChanged?.Invoke(this, newStatus);
+    }
+    protected virtual void OnLevelChanged(int newLevel)
+    {
+        LevelChanged?.Invoke(this, newLevel);
+    }
+    protected virtual void OnScoreChanged(int newScore)
+    {
+        ScoreChanged?.Invoke(this, newScore);
+    }
+    protected virtual void OnLifelineChanged(int newLifeline)
+    {
+        LifeLineChanged?.Invoke(this, newLifeline);
+    }
+
+    protected int noOfPlayers = 5;
+    public string targetColor;
+    //  public int numberOfDevices = 12; // 4x3 grid
+    protected AsyncLogger logger;
+    
+    public BaseGame(GameConfig config)
+    {
+        this.config = config;
+        logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
+        musicPlayer = new MusicPlayer();
+        musicPlayer.PlayBackgroundMusic("content/background_music.mp3");
+        udpHandlers = new List<UdpHandler>();
+        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice));
+        if (config.NoOfControllers > 1)
+        {
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + 1, config.RemotePort + 1, $"udplog1.log", config.SocketBReceiverPort+1, config.NoofLedPerdevice ));
+        }
+
+        initializeDevices();
+        
+        //devices = udpHandler.DeviceList;
+        
+        gameColors = getColorList();
+    }
+    private void initializeDevices()
+    {
+         handlerDevices = new Dictionary<UdpHandler, List<string>>();
+        activeIndices = new Dictionary<UdpHandler, HashSet<int>>();
+
+        foreach (var handler in udpHandlers)
+        {
+            handlerDevices[handler] = handler.DeviceList;
+            activeIndices[handler] = new HashSet<int>();
+
+        }
+    }
+    public void StartGame()
+    {
+        Console.WriteLine("Game starting in 3... 2... 1...");
+        Status = "Starting";
+        Thread.Sleep(3000); // Countdown
+        Initialize();
+        OnStart();
+        // Start target timer
+        iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
+
+    }
+
+    protected virtual void TargetTimeElapsed(object state)
+    {
+
+        LogData($"iteration failed within {IterationTime} second");
+        musicPlayer.PlayEfeect("content/you failed.mp3");
+        iterationTimer.Dispose();
+        LifeLine = LifeLine - 1;
+        Status = $"Lost Lifeline {LifeLine}";
+        if (lifeLine <= 0)
+        {
+            musicPlayer.PlayEfeect("content/GameLostZeroLifeLine.mp3");
+            EndGame();
+            musicPlayer.StopAllMusic();
+        }
+        else
+        {
+            iterations = iterations + 1;
+
+            iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
+            OnStart();
+        }
+
+    }
+
+    protected virtual void OnIteration()
+    {
+    }
+    public void EndGame()
+    {
+
+        foreach (var handler in udpHandlers)
+        {
+            if (handler != null)
+                handler.Close();
+
+        }
+        iterationTimer.Dispose();
+        musicPlayer.StopBackgroundMusic();
+        OnEnd();
+    }
+    protected virtual void Initialize() { }
+    protected virtual void OnStart() { }
+    protected virtual void OnEnd() { }
+
+    public void LogData(string message)
+    {
+        string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fef} {message}";
+        logger.Log(message);
+        Console.WriteLine(logMessage);
+    }
+    protected void SendDataToDevice(string color, int deviceNo)
+    {
+        
+            foreach (var handler in udpHandlers)
+            {
+                handlerDevices[handler][deviceNo] = color;
+                handler.SendColorsToUdp(handlerDevices[handler]);
+            }
+    }
+    protected void SendSameColorToAllDevice(string color)
+    {
+        foreach (var handler in udpHandlers)
+        {
+            handler.SendColorsToUdp(handlerDevices[handler].Select(x => color).ToList());
+        }
+
+    }
+    protected void MoveToNextIteration()
+    {
+        LogData("All targets hit");
+        
+        iterationTimer.Dispose();
+        iterations = iterations + 1;
+       
+
+
+        if (iterations >= config.Maxiterations)
+        {
+            
+            Status = $"Moved to Next Level {Level}";
+            LogData($"Game Win level: {Level}");
+            Level = Level + 1;
+            iterations = 0;
+            if (Level > config.MaxLevel + 1)
+            {
+                Status = $"Reached to last Level {config.MaxLevel} ending game";
+                LogData(Status);
+                musicPlayer.PlayEfeect("content/GameWin.mp3");
+                EndGame();
+                return;
+            }
+            else
+            {
+                musicPlayer.PlayEfeect("content\\levelwin.mp3");
+            }
+            //labelScore.Text = $"Score: {score}";
+
+        }
+        else { musicPlayer.PlayEfeect("content\\target_hit.mp3"); }
+        Status = $"Moved to Next iterations {iterations}";
+        if (IterationTime > 0)
+        {
+            OnStart();
+            iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime);
+            LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
+        }
+        else { Status = $"All iterations completed IterationTime:{IterationTime}"; }
+
+    }
+    protected void ChnageColorToDevice(string color, int deviceNo, UdpHandler handler)
+    {
+        ChnageColorToDevice(color, new List<int> { deviceNo }, handler);
+    }
+    protected void ChnageColorToDevice(string color, List<int> deviceNos, UdpHandler handler)
+    {
+        try
+        {
+            foreach (int x in deviceNos)
+            {
+                handlerDevices[handler][x] = color;
+            }
+            handler.SendColorsToUdp(handlerDevices[handler]);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.StackTrace);
+           // ChnageColorToDevice(color, deviceNo, handler);
+        }
+    }
+    protected async Task BlinkAllAsync(int nooftimes)
+    {
+        for (int i = 0; i < nooftimes; i++)
+        {
+            var tasks = new List<Task>();
+            foreach (var handler in udpHandlers)
+            {
+                
+                var colors = handlerDevices[handler].Select(x => config.NoofLedPerdevice == 1 ? ColorPaletteone.Yellow : ColorPalette.yellow).ToList();
+                tasks.Add(handler.SendColorsToUdpAsync(colors));
+            }
+            await Task.WhenAll(tasks);
+            Thread.Sleep(100);
+
+            foreach (var handler in udpHandlers)
+            {
+                tasks.Add(handler.SendColorsToUdpAsync(handlerDevices[handler]));
+               // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
+            }
+            await Task.WhenAll(tasks);
+            Thread.Sleep(100);
+        }
+    }
+    public async Task BlinkLights(HashSet<int> lightIndex,int repeation, UdpHandler handler)
+    {
+        
+            handler.SendColorsToUdp(handler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? (config.NoofLedPerdevice == 1 ? ColorPaletteone.Coral : ColorPalette.CoralGoldSilver) : x).ToList());                
+            await Task.Delay(400);
+            handler.SendColorsToUdp(handler.DeviceList);
+       
+    }
+    protected void LoopAll()
+    {
+        LoopAll((config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3),1);
+    }
+    protected void LoopAll(string basecolor, int frequency)
+    {
+        for (int i = 0; i < frequency; i++)
+        {
+            foreach (var handler in udpHandlers)
+            {
+                var deepCopiedList = handlerDevices[handler].Select(x => basecolor).ToList();
+                // handler.SendColorsToUdp(deepCopiedList);
+
+                var loopColor = gameColors[random.Next(gameColors.Count - 1)];
+                for (int j = 0; j < handlerDevices[handler].Count; j++)
+                {
+                    deepCopiedList[j] = loopColor;
+                    handler.SendColorsToUdp(deepCopiedList);
+                    Thread.Sleep(100);
+                    deepCopiedList[j] = basecolor;
+                    handler.SendColorsToUdp(deepCopiedList);
+                    Thread.Sleep(100);
+                }
+
+                LogData($"LoopAll: {string.Join(",", deepCopiedList)}");
+            }
+        }
+    }
+
+    protected List<string> getColorList()
+    {
+        List<string> colorList = new List<string>();
+
+
+        // Get all public static string fields from ColorPalette
+        _FieldInfo[] fields;
+        if(config.NoofLedPerdevice==3)
+           fields = typeof(ColorPalette).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        else
+            fields = typeof(ColorPaletteone).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+
+
+        foreach (var field in fields)
+        {
+            if (field.FieldType == typeof(string))
+            {
+                string value = (string)field.GetValue(null); // null because it's a static field
+                colorList.Add(value);
+            }
+        }
+        return colorList;
+    }
+}

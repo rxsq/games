@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 public class UdpHandler
@@ -12,48 +13,95 @@ public class UdpHandler
     private string destinationIpAddress;
     private int destinationPort;
     private int sourcePort;
-    public IPEndPoint RemoteEndPoint; // Changed from property to field
+    public IPEndPoint RemoteEndPoint;
     private string logFile;
-    public UdpHandler(string ipAddress, int destPort, int srcPort,string logfile)
+    private AsyncLogger logger;
+    private bool receiving;
+    public  int ColumnCount;
+
+    public List<string> DeviceList { get; private set; }
+
+    public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice)
     {
         destinationIpAddress = ipAddress;
         destinationPort = destPort;
         sourcePort = srcPort;
 
+       
+        udpClient2 = new UdpClient(receiverPort);
         udpClient = new UdpClient(sourcePort);
-        udpClient2 = new UdpClient(20105);
         RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        logFile = logfile;
+        logFile = $"{DateTime.Now:HHmmssfef} {logfile}";
+        logger = new AsyncLogger(logFile);
+        DeviceList = ReceiveMessage(noofledPerdevice);
+       
+        receiving = false;
     }
+    public List<string>  ReceiveMessage( int noofledPerdevice)
+    {
+      byte[] t= udpClient2.Receive(ref RemoteEndPoint);
+        int o;
+        int noofdevices = Math.DivRem(( t.Length - 2),noofledPerdevice, out o);
 
+       var l = new List<string>(noofdevices);
+        for (int i = 0; i < noofdevices; i++)
+            l.Add("000000");
+                return l;
+    }
     public void BeginReceive(Action<byte[]> receiveCallback)
     {
-        udpClient2.BeginReceive(ar =>
+        try
         {
-            try
+            if (udpClient2 == null)
             {
-                byte[] receivedBytes = udpClient2.EndReceive(ar, ref RemoteEndPoint);
-                receiveCallback(receivedBytes);
+                return;
             }
-            catch (Exception ex)
+            receiving = true;
+            udpClient2.BeginReceive(ar =>
             {
-                Console.WriteLine($"Error receiving UDP data: {ex.Message}");
-                BeginReceive(receiveCallback);
-            }
-        }, null);
+                if (receiving)
+                {
+                    byte[] receivedBytes = udpClient2.EndReceive(ar, ref RemoteEndPoint);
+                    receiveCallback(receivedBytes);
+                }
+
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            LogData(ex.StackTrace);
+
+        }
     }
 
-    public void SendColorsToUdp(List<string> colorList)
+    public void StopReceive()
+    {
+        receiving = false;
+    }
+
+    public async void SendColorsToUdp(List<string> colorList)
     {
         byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
         udpClient.Send(data, data.Length, destinationIpAddress, destinationPort);
-        Console.WriteLine($"ffff{string.Join("", colorList)}");
-        LogData($"ffff{string.Join("", colorList)}");
+        LogData($"Sent data: ffff{string.Join("", colorList)} at {destinationPort}");
+    }
+    public async Task SendColorsToUdpAsync(List<string> colorList)
+    {
+        byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
+        try
+        {
+            await udpClient.SendAsync(data, data.Length, destinationIpAddress, destinationPort);
+            Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending data: {ex.Message}");
+        }
     }
 
     private byte[] HexStringToByteArray(string hex)
     {
-        hex = hex.Replace(" ", "");
+      //  hex = hex.Replace(" ", "");
         byte[] bytes = new byte[hex.Length / 2];
         for (int i = 0; i < bytes.Length; i++)
         {
@@ -61,10 +109,18 @@ public class UdpHandler
         }
         return bytes;
     }
+
     private void LogData(string message)
     {
-        string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}";
-        File.AppendAllText(logFile, logMessage + Environment.NewLine);
+        string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fef} {message}";
+        logger.Log(logMessage + Environment.NewLine);
         Console.WriteLine(logMessage);
+    }
+
+    public void Close()
+    {
+        StopReceive();
+        udpClient.Close();
+        udpClient2.Close();
     }
 }
