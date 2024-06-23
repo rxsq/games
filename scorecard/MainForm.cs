@@ -1,194 +1,126 @@
-﻿using System;
+﻿using scorecard.lib;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Runtime.InteropServices;
+using System.Reflection.Emit;
 using System.Windows.Forms;
-using SkiaSharp;
+using Timer = System.Windows.Forms.Timer;
 
-public class MainForm : Form
+public partial class MainForm : Form
 {
-    private Label lblTitle;
-    private Button btnTargetGame;
-    private Button btnSmashGame;
-    private Button btnChaserGame;
-    private TextBox txtGameDescription;
-    private Panel panelBackground;
-    private PictureBox movingBackground;
-    private Label lblScore;
-    private Label lblLevel;
-    private ProgressBar progressBar;
-    private int score;
-    private int level;
+    private List<Point> stars;
+    private Timer starTimer;
+    private Random random = new Random();
 
     public MainForm()
     {
         InitializeComponent();
-        UpdateUI();
+        LoadPictures();
+        InitializeStars();
+      
+        StartStarAnimation();
     }
-
-    private void InitializeComponent()
-    {
-        this.Text = "Game Selection";
-        this.Size = new Size(800, 600);
-        this.BackColor = Color.Black;
-
-        panelBackground = new Panel
-        {
-            Dock = DockStyle.Fill,
-            BackgroundImage = LoadWebPImage("content/background.webp"),
-            BackgroundImageLayout = ImageLayout.Stretch
-        };
-
-        movingBackground = new PictureBox
-        {
-            Image = LoadWebPImage("content/moving_effect.webp"),
-            SizeMode = PictureBoxSizeMode.StretchImage,
-            Dock = DockStyle.Fill
-        };
-
-        lblTitle = new Label
-        {
-            Text = "Select Your Game",
-            Font = new Font("Arial", 24, FontStyle.Bold),
-            ForeColor = Color.White,
-            TextAlign = ContentAlignment.MiddleCenter,
-            Dock = DockStyle.Top,
-            Height = 50
-        };
-
-        btnTargetGame = new Button
-        {
-            Text = "Target Game",
-            Font = new Font("Arial", 16, FontStyle.Bold),
-            Size = new Size(200, 50),
-            Location = new Point(300, 100),
-            BackColor = Color.Black,
-            ForeColor = Color.White,
-            FlatStyle = FlatStyle.Flat
-        };
-        btnTargetGame.FlatAppearance.BorderColor = Color.LimeGreen;
-        btnTargetGame.FlatAppearance.BorderSize = 2;
-        btnTargetGame.Click += (sender, e) => StartGame("Target");
-
-        btnSmashGame = new Button
-        {
-            Text = "Smash Game",
-            Font = new Font("Arial", 16, FontStyle.Bold),
-            Size = new Size(200, 50),
-            Location = new Point(300, 200),
-            BackColor = Color.Black,
-            ForeColor = Color.White,
-            FlatStyle = FlatStyle.Flat
-        };
-        btnSmashGame.FlatAppearance.BorderColor = Color.DeepPink;
-        btnSmashGame.FlatAppearance.BorderSize = 2;
-        btnSmashGame.Click += (sender, e) => StartGame("Smash");
-
-        btnChaserGame = new Button
-        {
-            Text = "Chaser Game",
-            Font = new Font("Arial", 16, FontStyle.Bold),
-            Size = new Size(200, 50),
-            Location = new Point(300, 300),
-            BackColor = Color.Black,
-            ForeColor = Color.White,
-            FlatStyle = FlatStyle.Flat
-        };
-        btnChaserGame.FlatAppearance.BorderColor = Color.Cyan;
-        btnChaserGame.FlatAppearance.BorderSize = 2;
-        btnChaserGame.Click += (sender, e) => StartGame("Chaser");
-
-        txtGameDescription = new TextBox
-        {
-            Font = new Font("Arial", 14),
-            ForeColor = Color.White,
-            BackColor = Color.Black,
-            Multiline = true,
-            ReadOnly = true,
-            Size = new Size(600, 150),
-            Location = new Point(100, 400),
-            BorderStyle = BorderStyle.None
-        };
-
-        lblScore = new Label
-        {
-            Text = "Score: 0",
-            Font = new Font("Arial", 14, FontStyle.Bold),
-            ForeColor = Color.White,
-            Location = new Point(10, 60),
-            Width = 100
-        };
-
-        lblLevel = new Label
-        {
-            Text = "Level: 1",
-            Font = new Font("Arial", 14, FontStyle.Bold),
-            ForeColor = Color.White,
-            Location = new Point(10, 90),
-            Width = 100
-        };
-
-        progressBar = new ProgressBar
-        {
-            Location = new Point(10, 120),
-            Width = 200,
-            Height = 20,
-            Maximum = 100
-        };
-
-        this.Controls.Add(panelBackground);
-        panelBackground.Controls.Add(movingBackground);
-        panelBackground.Controls.Add(lblTitle);
-        panelBackground.Controls.Add(btnTargetGame);
-        panelBackground.Controls.Add(btnSmashGame);
-        panelBackground.Controls.Add(btnChaserGame);
-        panelBackground.Controls.Add(txtGameDescription);
-        panelBackground.Controls.Add(lblScore);
-        panelBackground.Controls.Add(lblLevel);
-        panelBackground.Controls.Add(progressBar);
-
-        // Ensure buttons and labels are on top
-        lblTitle.BringToFront();
-        btnTargetGame.BringToFront();
-        btnSmashGame.BringToFront();
-        btnChaserGame.BringToFront();
-        txtGameDescription.BringToFront();
-        lblScore.BringToFront();
-        lblLevel.BringToFront();
-        progressBar.BringToFront();
-    }
-    BaseGame currentGame;
+    BaseGame currentGame = null;
     private void StartGame(string gameType)
     {
         ShowGameDescription(gameType, GetGameDescription(gameType));
         // Start the selected game
+        if(currentGame != null )
+        {
+            currentGame.EndGame();
+        }
         switch (gameType)
         {
             case "Target":
-               
-                   
-                    currentGame = new Target(TimeSpan.FromMinutes(1), "c:\\games\\logs\\target_game_log.log", new UdpHandler("192.168.0.7", 21, 7113, "c:\\games\\logs\\udp_log.log"), new MusicPlayer());
-                    currentGame.StartGame();
-               
-
+                currentGame = new Target(new GameConfig { Maxiterations = 2, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 30, ReductionTimeEachLevel = 5, NoofLedPerdevice =3},18);
                 break;
             case "Smash":
-               
-                currentGame = new Smash(TimeSpan.FromMinutes(1), "c:\\games\\logs\\target_game_log.log", new UdpHandler("192.168.0.7", 21, 7113, "c:\\games\\logs\\udp_log.log"), new MusicPlayer());
-                currentGame.StartGame();
+                currentGame = new Smash(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 },.2);
                 break;
             case "Chaser":
-              //  currentGame?.EndGame();
-              //  currentGame = new LightChaserGame(TimeSpan.FromMinutes(1), "c:\\games\\logs\\target_game_log.log", new UdpHandler("192.168.0.7", 21, 7113, "c:\\games\\logs\\udp_log.log"), new MusicPlayer());
-             //   currentGame.StartGame();
+                currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
+                break;
+            case "FloorGame":
+                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers=2},5);
                 break;
         }
-
-        // Example of updating UI based on game start
-        score = 0;
-        level = 1;
-        UpdateUI();
+        currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
+        currentGame.ScoreChanged += CurrentGame_ScoreChanged;
+        currentGame.LevelChanged += CurrentGame_LevelChanged;
+        currentGame.StatusChanged += CurrentGame_StatusChanged;
+        currentGame?.StartGame();
     }
+
+    private void CurrentGame_StatusChanged(object sender, string status)
+    {
+        if (lblStatus.InvokeRequired)
+        {
+            lblStatus.Invoke(new Action(() => lblStatus.Text = $"{status}"));
+        }
+    }
+
+    private void CurrentGame_LevelChanged(object sender, int level)
+    {
+        if(lblLabel.InvokeRequired )
+        {
+            lblLabel.Invoke(new Action(() => lblLabel.Text = $"Level: {level}"));
+        }
+    }
+    private void LoadPictures()
+    {
+       
+          
+               pictureBox1.BackgroundImage = Image.FromFile("content/heart_green.png");
+         pictureBox2.BackgroundImage = Image.FromFile("content/heart_green.png");
+
+
+        pictureBox3.BackgroundImage = Image.FromFile("content/heart_green.png");
+
+
+        pictureBox4.BackgroundImage = Image.FromFile("content/heart_green.png");
+
+
+        pictureBox5.BackgroundImage = Image.FromFile("content/heart_green.png");
+          
+    }
+    private void CurrentGame_LifeLineChanged(object sender, int newLIfe)
+    {
+        if (newLIfe == 0)
+         if (pictureBox1.InvokeRequired)
+        {
+            pictureBox1.Invoke(new Action(() => pictureBox1.BackgroundImage = Image.FromFile("content/heart_gray.png")));
+        }
+        if (newLIfe == 1)
+        if (pictureBox2.InvokeRequired)
+        {
+            pictureBox2.Invoke(new Action(() => pictureBox2.BackgroundImage = Image.FromFile("content/heart_gray.png")));
+        }
+        if (newLIfe == 2)
+            if (pictureBox3.InvokeRequired)
+            {
+                pictureBox3.Invoke(new Action(() => pictureBox3.BackgroundImage = Image.FromFile("content/heart_gray.png")));
+            }
+        if (newLIfe == 3)
+            if (pictureBox4.InvokeRequired)
+            {
+                pictureBox1.Invoke(new Action(() => pictureBox4.BackgroundImage = Image.FromFile("content/heart_gray.png")));
+            }
+        if (newLIfe == 4)
+            if (pictureBox5.InvokeRequired)
+            {
+                pictureBox5.Invoke(new Action(() => pictureBox5.BackgroundImage = Image.FromFile("content/heart_gray.png")));
+            }
+    }
+    private void CurrentGame_ScoreChanged(object sender, int newScore)
+    {
+        if (lblScore1.InvokeRequired)
+        {
+            lblScore1.Invoke(new Action(() =>  lblScore1.Text = $"Score: {newScore}"));
+        }
+       // lblScore1.Text = $"Score: {newScore}";
+    }
+
+   
 
     private string GetGameDescription(string gameType)
     {
@@ -200,6 +132,8 @@ public class MainForm : Form
                 return "In the Smash Game, smash the targets that light up. The faster you smash, the higher your score.";
             case "Chaser":
                 return "In the Chaser Game, chase and hit the moving targets. Stay quick and keep up to score points.";
+            case "FloorGame":
+                return "Players aim to step on the highlighted tiles as quickly as possible. The game lights up a set of target tiles, and players need to hit these targets within the given time.";
             default:
                 return "";
         }
@@ -207,49 +141,60 @@ public class MainForm : Form
 
     private void ShowGameDescription(string gameTitle, string description)
     {
-        txtGameDescription.Text = $"{gameTitle}\r\n\r\n{description}";
-    }
-
-    private void UpdateUI()
-    {
-        lblScore.Text = $"Score: {score}";
-        lblLevel.Text = $"Level: {level}";
-        progressBar.Value = 0;
-    }
-
-    private Image LoadWebPImage(string filePath)
-    {
-        using (var inputStream = new SKManagedStream(File.OpenRead(filePath)))
-        {
-            using (var codec = SKCodec.Create(inputStream))
-            {
-                var info = codec.Info;
-                var bitmap = new SKBitmap(info.Width, info.Height);
-                var result = codec.GetPixels(bitmap.Info, bitmap.GetPixels());
-
-                if (result == SKCodecResult.Success || result == SKCodecResult.IncompleteInput)
-                {
-                    return BitmapFromSKBitmap(bitmap);
-                }
-                else
-                {
-                    throw new Exception("Failed to load WebP image.");
-                }
-            }
-        }
-    }
-
-    private Bitmap BitmapFromSKBitmap(SKBitmap skBitmap)
-    {
-        var image = SKImage.FromBitmap(skBitmap);
-        var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using (var stream = new MemoryStream())
-        {
-            data.SaveTo(stream);
-            stream.Position = 0;
-            return new Bitmap(stream);
-        }
+        txtGameDescription1.Text = $"{gameTitle}\r\n\r\n{description}";
     }
 
    
+
+    private void InitializeStars()
+    {
+        stars = new List<Point>();
+        for (int i = 0; i < 50; i++) // Create 50 stars
+        {
+            stars.Add(new Point(random.Next(this.Width), random.Next(this.Height)));
+        }
+    }
+
+    private void StartStarAnimation()
+    {
+        starTimer = new Timer();
+        starTimer.Interval = 50; // Update every 50 milliseconds
+        starTimer.Tick += (sender, e) => MoveStars();
+        starTimer.Start();
+    }
+
+    private void MoveStars()
+    {
+        for (int i = 0; i < stars.Count; i++)
+        {
+            stars[i] = new Point(stars[i].X, stars[i].Y + 5); // Move star down
+            if (stars[i].Y > this.Height)
+            {
+                stars[i] = new Point(random.Next(this.Width), 0); // Reset star to top
+            }
+        }
+        panel1.Invalidate();
+    }
+
+    private void MainForm_Paint(object sender, PaintEventArgs e)
+    {
+        ControlPaint.DrawBorder(e.Graphics, this.ClientRectangle,
+            Color.LimeGreen, 10, ButtonBorderStyle.Solid, // Left
+            Color.LimeGreen, 10, ButtonBorderStyle.Solid, // Top
+            Color.LimeGreen, 10, ButtonBorderStyle.Solid, // Right
+            Color.LimeGreen, 10, ButtonBorderStyle.Solid); // Bottom
+    }
+
+    private void panelBackground_Paint(object sender, PaintEventArgs e)
+    {
+        foreach (var star in stars)
+        {
+            e.Graphics.FillEllipse(Brushes.White, star.X, star.Y, 3, 3); // Draw star as white dot
+        }
+    }
+
+    private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        StartGame(comboBox1.SelectedItem.ToString());
+    }
 }
