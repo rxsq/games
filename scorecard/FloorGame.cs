@@ -1,4 +1,5 @@
-﻿using scorecard.lib;
+﻿using scorecard;
+using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-public class FloorGame : BaseGame
+public class FloorGame : BaseMultiDevice
 {
    // private List<string> colors = new List<string> { ColorPaletteone.Green, ColorPaletteone.Red, ColorPaletteone.Blue };
-    private int rows = 2;
 
 
 
@@ -114,37 +114,6 @@ public class FloorGame : BaseGame
 
             extraTargets = Math.Max(0, extraTargets - 1);
             handler.SendColorsToUdp(handlerDevices[handler]);
-        }
-    }
-
-   
-
-    private void AnimateColor(bool reverse)
-    {
-        for (int iterations = 0; iterations < rows; iterations++)
-        {
-            foreach (var handler in udpHandlers)
-            {
-                for (int i = 0; i < handlerDevices[handler].Count; i++)
-                {
-                    handlerDevices[handler][i] = ColorPaletteone.NoColor;
-                }
-
-                int row = (iterations / handler.ColumnCount) % 2 == 0 ? (iterations % handler.ColumnCount) : 3 - (iterations % handler.ColumnCount);
-
-                if (reverse)
-                {
-                    row = rows - row - 1;
-                }
-
-                for (int i = 0; i < handler.ColumnCount; i++)
-                {
-                    handlerDevices[handler][row * handler.ColumnCount + i] = ColorPaletteone.Green;
-                }
-
-                handler.SendColorsToUdp(handlerDevices[handler]);
-                Thread.Sleep(100);
-            }
         }
     }
 

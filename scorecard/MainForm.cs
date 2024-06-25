@@ -41,8 +41,10 @@ public partial class MainForm : Form
                 currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
                 break;
             case "FloorGame":
-                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers=2},5);
+                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2 }, 5);
+                break;
             case "PatternBuilder":
+                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2 }, 10);
                 break;
         }
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
@@ -135,6 +137,8 @@ public partial class MainForm : Form
                 return "In the Chaser Game, chase and hit the moving targets. Stay quick and keep up to score points.";
             case "FloorGame":
                 return "Players aim to step on the highlighted tiles as quickly as possible. The game lights up a set of target tiles, and players need to hit these targets within the given time.";
+            case "PatternBuilder":
+                return "Players must recreate a pattern based off memory as quickly as possible. Each correct pattern earns a point.";
             default:
                 return "";
         }

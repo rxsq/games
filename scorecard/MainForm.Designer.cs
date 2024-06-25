@@ -7,7 +7,6 @@ partial class MainForm
 {
     private void InitializeComponent()
     {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.lblStatus = new System.Windows.Forms.Label();
@@ -39,7 +38,8 @@ partial class MainForm
             "Target",
             "Smash",
             "Chaser",
-            "FloorGame"});
+            "FloorGame",
+            "PatternBuilder"});
             this.comboBox1.Location = new System.Drawing.Point(23, 134);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(179, 21);
@@ -103,7 +103,6 @@ partial class MainForm
             // 
             // pictureBox5
             // 
-            this.pictureBox5.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox5.Image")));
             this.pictureBox5.InitialImage = null;
             this.pictureBox5.Location = new System.Drawing.Point(822, 190);
             this.pictureBox5.Name = "pictureBox5";
@@ -113,7 +112,6 @@ partial class MainForm
             // 
             // pictureBox4
             // 
-            this.pictureBox4.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox4.Image")));
             this.pictureBox4.InitialImage = null;
             this.pictureBox4.Location = new System.Drawing.Point(697, 190);
             this.pictureBox4.Name = "pictureBox4";
@@ -123,7 +121,6 @@ partial class MainForm
             // 
             // pictureBox3
             // 
-            this.pictureBox3.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox3.Image")));
             this.pictureBox3.InitialImage = null;
             this.pictureBox3.Location = new System.Drawing.Point(420, 190);
             this.pictureBox3.Name = "pictureBox3";
@@ -133,7 +130,6 @@ partial class MainForm
             // 
             // pictureBox2
             // 
-            this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
             this.pictureBox2.InitialImage = null;
             this.pictureBox2.Location = new System.Drawing.Point(553, 190);
             this.pictureBox2.Name = "pictureBox2";
@@ -181,7 +177,6 @@ partial class MainForm
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.InitialImage = null;
             this.pictureBox1.Location = new System.Drawing.Point(290, 190);
             this.pictureBox1.Name = "pictureBox1";

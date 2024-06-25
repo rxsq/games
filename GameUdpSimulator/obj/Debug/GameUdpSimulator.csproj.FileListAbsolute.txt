@@ -1,0 +1,10 @@
+C:\Users\User\Source\Repos\games\GameUdpSimulator\bin\Debug\GameUdpSimulator.exe.config
+C:\Users\User\Source\Repos\games\GameUdpSimulator\bin\Debug\GameUdpSimulator.exe
+C:\Users\User\Source\Repos\games\GameUdpSimulator\bin\Debug\GameUdpSimulator.pdb
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\GameUdpSimulator.csproj.AssemblyReference.cache
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\MainForm.resources
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\GameUdpSimulator.Properties.Resources.resources
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\GameUdpSimulator.csproj.GenerateResource.cache
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\GameUdpSimulator.csproj.CoreCompileInputs.cache
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\GameUdpSimulator.exe
+C:\Users\User\Source\Repos\games\GameUdpSimulator\obj\Debug\GameUdpSimulator.pdb

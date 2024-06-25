@@ -94,6 +94,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseMultiDevice.cs" />
     <Compile Include="BaseSingleDevice.cs" />
     <Compile Include="Chaser.cs" />
     <Compile Include="lib\Animations.cs" />
@@ -101,6 +102,7 @@
     <Compile Include="lib\BaseGame.cs" />
     <Compile Include="FloorGame.cs" />
     <Compile Include="lib\GameConfig.cs" />
+    <Compile Include="PatternBuilder.cs" />
     <Compile Include="Smash.cs" />
     <Compile Include="Target.cs" />
     <Compile Include="MainForm.cs">

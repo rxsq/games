@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\GameUdpSimulator\\bin",
+    "\\GameUdpSimulator\\bin\\Debug",
+    "\\scorecard",
+    "\\scorecard\\bin",
+    "\\scorecard\\lib",
+    "\\scorecard\\obj",
+    "\\scorecard\\obj\\Debug"
+  ],
+  "SelectedNode": "\\scorecard\\lib\\ColorPalette.cs",
+  "PreviewInSolutionExplorer": false
+}

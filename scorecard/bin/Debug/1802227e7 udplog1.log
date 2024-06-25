@@ -1,0 +1,15 @@
+2024-06-23 18:02:25.9e9 2024-06-23 18:02:25.9e9 Sent data: ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 at 22
+
+2024-06-23 18:02:30.4e4 2024-06-23 18:02:30.4e4 Sent data: ffff000000fe0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 at 22
+
+2024-06-23 18:02:30.4e4 2024-06-23 18:02:30.4e4 Sent data: ffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 at 22
+
+2024-06-23 18:03:01.1e1 2024-06-23 18:03:01.1e1    at System.Net.Sockets.UdpClient.BeginReceive(AsyncCallback requestCallback, Object state)
+   at UdpHandler.BeginReceive(Action`1 receiveCallback) in C:\Users\User\Source\Repos\games\scorecard\lib\UdpHandler.cs:line 60
+
+2024-06-23 18:03:01.3e3 2024-06-23 18:03:01.3e3    at System.Net.Sockets.UdpClient.BeginReceive(AsyncCallback requestCallback, Object state)
+   at UdpHandler.BeginReceive(Action`1 receiveCallback) in C:\Users\User\Source\Repos\games\scorecard\lib\UdpHandler.cs:line 60
+
+2024-06-23 18:03:11.3e3 2024-06-23 18:03:11.3e3    at System.Net.Sockets.UdpClient.BeginReceive(AsyncCallback requestCallback, Object state)
+   at UdpHandler.BeginReceive(Action`1 receiveCallback) in C:\Users\User\Source\Repos\games\scorecard\lib\UdpHandler.cs:line 60
+

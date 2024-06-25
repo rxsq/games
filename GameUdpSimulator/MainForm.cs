@@ -97,22 +97,36 @@ public partial class MainForm : Form
     private void GeneratePanels(int count)
     {
         panels = new List<Panel>();
-        int panelWidth = panelContainer.Width / count - 10;
-        int panelHeight = panelContainer.Height - 20;
+
+        // Calculate button size and margin
+        int buttonSize = 50;
+        int margin = 10;
+        int buttonsPerPanel = numberOfButtons / count;
+        int remainingButtons = numberOfButtons % count;
+
+        // Calculate the maximum number of rows required for any panel
+        int maxRows = (int)Math.Ceiling((double)(buttonsPerPanel + (remainingButtons > 0 ? 1 : 0)) / buttonsPerRow);
+
+        // Calculate panel width and height based on the number of buttons per row and the maximum number of rows
+        int panelWidth = (buttonsPerRow * (buttonSize + margin)) - margin + 20;
+        int panelHeight = (maxRows * (buttonSize + margin)) - margin + 20;
 
         for (int i = 0; i < count; i++)
         {
             Panel panel = new Panel
             {
-                Size = new Size(panelWidth, panelHeight),
+                Size = new Size(panelWidth, panelHeight+100),
                 Location = new Point(i * (panelWidth + 10) + 10, 10),
                 BorderStyle = BorderStyle.FixedSingle
+                
             };
-
+            panelContainer.Width= (panelWidth*2)+50;
+            panelContainer.Height = (panelHeight)+100;
             panelContainer.Controls.Add(panel);
             panels.Add(panel);
         }
     }
+
 
     protected void StartReceivingMessages()
     {
@@ -171,7 +185,7 @@ public partial class MainForm : Form
         for (int i = 0; i < numberOfButtons; i++)
         {
             int row = i / buttonsPerRow;
-            int column = i % buttonsPerRow;
+            int column = (row % 2 == 1) ? buttonsPerRow - 1 - (i % buttonsPerRow) : i % buttonsPerRow;
             int x = startX + column * (buttonSize + margin);
             int y = startY + row * (buttonSize + margin);
 
@@ -182,7 +196,9 @@ public partial class MainForm : Form
                 BackColor = buttonColor,
                 Text = (i).ToString(),
                 Name = $"target{i}",
-                Tag = i
+                Tag = i,
+                ForeColor = Color.White
+
             };
 
             button.Click += Button_Click;
@@ -216,7 +232,7 @@ public partial class MainForm : Form
         var udpSender = handlerDevices.FirstOrDefault(kv => kv.Value == parentPanel).Key;
         udpSender?.SendAsync(getMessage(buttonNumber, parentPanel));
 
-        MessageBox.Show($"Button {buttonNumber} clicked!");
+       
     }
 
     private string getMessage(int buttonNumber, Control pnl)

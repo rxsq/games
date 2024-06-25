@@ -32,7 +32,7 @@ public partial class MainForm : Form
             this.txtNumberOfButtons.Name = "txtNumberOfButtons";
             this.txtNumberOfButtons.Size = new System.Drawing.Size(100, 20);
             this.txtNumberOfButtons.TabIndex = 1;
-            this.txtNumberOfButtons.Text = "50";
+            this.txtNumberOfButtons.Text = "200";
             // 
             // lblButtonsPerRow
             // 
@@ -49,7 +49,7 @@ public partial class MainForm : Form
             this.txtButtonsPerRow.Name = "txtButtonsPerRow";
             this.txtButtonsPerRow.Size = new System.Drawing.Size(100, 20);
             this.txtButtonsPerRow.TabIndex = 3;
-            this.txtButtonsPerRow.Text = "5";
+            this.txtButtonsPerRow.Text = "10";
             // 
             // lblControllersCount
             // 
@@ -66,7 +66,7 @@ public partial class MainForm : Form
             this.txtControllersCount.Name = "txtControllersCount";
             this.txtControllersCount.Size = new System.Drawing.Size(100, 20);
             this.txtControllersCount.TabIndex = 5;
-            this.txtControllersCount.Text = "1";
+            this.txtControllersCount.Text = "2";
             // 
             // btnGenerateButtons
             // 
@@ -87,7 +87,7 @@ public partial class MainForm : Form
             // 
             // MainForm
             // 
-            this.ClientSize = new System.Drawing.Size(976, 572);
+            this.ClientSize = new System.Drawing.Size(1584, 1061);
             this.Controls.Add(this.lblNumberOfButtons);
             this.Controls.Add(this.txtNumberOfButtons);
             this.Controls.Add(this.lblButtonsPerRow);
