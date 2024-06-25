@@ -42,6 +42,7 @@ public partial class MainForm : Form
                 break;
             case "FloorGame":
                 currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers=2},5);
+            case "PatternBuilder":
                 break;
         }
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
