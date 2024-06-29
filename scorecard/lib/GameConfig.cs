@@ -19,6 +19,6 @@ namespace scorecard.lib
         public int SocketBReceiverPort { get; internal set; } = 20105;
         public int NoOfControllers { get; internal set; } = 1;
         public int NoofLedPerdevice { get; internal set; } = 1;
-
+        public int columns { get; set; } = 14;
     }
 }

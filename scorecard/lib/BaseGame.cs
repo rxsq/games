@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Drawing;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+using System.Diagnostics.Eventing.Reader;
 public abstract class BaseGame
 {
     protected List<UdpHandler> udpHandlers;
@@ -31,7 +32,7 @@ public abstract class BaseGame
     private string status { get; set; }
     protected int level = 1;
     protected List<string> gameColors = new List<string>();
-
+    protected bool isGameRunning = false;
     public string Status
     {
         get { return status; }
@@ -107,12 +108,12 @@ public abstract class BaseGame
         this.config = config;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer();
-        musicPlayer.PlayBackgroundMusic("content/background_music.mp3");
+        musicPlayer.PlayBackgroundMusic("content/background_music.wav");
         udpHandlers = new List<UdpHandler>();
-        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice));
+        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns));
         if (config.NoOfControllers > 1)
         {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + 1, config.RemotePort + 1, $"udplog1.log", config.SocketBReceiverPort+1, config.NoofLedPerdevice ));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + 1, config.RemotePort + 1, $"udplog1.log", config.SocketBReceiverPort+1, config.NoofLedPerdevice, config.columns));
         }
 
         initializeDevices();
@@ -140,6 +141,7 @@ public abstract class BaseGame
         Thread.Sleep(3000); // Countdown
         Initialize();
         OnStart();
+        isGameRunning = true;
         // Start target timer
         iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
 
@@ -147,7 +149,7 @@ public abstract class BaseGame
 
     protected virtual void TargetTimeElapsed(object state)
     {
-
+        isGameRunning = false;
         LogData($"iteration failed within {IterationTime} second");
         musicPlayer.PlayEfeect("content/you failed.mp3");
         iterationTimer.Dispose();
@@ -155,6 +157,7 @@ public abstract class BaseGame
         Status = $"Lost Lifeline {LifeLine}";
         if (lifeLine <= 0)
         {
+            
             musicPlayer.PlayEfeect("content/GameLostZeroLifeLine.mp3");
             EndGame();
             musicPlayer.StopAllMusic();
@@ -165,12 +168,14 @@ public abstract class BaseGame
 
             iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
             OnStart();
+            isGameRunning = true;
         }
 
     }
-
+  
     protected virtual void OnIteration()
     {
+        
     }
     public void EndGame()
     {
@@ -212,8 +217,32 @@ public abstract class BaseGame
         }
 
     }
+    protected void SendSameColorToAllDevice(string color, bool reset)
+    {
+        if (reset)
+        {
+            foreach (var handler in udpHandlers)
+            {
+                for (int x = 0; x < handler.DeviceList.Count; x++)
+                {
+                    handlerDevices[handler][x] = color;
+                }
+                handler.SendColorsToUdp(handlerDevices[handler]);
+            }
+
+        }
+        else
+        {
+            foreach (var handler in udpHandlers)
+            {
+                handler.SendColorsToUdp(handlerDevices[handler].Select(x => color).ToList());
+            }
+        }
+
+    }
     protected void MoveToNextIteration()
     {
+        isGameRunning = false;
         LogData("All targets hit");
         
         iterationTimer.Dispose();
@@ -248,6 +277,7 @@ public abstract class BaseGame
         if (IterationTime > 0)
         {
             OnStart();
+            isGameRunning = true;
             iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime);
             LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
         }
@@ -262,11 +292,13 @@ public abstract class BaseGame
     {
         try
         {
+            Console.WriteLine($"before change: {string.Join(",", handlerDevices[handler])}");
             foreach (int x in deviceNos)
             {
                 handlerDevices[handler][x] = color;
             }
             handler.SendColorsToUdp(handlerDevices[handler]);
+            Console.WriteLine($"after change: {string.Join(",", handlerDevices[handler])}");
         }
         catch (Exception ex)
         {
@@ -274,7 +306,29 @@ public abstract class BaseGame
            // ChnageColorToDevice(color, deviceNo, handler);
         }
     }
-    protected async Task BlinkAllAsync(int nooftimes)
+
+    protected void SendColorToDevices(string color, bool isDeviceToBeUpdate)
+    {
+       
+            var tasks = new List<Task>();
+        foreach (var handler in udpHandlers)
+        {
+            if (isDeviceToBeUpdate)
+            {
+                for (int x = 0; x < handlerDevices[handler].Count; x++)
+                {
+                    handlerDevices[handler][x] = color;
+                }
+
+            }
+            var colors = handlerDevices[handler].Select(x => color).ToList();
+            tasks.Add(handler.SendColorsToUdpAsync(colors));
+
+        }
+        Task.WhenAll(tasks);
+    }
+
+    protected void  BlinkAllAsync(int nooftimes)
     {
         for (int i = 0; i < nooftimes; i++)
         {
@@ -285,25 +339,26 @@ public abstract class BaseGame
                 var colors = handlerDevices[handler].Select(x => config.NoofLedPerdevice == 1 ? ColorPaletteone.Yellow : ColorPalette.yellow).ToList();
                 tasks.Add(handler.SendColorsToUdpAsync(colors));
             }
-            await Task.WhenAll(tasks);
-            Thread.Sleep(100);
+            Task.WhenAll(tasks);
+            Thread.Sleep(200);
 
             foreach (var handler in udpHandlers)
             {
                 tasks.Add(handler.SendColorsToUdpAsync(handlerDevices[handler]));
                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
-            await Task.WhenAll(tasks);
-            Thread.Sleep(100);
+            Task.WhenAll(tasks);
+            Thread.Sleep(200);
         }
     }
-    public async Task BlinkLights(HashSet<int> lightIndex,int repeation, UdpHandler handler)
+    public void BlinkLights(List<int> lightIndex,int repeation, UdpHandler handler, string Color)
     {
-        
-            handler.SendColorsToUdp(handler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? (config.NoofLedPerdevice == 1 ? ColorPaletteone.Coral : ColorPalette.CoralGoldSilver) : x).ToList());                
-            await Task.Delay(400);
-            handler.SendColorsToUdp(handler.DeviceList);
-       
+            for (int j = 0; j < repeation; j++)
+            {
+                handler.SendColorsToUdp(handlerDevices[handler].Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
+                Thread.Sleep(1000);
+                handler.SendColorsToUdp(handlerDevices[handler]);
+            }
     }
     protected void LoopAll()
     {

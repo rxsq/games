@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,95 +14,133 @@ namespace scorecard
         public BaseMultiDevice(GameConfig config) : base(config)
         {
         }
-        protected int rows = 10; // Each handler will have a 10x10 grid
+        
 
 
         protected void AnimateColor(bool reverse)
         {
-            for (int iterations = 0; iterations < rows; iterations++)
-            {
+           
                 foreach (var handler in udpHandlers)
+                {
+                for (int iterations = 0; iterations < handler.Rows; iterations++)
                 {
                     for (int i = 0; i < handlerDevices[handler].Count; i++)
                     {
-                        handlerDevices[handler][i] = ColorPaletteone.NoColor;
+                        handlerDevices[handler][i] = ColorPaletteone.Red;
                     }
 
-                    int row = (iterations / handler.ColumnCount) % 2 == 0 ? (iterations % handler.ColumnCount) : handler.ColumnCount - 1 - (iterations % handler.ColumnCount);
+                    int row = (iterations / handler.Rows) % 2 == 0 ? (iterations % handler.Rows) : handler.Rows - 1 - (iterations % handler.Rows);
 
                     if (reverse)
                     {
-                        row = rows - row - 1;
+                        row = handler.Rows - row - 1;
                     }
 
-                    for (int i = 0; i < handler.ColumnCount; i++)
+                    for (int i = 0; i < handler.columns; i++)
                     {
-                        handlerDevices[handler][row * handler.ColumnCount + i] = ColorPaletteone.Green;
+                        handlerDevices[handler][row * handler.columns + i] = ColorPaletteone.Green;
                     }
 
                     handler.SendColorsToUdp(handlerDevices[handler]);
-                    Thread.Sleep(100);
+                    Thread.Sleep(75);
                 }
             }
         }
 
-        protected async Task BlinkAllAsync(int times)
-        {
-            for (int i = 0; i < times; i++)
-            {
-                foreach (var handler in udpHandlers)
-                {
-                    await handler.SendColorsToUdpAsync(handlerDevices[handler].Select(x => ColorPaletteone.Yellow).ToList());
-                }
-                await Task.Delay(500);
-                foreach (var handler in udpHandlers)
-                {
-                    await handler.SendColorsToUdpAsync(handlerDevices[handler].Select(x => ColorPaletteone.Red).ToList());
-                }
-                await Task.Delay(500);
-            }
-        }
-        protected List<string> ResequencedPositions(List<string> ColorList, UdpHandler handler)
-        {
-            int columns = handler.ColumnCount;
-            // List<string> OutputColorList = ColorList;
-            Console.WriteLine(string.Join(",", activeIndices[handler]));
-            for (int i = 0; i < rows; i++)
-            {
-                if (i % 2 == 0)
-                {
-                    //for (int j = 0; j < columns; j++)
-                    //{
-                    //    OutputColorList[i * columns + j] = ColorList[i * columns + j];
-                    //}
-                }
-                else
-                {
+        //protected async Task BlinkAllAsync(int times)
+        //{
+        //    for (int i = 0; i < times; i++)
+        //    {
+        //         Gather all tasks for sending yellow color
+        //        var sendYellowTasks = udpHandlers.Select(handler =>
+        //            handler.SendColorsToUdpAsyncOne(handlerDevices[handler].Select(x => ColorPaletteone.Yellow).ToList())
+        //        ).ToList();
 
-                    for (int j = 0; j < columns/2; j++)
+        //         Wait for all yellow color sending tasks to complete
+        //        await Task.WhenAll(sendYellowTasks);
+
+        //        await Task.Delay(500);
+
+        //         Gather all tasks for sending red color
+        //        var sendRedTasks = udpHandlers.Select(handler =>
+        //            handler.SendColorsToUdpAsyncOne(handlerDevices[handler].Select(x => ColorPaletteone.Red).ToList())
+        //        ).ToList();
+
+        //         Wait for all red color sending tasks to complete
+        //        await Task.WhenAll(sendRedTasks);
+
+        //        await Task.Delay(500);
+        //    }
+        //}
+        protected int Resequencer(int index, UdpHandler handler)
+        {
+            int columns = handler.columns;
+            int rows = handler.Rows;
+            int row = index / columns;
+            int column = index % columns;
+            int dest = row % 2 == 0 ? index : (row + 1) * columns - 1 - column;
+            return dest;
+        } 
+        protected List<string> ResequencedPositions(List<string> colorList, UdpHandler handler)
+        {
+            int columns = handler.columns;
+            int rows = handler.Rows;
+            var activeIndicesList = handler.activeDevices.ToList();
+
+            // Find and process devices in odd rows
+            var oddRowIndices = activeIndicesList
+                .Where(index => (index / columns) % 2 != 0)
+                .ToList();
+
+            foreach (var orig in oddRowIndices)
+            {
+                int row = orig / columns;
+                int column = orig % columns;
+                int dest = (row + 1) * columns - 1 - column;
+
+                // Swap colors
+                (colorList[orig], colorList[dest]) = (colorList[dest], colorList[orig]);
+
+                // Update active indices
+                handler.activeDevices[handler.activeDevices.IndexOf(orig)] = dest;
+               
+            }
+
+           LogData($"repalced following ones {string.Join(",", oddRowIndices)}");
+            return colorList;
+        }
+
+        protected List<string> ResequencedPositions1(List<string> colorList,  UdpHandler hangler)
+        {
+           
+            Console.WriteLine($" before resequencing  {string.Join(",", hangler.activeDevices)}");
+            //hold indices in temp list
+          var actind= hangler.activeDevices.Select(x => x).ToList();
+           
+
+            for (int i = 0; i < hangler.Rows; i++)
+            {
+                if (i % 2 != 0)
+                {
+                    for (int j = 0; j < hangler.columns; j++)
                     {
+                        int orig = i * hangler.columns + j;
+                        int dest = (i + 1) * hangler.columns - 1 - j;
 
-
-                        int orig = i * columns + j;
-                        if (activeIndices[handler].Contains(orig))
+                        if (actind.Contains(orig))
                         {
-                            int dest = (i + 1) * columns - 1 - j;
-                            string destColor = ColorList[orig];
-                            string origcolor = ColorList[dest];
-
-                            ColorList[orig] = origcolor;
-                            ColorList[dest] = destColor;
-
-                            activeIndices[handler].Remove(orig);
-                            activeIndices[handler].Add(dest);
-                            //10=19
+                            // Swap colors
+                            (colorList[orig], colorList[dest]) = (colorList[dest], colorList[orig]);
+                            hangler.activeDevices.Remove(orig);
+                            hangler.activeDevices.Add(dest);
                         }
                     }
                 }
             }
-            Console.WriteLine(string.Join(",", activeIndices[handler]));
-            return ColorList;
-
+           // activeIndices[hangler] = activeIndicesp;
+            Console.WriteLine(string.Join(",", hangler.activeDevices));
+            return colorList;
         }
+
     }
 }

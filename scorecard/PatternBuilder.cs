@@ -3,6 +3,8 @@ using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -13,49 +15,65 @@ public class PatternBuilderGame : BaseMultiDevice
 {
   
     private Random random = new Random();
-    private Dictionary<UdpHandler, List<string>> handlerDevices;
+    private Dictionary<string, string[]> pattern = new Dictionary<string, string[]>();
 
-    private static readonly List<string[]> letterPatterns = new List<string[]>
-    {
-        new string[]
-        {
-            "x, y", "x, y+1", "x, y+2", "x, y+3", "x+1, y", "x+1, y+3", "x+2, y", "x+2, y+3", "x+3, y", "x+3, y+1", "x+3, y+2", "x+3, y+3"
-        }, // Letter "A"
-        // Add more letter patterns
-    };
+    //private static readonly List<string[]> letterPatterns = new List<string[]>
+    //{
+    //  //  new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "1, 0", "1, 3", "2, 0","2, 3", "3, 0", "3, 1", "3, 2", "3, 3"},
+    //    //new string[]{"0, 0", "1, 0", "2, 0", "3, 0"},
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 1", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 2", "1, 2", "2, 2", "3, 2", "4, 2" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 0", "0, 3", "1, 0", "1, 3", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 3", "4, 3" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 0" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
+    //    // number 9
+    //    // Add more letter patterns
+    //};
 
-    private static readonly List<string[]> shapePatterns = new List<string[]>
-    {
-        new string[]
-        {
-            "x, y", "x, y+1", "x, y+2", "x, y+3", "x+1, y", "x+1, y+3", "x+2, y", "x+2, y+3", "x+3, y", "x+3, y+1", "x+3, y+2", "x+3, y+3"
-        }, // Square
-        // Add more shape patterns
-    };
+    //private static readonly List<string[]> shapePatterns = new List<string[]>
+    //{
+    //    new string[]
+    //    {
+    //        "0, 0", "0, 1", "0, 2", "0, 3", "1, 0", "1, 3", "2, 0", "2, 3", "3, 0", "3, 1", "3, 2", "3, 3"
+    //    }, // Square
+    //    // Add more shape patterns
+    //};
    
 
-    public PatternBuilderGame(GameConfig config, int gridRows) : base(config)
+    public PatternBuilderGame(GameConfig config) : base(config)
     {
-        rows = gridRows;
-        handlerDevices = new Dictionary<UdpHandler, List<string>>();
-
-        foreach (var handler in udpHandlers)
-        {
-            handler.ColumnCount = handler.DeviceList.Count / rows;
-            handlerDevices[handler] = new List<string>(new string[rows * handler.ColumnCount]);
-        }
+      
     }
 
     protected override void Initialize()
     {
+        pattern.Add("A", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 1", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("B", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 1", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("1", new string[] { "0, 2", "1, 2", "2, 2", "3, 2", "4, 2" });
+        pattern.Add("2", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("3", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("4", new string[] { "0, 0", "0, 3", "1, 0", "1, 3", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 3", "4, 3" });
+        pattern.Add("5", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("6", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("7", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 0" });
+        pattern.Add("8", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("9", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" });
+        pattern.Add("square", new string[] { "0, 0", "0, 1", "0, 2", "0, 3", "1, 0", "1, 3", "2, 0", "2, 3", "3, 0", "3, 1", "3, 2", "3, 3" });
         AnimateColor(false);
         AnimateColor(true);
-        BlinkAllAsync(4);
+        BlinkAllAsync(3);
     }
 
     protected override void OnStart()
     {
         OnIteration();
+        isGameRunning = true;
         foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
@@ -66,9 +84,11 @@ public class PatternBuilderGame : BaseMultiDevice
     {
         base.OnEnd();
     }
-
+    int counter;
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
+        if (!isGameRunning)
+            return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         List<int> positions = receivedData.Select((value, index) => new { value, index })
                                           .Where(x => x.value == 0x0A)
@@ -80,65 +100,83 @@ public class PatternBuilderGame : BaseMultiDevice
         {
             LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
             LogData($"Touch detected: {string.Join(",", positions)}");
-            if (activeIndices[handler].Contains(position))
+            if (handler.activeDevices.Contains(position))
             {
                 LogData("Color change detected");
+
                 base.ChnageColorToDevice(ColorPaletteone.NoColor, position, handler);
-               
-                activeIndices[handler].Remove(position);
+
+                handler.activeDevices.Remove(position);
                 base.Score = base.Score + 1;
-                LogData($"Score updated: {Score}");
+                LogData($"Score updated: {Score} active:{string.Join(",",handler.activeDevices)}");
             }
         }
-
-//        if (activeIndices.Values.All(x => x.Count == 0))
-//        {
-//            BlinkAllAsync(2);
-//            MoveToNextIteration();
-//        }
-//        else
+        counter++;
+        if (udpHandlers.Where(x=> x.activeDevices.Count>0).Count()==0)
         {
+            if (!isGameRunning)
+                return;
+            MoveToNextIteration();
+        }
+        else
+        {
+            if (counter > 100)
+            {
+                //asyn method to blink all
+                BlinkLights(handler.activeDevices.ToList(),2,handler, ColorPaletteone.Green);
+                Console.WriteLine("Flashed");
+                counter = 0;
+            }
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
     }
 
     protected override void OnIteration() 
     {
-        foreach (var handler in udpHandlers)
-        {
-            activeIndices[handler].Clear();
-            for (int i = 0; i < handlerDevices[handler].Count; i++)
-            {
-                handlerDevices[handler][i] = ColorPaletteone.Red;
-                // ResequencedPositions(handlerDevices[handler], handler)[i] = ColorPaletteone.Red;
-            }
-        }
+        SendSameColorToAllDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.PinkCyanMagenta,true);
+        BlinkAllAsync(1);
+       
 
         targetColor = ColorPaletteone.Green;
-        int totalTargets = config.MaxPlayers;
-        int targetsPerHandler = totalTargets / udpHandlers.Count;
-        int extraTargets = totalTargets % udpHandlers.Count;
 
+        string basecolor = ColorPaletteone.Red;
+        
         foreach (var handler in udpHandlers)
         {
-            while (activeIndices[handler].Count < targetsPerHandler + (extraTargets > 0 ? 1 : 0))
+            handler.activeDevices.Clear();
+            for (int i = 0; i < handlerDevices[handler].Count; i++)
             {
-                var pattern = SelectRandomPattern();
-                //PlacePattern(handler, pattern);
-                foreach (var index in pattern)
-                {
-                    activeIndices[handler].Add(index);
-                    handlerDevices[handler][index] = targetColor;
-                }
+                handlerDevices[handler][i] = basecolor;
             }
+            List<int> newActiveIndices = new List<int>();
 
-            extraTargets = Math.Max(0, extraTargets - 1);
-            //   handler.SendColorsToUdp(handlerDevices[handler]);
+           
+            var pattern = SelectRandomPattern(random.Next(0,handler.columns-5), random.Next(0, handler.Rows-5), handler.columns);
+            //PlacePattern(handler, pattern);
+            foreach (var index in pattern)
+            {
+                newActiveIndices.Add(index);
+                handlerDevices[handler][index] = targetColor;
+            }
+           
+            handler.activeDevices.AddRange(newActiveIndices);
+           
+            LogData($"before change: {string.Join(",", newActiveIndices)}");
             handler.SendColorsToUdp(ResequencedPositions(handlerDevices[handler], handler));
-           
-           
+            LogData($"after change: {string.Join(",", handler.activeDevices)}");
+            // handler.SendColorsToUdp(handlerDevices[handler]);
+            //handlerDevices[handler] = cl;
+
+            //   handler.SendColorsToUdp(handlerDevices[handler]);
+            //    handler.SendColorsToUdp(cl);
+
+
         }
-        string x = "";
+        Thread.Sleep(2000);
+        SendColorToDevices(basecolor, true);
+
+
+
     }
 
 
@@ -150,31 +188,26 @@ public class PatternBuilderGame : BaseMultiDevice
         }
     }
 
-    private List<int> SelectRandomPattern()
+    private List<int> SelectRandomPattern(int PosX, int PosY, int columns)
     {
-        var allPatterns = letterPatterns.Concat(shapePatterns).ToList();
-        int randomIndex = random.Next(allPatterns.Count);
-        var selectedPattern = allPatterns[randomIndex];
-        return selectedPattern.Select(tile => ConvertToIndex(tile, 0, 0)).ToList();
+        //        var allPatterns = letterPatterns.Concat(shapePatterns).ToList();
+        int t= random.Next(pattern.Count);
+        var selectedPattern = pattern.ElementAt(t).Value;
+       // var selectedPattern = pattern["6"];
+       LogData($"key: {pattern.ElementAt(t)} selectedPattern: {string.Join(",",selectedPattern)}");
+        return selectedPattern.Select(tile => ConvertToIndex(tile, PosX, PosY, columns)).ToList();
+       // return letterPatterns[0].ToList();
     }
 
-    private int ConvertToIndex(string tile, int x, int y)
+    private int ConvertToIndex(string tile, int x, int y,   int columns)
     {
-        int row;
-        int column;
+        
         var parts = tile.Split(',');
-        var pattern = @"x(\+|-)?(\d+),\s*y(\+|-)?(\d+)";
-        var match = Regex.Match(tile, pattern);
-        //if (int.TryParse(parts[0], out row) == false){
-        //    var segments = parts[0].Split('+');
-        //    Console.WriteLine(string.Join(",", segments[0]));
-        //    if (segments[0] == "x") {row = x + int.Parse(segments[1]);}
-        //    else if (segments[0] == "y") {row = y + int.Parse(segments[1]);}
-
-        //}
-        row = int.Parse(parts[0]);
-        column = int.Parse(parts[1]);
-        return row * rows + column;
+        var row = int.Parse(parts[0]) + y;
+     var   column = int.Parse(parts[1]) + x;
+        if(row * columns + column>139)
+            LogData($"row:{row} column:{column} index:{row * columns + column} x:{x} y:{y}");
+        return row * columns + column;
     }
 
 

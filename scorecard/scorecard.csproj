@@ -101,6 +101,7 @@
     <Compile Include="lib\AsyncLogger.cs" />
     <Compile Include="lib\BaseGame.cs" />
     <Compile Include="FloorGame.cs" />
+    <Compile Include="lib\Device.cs" />
     <Compile Include="lib\GameConfig.cs" />
     <Compile Include="PatternBuilder.cs" />
     <Compile Include="Smash.cs" />
@@ -116,6 +117,9 @@
     <Compile Include="lib\UdpHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Content Include="content\background_music.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\GameWinAlllevelPassed.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -174,9 +178,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="content\background_music.mp3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="content\score_music.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

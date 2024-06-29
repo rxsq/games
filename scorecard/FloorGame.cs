@@ -15,13 +15,9 @@ public class FloorGame : BaseMultiDevice
 
 
 
-    public FloorGame(GameConfig config, int gridRows) : base(config)
+    public FloorGame(GameConfig config) : base(config)
     {
-        rows = gridRows;
-        foreach (var handler in udpHandlers)
-        {
-            handler.ColumnCount = handler.DeviceList.Count / rows;
-        }
+       
     }
     protected override void Initialize()
     {
@@ -104,11 +100,11 @@ public class FloorGame : BaseMultiDevice
         {
             while (activeIndices[handler].Count < targetsPerHandler + (extraTargets > 0 ? 1 : 0))
             {
-                int index = random.Next(handlerDevices[handler].Count);
+                int index = random.Next(handlerDevices[handler].Count/2)*2;
                 if (!activeIndices[handler].Contains(index))
                 {
-                    handlerDevices[handler][index] = targetColor;
-                    activeIndices[handler].Add(index);
+                    handlerDevices[handler][Resequencer(index, handler)] = targetColor;
+                    activeIndices[handler].Add(Resequencer(index, handler));
                 }
             }
 

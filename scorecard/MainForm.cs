@@ -41,10 +41,10 @@ public partial class MainForm : Form
                 currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
                 break;
             case "FloorGame":
-                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2 }, 5);
+                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2 });
                 break;
             case "PatternBuilder":
-                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2 }, 10);
+                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns=14 });
                 break;
         }
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 

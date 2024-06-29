@@ -82,7 +82,7 @@ public class Target : BaseSingleDevice
                 LogData("Color change detected");
                 musicPlayer.PlayEfeect("content/target_hit.mp3");
                 ChnageColorToDevice(config.NoofLedPerdevice==1? ColorPaletteone.NoColor:ColorPalette.noColor3, actualPos, handler);
-                activeIndicesSingle.Remove(actualPos);
+                handler.activeDevices.Remove(actualPos);
                 base.Score = base.Score + 1;
                 LogData($"Score updated: {Score}");
             }
@@ -97,7 +97,7 @@ public class Target : BaseSingleDevice
             blinktime++;
             if (blinktime > 30)
             {
-                BlinkLights(activeIndicesSingle, 1, handler);
+                BlinkLights(handler.activeDevices, 1, handler, ColorPaletteone.Blue);
                 blinktime = 0;
             }
             handler.BeginReceive(data => ReceiveCallback(data, handler));
@@ -107,7 +107,7 @@ public class Target : BaseSingleDevice
 
     private void SetColorsOfDevices()
     {
-        activeIndicesSingle.Clear();
+        handler.activeDevices.Clear();
         string starColor = GetStarColor();
         int numberOfStarColorDevices = (int)Math.Round(devices.Count() * 0.3);
         // HashSet<int> usedIndices = new HashSet<int> { starIndex };
@@ -118,17 +118,17 @@ public class Target : BaseSingleDevice
             do
             {
                 index = random.Next(devices.Count());
-            } while (activeIndicesSingle.Contains(index));
+            } while (handler.activeDevices.Contains(index));
 
             devices[index] = starColor;
-            activeIndicesSingle.Add(index);
+            handler.activeDevices.Add(index);
         }
         //make sure star is colord
        
 
         for (int i = 0; i < devices.Count(); i++)
         {
-            if (!activeIndicesSingle.Contains(i))
+            if (!handler.activeDevices.Contains(i))
             {
                 string newColor;
                 do
@@ -139,11 +139,11 @@ public class Target : BaseSingleDevice
                 devices[i] = newColor;
             }
         }
-        activeIndicesSingle.Remove(starIndex);
+        handler.activeDevices.Remove(starIndex);
 
         devices[starIndex] = starColor;
         handler.SendColorsToUdp(devices);
-      // activeIndicesSingle = usedIndices;
+      // handler.activeDevices = usedIndices;
         LogData($"Sending final colors: {string.Join(",", devices)}");
         LogData($"Sending star color: {devices[starIndex]}");
     }

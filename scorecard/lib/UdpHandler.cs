@@ -1,4 +1,5 @@
-﻿using System;
+﻿using scorecard.lib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -17,11 +18,13 @@ public class UdpHandler
     private string logFile;
     private AsyncLogger logger;
     private bool receiving;
-    public  int ColumnCount;
-
+    public  int columns;
+    public int Rows;
+    public List<int> activeDevices = new List<int>();
+    public Dictionary<int, Device> deviceMap = new Dictionary<int, Device>();
     public List<string> DeviceList { get; private set; }
 
-    public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice)
+    public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice, int columns)
     {
         destinationIpAddress = ipAddress;
         destinationPort = destPort;
@@ -34,8 +37,11 @@ public class UdpHandler
         logFile = $"{DateTime.Now:HHmmssfef} {logfile}";
         logger = new AsyncLogger(logFile);
         DeviceList = ReceiveMessage(noofledPerdevice);
-       
-        receiving = false;
+
+        this.Rows = DeviceList.Count / columns;
+        this.columns = columns;
+       // this .Rows = rows;
+         receiving = false;
     }
     public List<string>  ReceiveMessage( int noofledPerdevice)
     {
@@ -45,7 +51,10 @@ public class UdpHandler
 
        var l = new List<string>(noofdevices);
         for (int i = 0; i < noofdevices; i++)
+        {
             l.Add("000000");
+          //  deviceMap.Add(i, new Device { color = noofledPerdevice==1?ColorPaletteone.NoColor: ColorPalette.noColor3, isActive = false, sequence = i });
+        }
                 return l;
     }
     public void BeginReceive(Action<byte[]> receiveCallback)
@@ -81,9 +90,10 @@ public class UdpHandler
 
     public async void SendColorsToUdp(List<string> colorList)
     {
+
         byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
         udpClient.Send(data, data.Length, destinationIpAddress, destinationPort);
-        LogData($"Sent data: ffff{string.Join("", colorList)} at {destinationPort}");
+       // LogData($"Sent data: ffff{string.Join("", colorList)} at {destinationPort}");
     }
     public async Task SendColorsToUdpAsync(List<string> colorList)
     {
@@ -91,6 +101,19 @@ public class UdpHandler
         try
         {
             await udpClient.SendAsync(data, data.Length, destinationIpAddress, destinationPort);
+            Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending data: {ex.Message}");
+        }
+    }
+    public async Task SendColorsToUdpAsyncOne(List<string> colorList)
+    {
+        byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
+        try
+        {
+            udpClient.Send(data, data.Length, destinationIpAddress, destinationPort);
             Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
         }
         catch (Exception ex)
