@@ -58,7 +58,7 @@ public partial class MainForm : Form
 
     private void MainForm_Resize(object sender, EventArgs e)
     {
-        AdjustButtons();
+       // AdjustButtons();
     }
 
     private void btnGenerateButtons_Click(object sender, EventArgs e)
