@@ -108,7 +108,7 @@ public abstract class BaseGame
         this.config = config;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer();
-        musicPlayer.PlayBackgroundMusic("content/background_music.wav");
+        musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
         udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns));
         if (config.NoOfControllers > 1)
@@ -151,14 +151,14 @@ public abstract class BaseGame
     {
         isGameRunning = false;
         LogData($"iteration failed within {IterationTime} second");
-        musicPlayer.PlayEfeect("content/you failed.mp3");
+        musicPlayer.PlayEffect("content/you failed.mp3");
         iterationTimer.Dispose();
         LifeLine = LifeLine - 1;
         Status = $"Lost Lifeline {LifeLine}";
         if (lifeLine <= 0)
         {
             
-            musicPlayer.PlayEfeect("content/GameLostZeroLifeLine.mp3");
+            musicPlayer.PlayEffect("content/GameLostZeroLifeLine.mp3");
             EndGame();
             musicPlayer.StopAllMusic();
         }
@@ -261,18 +261,18 @@ public abstract class BaseGame
             {
                 Status = $"Reached to last Level {config.MaxLevel} ending game";
                 LogData(Status);
-                musicPlayer.PlayEfeect("content/GameWin.mp3");
+                musicPlayer.PlayEffect("content/GameWin.mp3");
                 EndGame();
                 return;
             }
             else
             {
-                musicPlayer.PlayEfeect("content\\levelwin.mp3");
+                musicPlayer.PlayEffect("content\\levelwin.mp3");
             }
             //labelScore.Text = $"Score: {score}";
 
         }
-        else { musicPlayer.PlayEfeect("content\\target_hit.mp3"); }
+        else { musicPlayer.PlayEffect("content\\target_hit.mp3"); }
         Status = $"Moved to Next iterations {iterations}";
         if (IterationTime > 0)
         {
@@ -283,6 +283,11 @@ public abstract class BaseGame
         }
         else { Status = $"All iterations completed IterationTime:{IterationTime}"; }
 
+    }
+    protected void updateScore(int score)
+    {
+        Score = score;
+        musicPlayer.PlayEffect("content/target_hit.mp3");
     }
     protected void ChnageColorToDevice(string color, int deviceNo, UdpHandler handler)
     {

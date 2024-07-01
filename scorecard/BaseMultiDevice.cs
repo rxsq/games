@@ -47,6 +47,22 @@ namespace scorecard
             }
         }
 
+        protected void AnimateGrowth(string color)
+        {
+
+            foreach (var handler in udpHandlers)
+            {
+                List<int> unchanged = new List<int>(Enumerable.Range(0, handler.DeviceList.Count));
+                for(double i = 0.00; i < handlerDevices[handler].Count; i++)
+                {
+                    int random = new Random().Next(0, unchanged.Count);
+                    handlerDevices[handler][unchanged[random]] = color;
+                    unchanged.RemoveAt(random);
+                    handler.SendColorsToUdp(handlerDevices[handler]);
+                    Thread.Sleep(Convert.ToInt32(75.00 - Math.Pow(i, 1.30)/9));
+                }
+            }
+        }
         //protected async Task BlinkAllAsync(int times)
         //{
         //    for (int i = 0; i < times; i++)
@@ -74,11 +90,13 @@ namespace scorecard
         //}
         protected int Resequencer(int index, UdpHandler handler)
         {
+            if ((index / handler.columns) % 2 == 0){
+            return index; }
+
             int columns = handler.columns;
-            int rows = handler.Rows;
             int row = index / columns;
             int column = index % columns;
-            int dest = row % 2 == 0 ? index : (row + 1) * columns - 1 - column;
+            int dest =  (row + 1) * columns - 1 - column;
             return dest;
         } 
         protected List<string> ResequencedPositions(List<string> colorList, UdpHandler handler)

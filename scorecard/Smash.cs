@@ -84,7 +84,7 @@ public class Smash : BaseSingleDevice
         {
             ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, positions, handler);
             activeIndices[handler].RemoveWhere(x=> positions.Contains(x));
-            base.Score = base.Score + 1;
+            updateScore(Score + 1);
             LogData($"Score updated: {Score}  position {String.Join(",",positions)} active positions:{string.Join(",",activeIndices[handler])}");
         }
         else

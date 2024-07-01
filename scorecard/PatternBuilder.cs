@@ -103,11 +103,11 @@ public class PatternBuilderGame : BaseMultiDevice
             if (handler.activeDevices.Contains(position))
             {
                 LogData("Color change detected");
-
+               
                 base.ChnageColorToDevice(ColorPaletteone.NoColor, position, handler);
 
                 handler.activeDevices.Remove(position);
-                base.Score = base.Score + 1;
+                updateScore(Score + 1);
                 LogData($"Score updated: {Score} active:{string.Join(",",handler.activeDevices)}");
             }
         }

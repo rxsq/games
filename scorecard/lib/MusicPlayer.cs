@@ -5,9 +5,11 @@ using System.IO;
 public class MusicPlayer
 {
     private WaveOutEvent backgroundMusicPlayer;
-    private WaveOutEvent efeectsPlayer;
+    private WaveOutEvent effectsPlayer;
+    private AudioFileReader backgroundAudioFile;
+    private bool repeatBackgroundMusic;
 
-    public void PlayBackgroundMusic(string filePath)
+    public void PlayBackgroundMusic(string filePath, bool repeat = false)
     {
         if (!File.Exists(filePath))
         {
@@ -17,19 +19,23 @@ public class MusicPlayer
 
         try
         {
+            repeatBackgroundMusic = repeat;
+
             if (backgroundMusicPlayer == null)
             {
                 backgroundMusicPlayer = new WaveOutEvent();
+                backgroundMusicPlayer.PlaybackStopped += BackgroundMusicPlayer_PlaybackStopped;
             }
             else if (backgroundMusicPlayer.PlaybackState == PlaybackState.Playing)
             {
                 backgroundMusicPlayer.Stop();
                 backgroundMusicPlayer.Dispose();
                 backgroundMusicPlayer = new WaveOutEvent();
+                backgroundMusicPlayer.PlaybackStopped += BackgroundMusicPlayer_PlaybackStopped;
             }
 
-            var audioFile = new AudioFileReader(filePath);
-            backgroundMusicPlayer.Init(audioFile);
+            backgroundAudioFile = new AudioFileReader(filePath);
+            backgroundMusicPlayer.Init(backgroundAudioFile);
             backgroundMusicPlayer.Play();
         }
         catch (Exception ex)
@@ -38,7 +44,16 @@ public class MusicPlayer
         }
     }
 
-    public void PlayEfeect(string filePath)
+    private void BackgroundMusicPlayer_PlaybackStopped(object sender, StoppedEventArgs e)
+    {
+        if (repeatBackgroundMusic && backgroundAudioFile != null)
+        {
+            backgroundAudioFile.Position = 0;
+            backgroundMusicPlayer.Play();
+        }
+    }
+
+    public void PlayEffect(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -48,20 +63,20 @@ public class MusicPlayer
 
         try
         {
-            if (efeectsPlayer != null && efeectsPlayer.PlaybackState == PlaybackState.Playing)
+            if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
             {
-                efeectsPlayer.Stop();
-                efeectsPlayer.Dispose();
+                effectsPlayer.Stop();
+                effectsPlayer.Dispose();
             }
 
-            efeectsPlayer = new WaveOutEvent();
+            effectsPlayer = new WaveOutEvent();
             var audioFile = new AudioFileReader(filePath);
-            efeectsPlayer.Init(audioFile);
-            efeectsPlayer.Play();
+            effectsPlayer.Init(audioFile);
+            effectsPlayer.Play();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error playing efeect: {ex.Message}");
+            Console.WriteLine($"Error playing effect: {ex.Message}");
         }
     }
 
@@ -69,6 +84,7 @@ public class MusicPlayer
     {
         if (backgroundMusicPlayer != null && backgroundMusicPlayer.PlaybackState == PlaybackState.Playing)
         {
+            repeatBackgroundMusic = false;
             backgroundMusicPlayer.Stop();
             backgroundMusicPlayer.Dispose();
             backgroundMusicPlayer = null;
@@ -79,11 +95,11 @@ public class MusicPlayer
     {
         StopBackgroundMusic();
 
-        if (efeectsPlayer != null && efeectsPlayer.PlaybackState == PlaybackState.Playing)
+        if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
         {
-            efeectsPlayer.Stop();
-            efeectsPlayer.Dispose();
-            efeectsPlayer = null;
+            effectsPlayer.Stop();
+            effectsPlayer.Dispose();
+            effectsPlayer = null;
         }
     }
 }
