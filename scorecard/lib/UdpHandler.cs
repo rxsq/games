@@ -1,4 +1,5 @@
-﻿using scorecard.lib;
+﻿using Microsoft.SqlServer.Server;
+using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,17 +21,18 @@ public class UdpHandler
     private bool receiving;
     public  int columns;
     public int Rows;
+    public string name;
     public List<int> activeDevices = new List<int>();
     public Dictionary<int, Device> deviceMap = new Dictionary<int, Device>();
     public List<string> DeviceList { get; private set; }
 
-    public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice, int columns)
+    public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice, int columns, string namep)
     {
         destinationIpAddress = ipAddress;
         destinationPort = destPort;
         sourcePort = srcPort;
 
-       
+       this.name = namep;
         udpClient2 = new UdpClient(receiverPort);
         udpClient = new UdpClient(sourcePort);
         RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);

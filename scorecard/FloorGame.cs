@@ -3,6 +3,7 @@ using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -12,10 +13,11 @@ public class FloorGame : BaseMultiDevice
 
 
 
-    public FloorGame(GameConfig config) : base(config)
+    public FloorGame(GameConfig config, int killerSpeedReduction) : base(config)
     {
-       
+       this.killerSpeedReduction = killerSpeedReduction;
     }
+    int killerSpeedReduction = 200;
     protected override void Initialize()
     {
         
@@ -27,18 +29,19 @@ public class FloorGame : BaseMultiDevice
 
     protected override void OnStart()
     {
-         
-        OnIteration();
+
+        if (gameTimer == null)
+            gameTimer = new System.Threading.Timer(timerSet, null, 1000, 500000000); // Change target tiles every 10 seconds
+
         foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
-        if(gameTimer == null)
-             gameTimer = new System.Threading.Timer(timerSet, null, 0, 500000000); // Change target tiles every 10 seconds
+       
 
     }
     System.Threading.Timer gameTimer;
-    Dictionary<UdpHandler,int> killerRowsDict = new Dictionary<UdpHandler, int>();
+    Dictionary<UdpHandler, List<int>> killerRowsDict = new Dictionary<UdpHandler, List<int>>();
     protected void timerSet(object state)
     {
 
@@ -47,33 +50,32 @@ public class FloorGame : BaseMultiDevice
             return;
         foreach (var handler in udpHandlers)
         {
-
-            for (int iterations = 0; iterations < handler.Rows; iterations++)
+            
+            for (int row = 0; row < handler.Rows; row++)
             {
                 List<string> colorList = new List<string>();
                 var cl= handlerDevices[handler].Select(x => x).ToList();
-                int row = (iterations / handler.Rows) % 2 == 0 ? (iterations % handler.Rows) : handler.Rows - 1 - (iterations % handler.Rows);
+                int rowNum = (row / handler.Rows) % 2 == 0 ? (row % handler.Rows) : handler.Rows - 1 - (row % handler.Rows);
+                List<int> blueLineDevices = new List<int>();
                 for (int i = 0; i < handler.columns; i++)
                 {
-                    if (activedevicesGroup[handler].Keys.Contains(row * handler.columns + i))
+                    if (handler.activeDevices.Contains(rowNum * handler.columns + i))
                         continue;
                                        
-                    cl[row * handler.columns + i] = ColorPaletteone.Blue;                   
-
+                    cl[rowNum * handler.columns + i] = ColorPaletteone.Blue;
+                    blueLineDevices.Add(rowNum * handler.columns + i);
                 }
 
 
                 if (!isGameRunning)
                     return;
-                handler.SendColorsToUdp(cl);
-                if(killerRowsDict.ContainsKey(handler))
-                {
-                    killerRowsDict[handler] = iterations;
-                }
-                else
-                killerRowsDict.Add(handler, iterations);
 
-                Thread.Sleep(150);
+                killerRowsDict.Clear();
+                handler.SendColorsToUdp(cl);
+                killerRowsDict.Add(handler, blueLineDevices);
+                LogData($"filling data handler row:{row} handler:{handler.name} active:{string.Join(",",handler.activeDevices)} blueline: {string.Join(",", blueLineDevices)}");
+
+                Thread.Sleep(1000 - (base.level-1) * killerSpeedReduction );
             }
             
             handler.SendColorsToUdp(handlerDevices[handler]);
@@ -102,9 +104,11 @@ public class FloorGame : BaseMultiDevice
                                           .Select(x => x.index - 2)
                                           .Where(position => position >= 0)
                                           .ToList();
-
+       
         if (positions.Count > 0)
         {
+            if (!isGameRunning)
+                return;
             LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
             LogData($"Touch detected: {string.Join(",", positions)}");
 
@@ -119,7 +123,7 @@ public class FloorGame : BaseMultiDevice
                 // Step 2: Remove the keys from the dictionary
                 for (int i = 0; i < touchedPos.Count(); i++)
                 {
-                    handler.activeDevices.RemoveAll(x => x == touchedPos[i]);
+                  //handler.activeDevices.RemoveAll(x => x == touchedPos[i]);
                     activedevicesGroup[handler].Remove(touchedPos[i]);
                 }
                 updateScore(Score + touchedPos.Count() / 4);
@@ -128,16 +132,21 @@ public class FloorGame : BaseMultiDevice
             }
             else
             {
-                if(positions.Select(x => x / handler.columns).ToList().FindAll(x => killerRowsDict[handler] == x).Count  > 0)
-                 {
-
-                    base.Score = base.Score - 1;
+                if (!isGameRunning)
+                    return;
+                if(killerRowsDict.ContainsKey(handler) && positions.FindAll(x =>  killerRowsDict[handler].Contains(x)).Count  > 0)
+                {
+                    isGameRunning = false;
                     musicPlayer.PlayEffect("content/you failed.mp3");
-                    LogData($"Game Failed : {Score}  position:{string.Join(",",positions)} killerRow : {killerRowsDict[handler]}  ");
+                    LogData($"Game Failed : {Score}  position:{string.Join(",",positions)} killerRow :  {string.Join(",",killerRowsDict[handler])}  ");
+                    killerRowsDict[handler].Clear();
+                    base.Score = base.Score - 1;
                     TargetTimeElapsed(null);
+                    return;
                 }
             }
         }
+        LogData($"{handler.name} processing received data");
         if (activedevicesGroup.Values.Where(x => x.Count > 0).Count() == 0)
         {
             if (!isGameRunning)
@@ -150,7 +159,8 @@ public class FloorGame : BaseMultiDevice
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
     }
-    Dictionary<UdpHandler, Dictionary<int, List<int>>> activedevicesGroup = new Dictionary<UdpHandler, Dictionary<int, List<int>>> ();
+
+   Dictionary<UdpHandler, Dictionary<int, List<int>>> activedevicesGroup = new Dictionary<UdpHandler, Dictionary<int, List<int>>> ();
     protected override void OnIteration()
     {
         SendSameColorToAllDevice(ColorPaletteone.Red,true);
@@ -159,11 +169,16 @@ public class FloorGame : BaseMultiDevice
         int targetsPerHandler = totalTargets / udpHandlers.Count;
         int extraTargets = totalTargets % udpHandlers.Count;
         activedevicesGroup.Clear();
-      
-        while (totalTargets < config.MaxPlayers)
+        foreach (var handler in udpHandlers)
+        { 
+            handler.activeDevices.Clear();
+           // activedevicesGroup.Add(handler, new Dictionary<int, List<int>>());
+        }
+            while (totalTargets < config.MaxPlayers)
             foreach (var handler in udpHandlers)
             {
-                if(totalTargets >= config.MaxPlayers)
+                
+                if (totalTargets >= config.MaxPlayers)
                     break;
                 //{
                 int origMain = random.Next((handler.DeviceList.Count - handler.columns) / 2 ) * 2; 
@@ -185,11 +200,11 @@ public class FloorGame : BaseMultiDevice
                 Console.WriteLine(origMain + handler.columns);
                 Console.WriteLine(Resequencer(origMain + handler.columns, handler));
 
-                handler.activeDevices.Add  (main);
                 handler.activeDevices.Add(main);
                 handler.activeDevices.Add(mainright);
                 handler.activeDevices.Add(mainbelow);
                 handler.activeDevices.Add(mainbelowright);
+                LogData($"Active devices filling handler:{handler.name} active devices: {string.Join(",", handler.activeDevices)}");
                 Dictionary<int, List<int>> dict;
                 if (!activedevicesGroup.ContainsKey(handler))
                 {

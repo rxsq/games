@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 
 namespace scorecard
 {
@@ -50,16 +51,21 @@ namespace scorecard
         protected void AnimateGrowth(string color)
         {
 
-            foreach (var handler in udpHandlers)
+//            foreach (var handler in udpHandlers)
             {
-                List<int> unchanged = new List<int>(Enumerable.Range(0, handler.DeviceList.Count));
-                for(double i = 0.00; i < handlerDevices[handler].Count; i++)
+                var handler = udpHandlers[0];
+                int totalLights = handler.DeviceList.Count * udpHandlers.Count;
+                List<int> unchanged = new List<int>(Enumerable.Range(0, handler.DeviceList.Count * udpHandlers.Count));
+                for(double i = 0.00; i < totalLights; i++)
                 {
                     int random = new Random().Next(0, unchanged.Count);
-                    handlerDevices[handler][unchanged[random]] = color;
+                    int handlerIndex = unchanged[random] / handler.DeviceList.Count;
+                    int position = unchanged[random] % handler.DeviceList.Count;
+                    Console.WriteLine($"index {handlerIndex} position {position} random {random}");
+                    handlerDevices[udpHandlers[handlerIndex]][unchanged[random] - handler.DeviceList.Count * handlerIndex] = color;
                     unchanged.RemoveAt(random);
-                    handler.SendColorsToUdp(handlerDevices[handler]);
-                    Thread.Sleep(Convert.ToInt32(75.00 - Math.Pow(i, 1.30)/9));
+                    udpHandlers[handlerIndex].SendColorsToUdp(handlerDevices[udpHandlers[handlerIndex]]);
+                    Thread.Sleep(Convert.ToInt32(38.00 - i/6));
                 }
             }
         }

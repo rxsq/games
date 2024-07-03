@@ -120,7 +120,7 @@ public class PatternBuilderGame : BaseMultiDevice
         }
         else
         {
-            if (counter > 100)
+            if (counter > 1000)
             {
                 //asyn method to blink all
                 BlinkLights(handler.activeDevices.ToList(),2,handler, ColorPaletteone.Green);

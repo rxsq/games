@@ -110,10 +110,10 @@ public abstract class BaseGame
         musicPlayer = new MusicPlayer();
         musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
-        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns));
+        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
         if (config.NoOfControllers > 1)
         {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + 1, config.RemotePort + 1, $"udplog1.log", config.SocketBReceiverPort+1, config.NoofLedPerdevice, config.columns));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + 1, config.RemotePort + 1, $"udplog1.log", config.SocketBReceiverPort+1, config.NoofLedPerdevice, config.columns, "handler2"));
         }
 
         initializeDevices();
@@ -140,13 +140,19 @@ public abstract class BaseGame
         Status = "Starting";
         Thread.Sleep(3000); // Countdown
         Initialize();
-        OnStart();
+        RunGameInSequence();
+
+    }
+    protected void RunGameInSequence()
+    {
+        OnIteration();
         isGameRunning = true;
         // Start target timer
         iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
+        OnStart();
 
+       
     }
-
     protected virtual void TargetTimeElapsed(object state)
     {
         isGameRunning = false;
@@ -166,9 +172,9 @@ public abstract class BaseGame
         {
             iterations = iterations + 1;
 
-            iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
-            OnStart();
-            isGameRunning = true;
+            RunGameInSequence();
+
+
         }
 
     }
@@ -256,7 +262,7 @@ public abstract class BaseGame
             Status = $"Moved to Next Level {Level}";
             LogData($"Game Win level: {Level}");
             Level = Level + 1;
-            iterations = 0;
+            iterations = 1;
             if (Level > config.MaxLevel + 1)
             {
                 Status = $"Reached to last Level {config.MaxLevel} ending game";
@@ -274,14 +280,14 @@ public abstract class BaseGame
         }
         else { musicPlayer.PlayEffect("content\\target_hit.mp3"); }
         Status = $"Moved to Next iterations {iterations}";
-        if (IterationTime > 0)
-        {
-            OnStart();
-            isGameRunning = true;
-            iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime);
+      //  if (IterationTime > 0)
+       // {
+            RunGameInSequence();
             LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
-        }
-        else { Status = $"All iterations completed IterationTime:{IterationTime}"; }
+       // }
+       // else { Status = $"All iterations completed IterationTime:{IterationTime}";
+       //     LogData($"{Status}: {iterations} Iteration time: {IterationTime} ");
+       // }
 
     }
     protected void updateScore(int score)

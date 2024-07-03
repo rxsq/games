@@ -19,6 +19,7 @@ public partial class MainForm : Form
         InitializeStars();
       
         StartStarAnimation();
+        
     }
     BaseGame currentGame = null;
     private void StartGame(string gameType)
@@ -41,7 +42,7 @@ public partial class MainForm : Form
                 currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
                 break;
             case "FloorGame":
-                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 3, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2 });
+                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 3, MaxIterationTime = 60, ReductionTimeEachLevel = 8, NoOfControllers = 2, columns=14 }, 200);
                 break;
             case "PatternBuilder":
                 currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns=14 });

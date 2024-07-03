@@ -20,7 +20,7 @@ public class AsyncLogger
 
     public void Log(string message)
     {
-        var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fef} {message}";
+        var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} {message}";
         logQueue.Add(logMessage);
     }
 
