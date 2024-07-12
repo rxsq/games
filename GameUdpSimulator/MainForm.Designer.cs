@@ -32,7 +32,7 @@ public partial class MainForm : Form
             this.txtNumberOfButtons.Name = "txtNumberOfButtons";
             this.txtNumberOfButtons.Size = new System.Drawing.Size(100, 20);
             this.txtNumberOfButtons.TabIndex = 1;
-            this.txtNumberOfButtons.Text = "280";
+            this.txtNumberOfButtons.Text = "224";
             // 
             // lblButtonsPerRow
             // 
@@ -84,9 +84,11 @@ public partial class MainForm : Form
             this.panelContainer.Name = "panelContainer";
             this.panelContainer.Size = new System.Drawing.Size(798, 540);
             this.panelContainer.TabIndex = 7;
+            this.panelContainer.Paint += new System.Windows.Forms.PaintEventHandler(this.panelContainer_Paint);
             // 
             // MainForm
             // 
+            this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(1584, 1061);
             this.Controls.Add(this.lblNumberOfButtons);
             this.Controls.Add(this.txtNumberOfButtons);

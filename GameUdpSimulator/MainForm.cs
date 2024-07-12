@@ -115,13 +115,15 @@ public partial class MainForm : Form
         {
             Panel panel = new Panel
             {
-                Size = new Size(panelWidth, panelHeight+100),
-                Location = new Point(i * (panelWidth + 10) + 10, 10),
+                Size = new Size(panelWidth, panelHeight+5),
+                Location = new Point(10, i * (panelHeight + 10) + 10),
                 BorderStyle = BorderStyle.FixedSingle
                 
             };
-            panelContainer.Width= (panelWidth*2)+50;
-            panelContainer.Height = (panelHeight)+100;
+            panelContainer.Width= (panelWidth)+100;
+            panelContainer.Height = (panelHeight*(count + 1))+100;
+            panelContainer.BorderStyle = BorderStyle.FixedSingle;
+            panelContainer.BackColor = Color.DarkGray;
             panelContainer.Controls.Add(panel);
             panels.Add(panel);
         }
@@ -253,5 +255,10 @@ public partial class MainForm : Form
         }
         Console.WriteLine($"Button number: {buttonNumber} - {sb}");
         return sb.ToString();
+    }
+
+    private void panelContainer_Paint(object sender, PaintEventArgs e)
+    {
+
     }
 }

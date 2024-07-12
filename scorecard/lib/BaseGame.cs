@@ -111,9 +111,9 @@ public abstract class BaseGame
         musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
         udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
-        if (config.NoOfControllers > 1)
+        for(int i = 1; i < config.NoOfControllers; i++)
         {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + 1, config.RemotePort + 1, $"udplog1.log", config.SocketBReceiverPort+1, config.NoofLedPerdevice, config.columns, "handler2"));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, $"udplog1.log", config.SocketBReceiverPort+i, config.NoofLedPerdevice, config.columns, "handler2"));
         }
 
         initializeDevices();
@@ -186,15 +186,19 @@ public abstract class BaseGame
     public void EndGame()
     {
 
+
+        iterationTimer.Dispose();
+        musicPlayer.StopBackgroundMusic();
+        SendSameColorToAllDevice(ColorPaletteone.NoColor);
+        Thread.Sleep(100);
+        BlinkAllAsync(2);
         foreach (var handler in udpHandlers)
         {
             if (handler != null)
                 handler.Close();
 
         }
-        iterationTimer.Dispose();
-        musicPlayer.StopBackgroundMusic();
-        OnEnd();
+        //OnEnd();
     }
     protected virtual void Initialize() { }
     protected virtual void OnStart() { }
@@ -273,12 +277,13 @@ public abstract class BaseGame
             }
             else
             {
-                musicPlayer.PlayEffect("content\\levelwin.mp3");
+                musicPlayer.backgroundMusicPlayer.Stop();
+                musicPlayer.PlayEffect("content/levelwin.wav");
             }
             //labelScore.Text = $"Score: {score}";
 
         }
-        else { musicPlayer.PlayEffect("content\\target_hit.mp3"); }
+        else { BlinkAllAsync(1); }
         Status = $"Moved to Next iterations {iterations}";
       //  if (IterationTime > 0)
        // {
@@ -293,7 +298,14 @@ public abstract class BaseGame
     protected void updateScore(int score)
     {
         Score = score;
-        musicPlayer.PlayEffect("content/target_hit.mp3");
+        int random = new Random().Next(0, 9);
+        //if (random == 0) { musicPlayer.PlayEffect("content/voicelines/praise1.mp3"); }
+        //if (random == 1) { musicPlayer.PlayEffect("content/voicelines/praise2.mp3"); }
+        //if (random == 2) { musicPlayer.PlayEffect("content/voicelines/praise3.mp3"); }
+        if (0 <= random && random < 3) { musicPlayer.PlayEffect("content//hit2.wav"); }
+        if (3 <= random && random < 6) { musicPlayer.PlayEffect("content/hit2.wav"); }
+        if (6 <= random) { musicPlayer.PlayEffect("content/hit2.wav"); }
+        //        musicPlayer.backgroundMusicPlayer.Volume = 0.8f;
     }
     protected void ChnageColorToDevice(string color, int deviceNo, UdpHandler handler)
     {
@@ -354,7 +366,7 @@ public abstract class BaseGame
             Thread.Sleep(200);
 
             foreach (var handler in udpHandlers)
-            {
+             {
                 tasks.Add(handler.SendColorsToUdpAsync(handlerDevices[handler]));
                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
@@ -399,7 +411,36 @@ public abstract class BaseGame
             }
         }
     }
+    protected int PositionToIndex(int row, int column)
+    {
+        int index = 0;
+        int handler;
+        if (row <= (udpHandlers[0].Rows - 1))
+        {
+            index = row * udpHandlers[0].columns + column;
+        }
+        else if (row > (udpHandlers[0].Rows - 1))
+        {
+            handler = 0;
+            index = row - udpHandlers[0].DeviceList.Count;
 
+        }
+
+        return index;
+    }
+    protected int Resequencer(int index, UdpHandler handler)
+    {
+        if ((index / handler.columns) % 2 == 0)
+        {
+            return index;
+        }
+
+        int columns = handler.columns;
+        int row = index / columns;
+        int column = index % columns;
+        int dest = (row + 1) * columns - 1 - column;
+        return dest;
+    }
     protected List<string> getColorList()
     {
         List<string> colorList = new List<string>();

@@ -4,11 +4,13 @@ using System.IO;
 
 public class MusicPlayer
 {
-    private WaveOutEvent backgroundMusicPlayer;
+    public WaveOutEvent backgroundMusicPlayer;
+    private int backgroundMusicPosition;
     private WaveOutEvent effectsPlayer;
     private AudioFileReader backgroundAudioFile;
     private bool repeatBackgroundMusic;
 
+    
     public void PlayBackgroundMusic(string filePath, bool repeat = false)
     {
         if (!File.Exists(filePath))
@@ -36,6 +38,7 @@ public class MusicPlayer
 
             backgroundAudioFile = new AudioFileReader(filePath);
             backgroundMusicPlayer.Init(backgroundAudioFile);
+            backgroundMusicPlayer.Volume = 0.4f;
             backgroundMusicPlayer.Play();
         }
         catch (Exception ex)
@@ -72,7 +75,14 @@ public class MusicPlayer
             effectsPlayer = new WaveOutEvent();
             var audioFile = new AudioFileReader(filePath);
             effectsPlayer.Init(audioFile);
+            //backgroundMusicPlayer.Volume = 0.1f;
+            effectsPlayer.Volume = 1.0f;
             effectsPlayer.Play();
+            effectsPlayer.PlaybackStopped += (s, e) =>
+            {
+                if(backgroundMusicPlayer != null) { backgroundMusicPlayer.Volume = 0.4f; }
+                audioFile.Dispose();
+            };
         }
         catch (Exception ex)
         {

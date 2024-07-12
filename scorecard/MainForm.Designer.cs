@@ -32,6 +32,7 @@ partial class MainForm
             // comboBox1
             // 
             this.comboBox1.BackColor = System.Drawing.SystemColors.InactiveCaptionText;
+            this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox1.ForeColor = System.Drawing.SystemColors.Window;
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
@@ -39,7 +40,10 @@ partial class MainForm
             "Smash",
             "Chaser",
             "FloorGame",
-            "PatternBuilder"});
+            "PatternBuilder",
+            "Lava",
+            "Snakes",
+            "Wipeout"});
             this.comboBox1.Location = new System.Drawing.Point(23, 134);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(179, 21);

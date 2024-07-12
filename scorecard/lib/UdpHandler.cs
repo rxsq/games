@@ -103,7 +103,7 @@ public class UdpHandler
         try
         {
             await udpClient.SendAsync(data, data.Length, destinationIpAddress, destinationPort);
-            Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
+            //Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
         }
         catch (Exception ex)
         {
@@ -116,7 +116,7 @@ public class UdpHandler
         try
         {
             udpClient.Send(data, data.Length, destinationIpAddress, destinationPort);
-            Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
+            //Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
         }
         catch (Exception ex)
         {

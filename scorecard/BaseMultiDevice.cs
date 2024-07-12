@@ -1,4 +1,5 @@
-﻿using scorecard.lib;
+﻿using NAudio.Wave;
+using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,16 +7,40 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml.Schema;
 
 namespace scorecard
 {
     public class BaseMultiDevice : BaseGame
     {
+        protected Dictionary<int, Mapping> deviceMapping;
         public BaseMultiDevice(GameConfig config) : base(config)
         {
+            deviceMapping = new Dictionary<int, Mapping>(); 
+            int k = 0;
+            foreach(var handler in udpHandlers)
+            {
+                for(int i = 0; i < handler.DeviceList.Count; i++)
+                {
+                    deviceMapping.Add(k, new Mapping(handler, false, Resequencer(i, handler)));
+                        k += 1;  
+                }
+            }
         }
-        
+
+        protected void SendColorToUdpAsync()
+        {
+          
+                var tasks = new List<Task>();
+                foreach (var handler in udpHandlers)
+                {
+                  tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
+                }
+                Task.WhenAll(tasks);
+                Thread.Sleep(200);  
+           
+        }
 
 
         protected void AnimateColor(bool reverse)
@@ -94,6 +119,7 @@ namespace scorecard
         //        await Task.Delay(500);
         //    }
         //}
+
         protected int Resequencer(int index, UdpHandler handler)
         {
             if ((index / handler.columns) % 2 == 0){
