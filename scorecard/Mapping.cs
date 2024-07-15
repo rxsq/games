@@ -18,6 +18,19 @@ namespace scorecard
             this.isActive = isActive;
             this.deviceNo = deviceNo;
         }
+        private List<int> dg;
+        public List<int> DeviceGroup
+        {
+            get
+            {
+                if (dg == null) { new List<int>(); }
+                return dg;
+            }
+            set
+            {
+                dg = value;
+            }
+        }
     }
 }
 

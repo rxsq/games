@@ -23,7 +23,7 @@ public class UdpHandler
     public int Rows;
     public string name;
     public List<int> activeDevices = new List<int>();
-    public Dictionary<int, Device> deviceMap = new Dictionary<int, Device>();
+    public Dictionary<int,List<int>> activeDevicesGroup = new Dictionary<int, List<int>>();
     public List<string> DeviceList { get; private set; }
 
     public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice, int columns, string namep)

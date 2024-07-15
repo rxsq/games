@@ -15,8 +15,11 @@ namespace scorecard
     public class BaseMultiDevice : BaseGame
     {
         protected Dictionary<int, Mapping> deviceMapping;
+        protected int rows = 0;
+        protected Dictionary<int, List<int>> surroundingMap;
         public BaseMultiDevice(GameConfig config) : base(config)
         {
+            
             deviceMapping = new Dictionary<int, Mapping>(); 
             int k = 0;
             foreach(var handler in udpHandlers)
@@ -27,20 +30,14 @@ namespace scorecard
                         k += 1;  
                 }
             }
+            foreach (var handler in udpHandlers)
+            {
+                rows += handler.Rows;
+            }
+            surroundingMap = SurroundingMap.CreateSurroundingTilesDictionary(config.columns,rows,3 );
         }
 
-        protected void SendColorToUdpAsync()
-        {
-          
-                var tasks = new List<Task>();
-                foreach (var handler in udpHandlers)
-                {
-                  tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
-                }
-                Task.WhenAll(tasks);
-                Thread.Sleep(200);  
-           
-        }
+        
 
 
         protected void AnimateColor(bool reverse)
@@ -62,9 +59,9 @@ namespace scorecard
                         row = handler.Rows - row - 1;
                     }
 
-                    for (int i = 0; i < handler.columns; i++)
+                    for (int i = 0; i < config.columns; i++)
                     {
-                        handlerDevices[handler][row * handler.columns + i] = ColorPaletteone.Green;
+                        handlerDevices[handler][row * config.columns + i] = ColorPaletteone.Green;
                     }
 
                     handler.SendColorsToUdp(handlerDevices[handler]);
@@ -122,10 +119,10 @@ namespace scorecard
 
         protected int Resequencer(int index, UdpHandler handler)
         {
-            if ((index / handler.columns) % 2 == 0){
+            if ((index / config.columns) % 2 == 0){
             return index; }
 
-            int columns = handler.columns;
+            int columns = config.columns;
             int row = index / columns;
             int column = index % columns;
             int dest =  (row + 1) * columns - 1 - column;
@@ -133,7 +130,7 @@ namespace scorecard
         } 
         protected List<string> ResequencedPositions(List<string> colorList, UdpHandler handler)
         {
-            int columns = handler.columns;
+            int columns = config.columns;
             int rows = handler.Rows;
             var activeIndicesList = handler.activeDevices.ToList();
 
@@ -159,6 +156,19 @@ namespace scorecard
            LogData($"repalced following ones {string.Join(",", oddRowIndices)}");
             return colorList;
         }
+        protected void SendColorToUdpAsync()
+        {
+
+            var tasks = new List<Task>();
+            foreach (var handler in udpHandlers)
+            {
+                tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
+            }
+            Task.WhenAll(tasks);
+            Thread.Sleep(200);
+
+        }
+
 
         protected List<string> ResequencedPositions1(List<string> colorList,  UdpHandler hangler)
         {

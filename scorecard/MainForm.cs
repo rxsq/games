@@ -42,14 +42,14 @@ public partial class MainForm : Form
                 currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
                 break;
             case "FloorGame":
-                currentGame = new FloorGame(new GameConfig { Maxiterations = 3, MaxLevel = 2, MaxPlayers = 3, MaxIterationTime = 60, ReductionTimeEachLevel = 8, NoOfControllers = 2, columns=14 }, 200);
+                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 2, MaxPlayers = 3, MaxIterationTime = 60, ReductionTimeEachLevel = 8, NoOfControllers = 3, columns=14 }, 200);
                 break;
             case "PatternBuilder":
-                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns=14 });
+                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 3, columns=14 });
                 break;
-            case "Lava":
-                currentGame = new FloorIsLavaGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
-                break;
+            //case "Lava":
+            //    currentGame = new FloorIsLavaGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
+            //    break;
             case "Snakes":
                 currentGame = new Snakes(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                 break;
@@ -208,7 +208,15 @@ public partial class MainForm : Form
         }
     }
 
-    private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+    
+
+    private void button1_Click(object sender, EventArgs e)
+    {
+        currentGame?.EndGame();
+       
+    }
+
+    private void button2_Click(object sender, EventArgs e)
     {
         StartGame(comboBox1.SelectedItem.ToString());
     }

@@ -2,7 +2,6 @@
 using scorecard.lib;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,24 +10,20 @@ public class WipeoutGame : BaseMultiDevice
 {
     private List<string> grid;
     private List<int> obstaclePositions;
-    private Random random = new Random();
     private System.Threading.Timer gameTimer;
-    private UdpHandler udpHandler;
+   
     private int centerX;
     private int centerY;
     private int radius;
-    private int rows;
+   
     private int angleStep;
     private double currentAngle;
     private int revolutions;
     private int totalHalfTiles;
     public WipeoutGame(GameConfig config) : base(config)
     {
-        udpHandler = base.udpHandlers[0];
-        foreach (var handler in udpHandlers)
-        {
-            rows += handler.Rows;
-        }
+        
+      
     }
 
     protected override void Initialize()
@@ -69,11 +64,12 @@ public class WipeoutGame : BaseMultiDevice
 
         foreach (int position in positions)
         {
-            LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
-            LogData($"Touch detected: {string.Join(",", positions)}");
+            //LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
+           
 
             if (handler.activeDevices.Contains(position))
             {
+                LogData($"Touch detected: {string.Join(",", positions)} active devices{string.Join(",",handler.activeDevices)}");
                 isGameRunning = false;
                 BlinkAllAsync(1);
                 gameTimer.Dispose();
@@ -92,40 +88,50 @@ public class WipeoutGame : BaseMultiDevice
     }
     private void GameLoop(object state)
     {
+        LogData("Game loop running upper");
         if (!isGameRunning)
         {
             return;
         }
-        if (revolutions == 1)
+       
+        if (currentAngle <= 360 && currentAngle >= 360 - angleStep)
+        {
+            updateScore(Score + 1);
+            revolutions += 1;
+            currentAngle -= 360;
+        }
+        if (revolutions == 3)
         {
             gameTimer.Dispose();
-            updateScore(Score + 1);
-            revolutions = 0;
             isGameRunning = false;
             MoveToNextIteration();
+            revolutions = 0;
             return;
         }
+        Thread.Sleep(200);
+        obstaclePositions.Clear();
+        foreach (var handler in udpHandlers)
+        {
+            handler.activeDevices.Clear();
+        }
+        currentAngle += angleStep;
+        LogData("MoveObstacles");
         MoveObstacles();
-        UpdateGrid();
+         UpdateGrid();
+        LogData("UpdateGrid");
         SendColorToUdpAsync();
-        Thread.Sleep(10);
+       
         if (!isGameRunning)
         {
             return;
         }
+        LogData($"Game loop running lower currentAngle:{currentAngle}");
         GameLoop(null);
     }
 
     private void MoveObstacles()
     {
-        currentAngle += angleStep;
-        if (currentAngle >= 360)
-        {
-            revolutions += 1;
-            currentAngle -= 360;
-        }
-      
-        obstaclePositions.Clear();
+       
         double radianAngle = currentAngle * Math.PI / 180;
 
         int x1 = centerX;
@@ -208,9 +214,5 @@ public class WipeoutGame : BaseMultiDevice
         }
     }
 
-    public void StopGame()
-    {
-        gameTimer.Dispose();
-        udpHandler.Close();
-    }
+    
 }
