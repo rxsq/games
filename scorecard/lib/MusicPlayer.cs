@@ -1,6 +1,8 @@
 ﻿using NAudio.Wave;
 using System;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Threading.Tasks;
 
 public class MusicPlayer
 {
@@ -8,6 +10,15 @@ public class MusicPlayer
     private WaveOutEvent effectsPlayer;
     private AudioFileReader backgroundAudioFile;
     private bool repeatBackgroundMusic;
+    private ConcurrentQueue<string> effectQueue;
+    private Task effectPlayingTask;
+    private bool isPlayingEffect;
+
+    public MusicPlayer()
+    {
+        effectQueue = new ConcurrentQueue<string>();
+        isPlayingEffect = false;
+    }
 
     public void PlayBackgroundMusic(string filePath, bool repeat = false)
     {
@@ -63,42 +74,61 @@ public class MusicPlayer
             return;
         }
 
-        try
+        effectQueue.Enqueue(filePath);
+        if (!isPlayingEffect)
         {
-            if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
-            {
-                effectsPlayer.Stop();
-                //effectsPlayer.Dispose();
-            }
+            PlayNextEffect();
+        }
+    }
 
-            effectsPlayer = new WaveOutEvent();
-            var audioFile = new AudioFileReader(filePath);
-            effectsPlayer.Init(audioFile);
-            effectsPlayer.Volume = 1.0f;
-            effectsPlayer.Play();
-            effectsPlayer.PlaybackStopped += (s, e) =>
+    private void PlayNextEffect()
+    {
+        if (effectQueue.TryDequeue(out string filePath))
+        {
+            isPlayingEffect = true;
+            effectPlayingTask = Task.Run(() =>
             {
                 try
                 {
-                    audioFile.Dispose();
+                    if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
+                    {
+                        effectsPlayer.Stop();
+                    }
+
+                    effectsPlayer = new WaveOutEvent();
+                    var audioFile = new AudioFileReader(filePath);
+                    effectsPlayer.Init(audioFile);
+                    effectsPlayer.Volume = 1.0f;
+                    effectsPlayer.Play();
+                    effectsPlayer.PlaybackStopped += (s, e) =>
+                    {
+                        try
+                        {
+                            audioFile.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error disposing effect audio file: {ex.Message}");
+                        }
+                        finally
+                        {
+                            if (backgroundMusicPlayer != null)
+                            {
+                                backgroundMusicPlayer.Volume = 0.4f;
+                            }
+                            isPlayingEffect = false;
+                            PlayNextEffect();
+                        }
+                    };
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error disposing effect audio file: {ex.Message}");
+                    Console.WriteLine($"Error playing effect: {ex.Message}");
+                    CleanUpEffectsResources();
+                    isPlayingEffect = false;
+                    PlayNextEffect();
                 }
-                finally
-                {
-                    if (backgroundMusicPlayer != null)
-                    {
-                        backgroundMusicPlayer.Volume = 0.4f;
-                    }
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error playing effect: {ex.Message}");
-            CleanUpEffectsResources();
+            });
         }
     }
 

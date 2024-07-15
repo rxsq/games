@@ -54,7 +54,7 @@ public partial class MainForm : Form
                 currentGame = new Snakes(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                 break;
             case "Wipeout":
-                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 2, MaxLevel = 3, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 20, NoOfControllers = 3, columns = 14 });
+                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 5, NoOfControllers = 3, columns = 14 });
                 break;
         }
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
