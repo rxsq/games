@@ -108,7 +108,8 @@ public class WipeoutGame : BaseMultiDevice
             revolutions = 0;
             return;
         }
-        Thread.Sleep(200);
+        
+        Thread.Sleep(200 - config.ReductionTimeEachLevel * Level);
         obstaclePositions.Clear();
         foreach (var handler in udpHandlers)
         {
@@ -120,7 +121,7 @@ public class WipeoutGame : BaseMultiDevice
          UpdateGrid();
         LogData("UpdateGrid");
         SendColorToUdpAsync();
-       
+       Thread.Sleep(200 - config.ReductionTimeEachLevel * Level);
         if (!isGameRunning)
         {
             return;
@@ -202,7 +203,7 @@ public class WipeoutGame : BaseMultiDevice
         {
             for (int i = 0; i < handler.DeviceList.Count; i++)
             {
-                handler.DeviceList[i] = ColorPaletteone.NoColor;
+                handler.DeviceList[i] = ColorPaletteone.Green;
             }
         }
 

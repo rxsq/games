@@ -4,13 +4,11 @@ using System.IO;
 
 public class MusicPlayer
 {
-    public WaveOutEvent backgroundMusicPlayer;
-    private int backgroundMusicPosition;
+    private WaveOutEvent backgroundMusicPlayer;
     private WaveOutEvent effectsPlayer;
     private AudioFileReader backgroundAudioFile;
     private bool repeatBackgroundMusic;
 
-    
     public void PlayBackgroundMusic(string filePath, bool repeat = false)
     {
         if (!File.Exists(filePath))
@@ -44,6 +42,7 @@ public class MusicPlayer
         catch (Exception ex)
         {
             Console.WriteLine($"Error playing background music: {ex.Message}");
+            CleanUpBackgroundMusicResources();
         }
     }
 
@@ -69,46 +68,109 @@ public class MusicPlayer
             if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
             {
                 effectsPlayer.Stop();
-                effectsPlayer.Dispose();
+                //effectsPlayer.Dispose();
             }
 
             effectsPlayer = new WaveOutEvent();
             var audioFile = new AudioFileReader(filePath);
             effectsPlayer.Init(audioFile);
-            //backgroundMusicPlayer.Volume = 0.1f;
             effectsPlayer.Volume = 1.0f;
             effectsPlayer.Play();
             effectsPlayer.PlaybackStopped += (s, e) =>
             {
-                if(backgroundMusicPlayer != null) { backgroundMusicPlayer.Volume = 0.4f; }
-                audioFile.Dispose();
+                try
+                {
+                    audioFile.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error disposing effect audio file: {ex.Message}");
+                }
+                finally
+                {
+                    if (backgroundMusicPlayer != null)
+                    {
+                        backgroundMusicPlayer.Volume = 0.4f;
+                    }
+                }
             };
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error playing effect: {ex.Message}");
+            CleanUpEffectsResources();
         }
     }
 
     public void StopBackgroundMusic()
     {
-        if (backgroundMusicPlayer != null && backgroundMusicPlayer.PlaybackState == PlaybackState.Playing)
+        try
         {
-            repeatBackgroundMusic = false;
-            backgroundMusicPlayer.Stop();
-            backgroundMusicPlayer.Dispose();
-            backgroundMusicPlayer = null;
+            if (backgroundMusicPlayer != null && backgroundMusicPlayer.PlaybackState == PlaybackState.Playing)
+            {
+                repeatBackgroundMusic = false;
+                backgroundMusicPlayer.Stop();
+                CleanUpBackgroundMusicResources();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error stopping background music: {ex.Message}");
         }
     }
 
     public void StopAllMusic()
     {
         StopBackgroundMusic();
+        StopEffects();
+    }
 
-        if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
+    private void StopEffects()
+    {
+        try
         {
-            effectsPlayer.Stop();
-            effectsPlayer.Dispose();
+            if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
+            {
+                effectsPlayer.Stop();
+                CleanUpEffectsResources();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error stopping effects: {ex.Message}");
+        }
+    }
+
+    private void CleanUpBackgroundMusicResources()
+    {
+        try
+        {
+            backgroundMusicPlayer?.Dispose();
+            backgroundAudioFile?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cleaning up background music resources: {ex.Message}");
+        }
+        finally
+        {
+            backgroundMusicPlayer = null;
+            backgroundAudioFile = null;
+        }
+    }
+
+    private void CleanUpEffectsResources()
+    {
+        try
+        {
+            effectsPlayer?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cleaning up effects resources: {ex.Message}");
+        }
+        finally
+        {
             effectsPlayer = null;
         }
     }

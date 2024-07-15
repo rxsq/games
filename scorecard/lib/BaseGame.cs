@@ -170,8 +170,7 @@ public abstract class BaseGame
         }
         else
         {
-            iterations = iterations + 1;
-
+            //iterations = iterations + 1;
             RunGameInSequence();
 
 
@@ -277,7 +276,7 @@ public abstract class BaseGame
             }
             else
             {
-                musicPlayer.backgroundMusicPlayer.Stop();
+                musicPlayer.StopBackgroundMusic();
                 musicPlayer.PlayEffect("content/levelwin.wav");
             }
             //labelScore.Text = $"Score: {score}";

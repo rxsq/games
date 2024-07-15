@@ -42,7 +42,7 @@ public partial class MainForm : Form
                 currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
                 break;
             case "FloorGame":
-                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 2, MaxPlayers = 3, MaxIterationTime = 60, ReductionTimeEachLevel = 8, NoOfControllers = 3, columns=14 }, 200);
+                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 20, ReductionTimeEachLevel = 2, NoOfControllers = 3, columns=14 }, 200);
                 break;
             case "PatternBuilder":
                 currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 3, columns=14 },2);
@@ -54,7 +54,7 @@ public partial class MainForm : Form
                 currentGame = new Snakes(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                 break;
             case "Wipeout":
-                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 3, columns = 14 });
+                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 2, MaxLevel = 3, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 20, NoOfControllers = 3, columns = 14 });
                 break;
         }
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
@@ -108,17 +108,17 @@ public partial class MainForm : Form
         {
             pictureBox2.Invoke(new Action(() => pictureBox2.BackgroundImage = Image.FromFile("content/heart_gray.png")));
         }
-        if (newLIfe == 2)
+            if (newLIfe == 2)
             if (pictureBox3.InvokeRequired)
             {
                 pictureBox3.Invoke(new Action(() => pictureBox3.BackgroundImage = Image.FromFile("content/heart_gray.png")));
             }
-        if (newLIfe == 3)
+           if (newLIfe == 3)
             if (pictureBox4.InvokeRequired)
             {
                 pictureBox4.Invoke(new Action(() => pictureBox4.BackgroundImage = Image.FromFile("content/heart_gray.png")));
             }
-        if (newLIfe == 4)
+            if (newLIfe == 4)
             if (pictureBox5.InvokeRequired)
             {
                 pictureBox5.Invoke(new Action(() => pictureBox5.BackgroundImage = Image.FromFile("content/heart_gray.png")));
