@@ -13,42 +13,13 @@ using System.Windows.Forms;
 
 public class PatternBuilderGame : BaseMultiDevice
 {
-  
-    private Random random = new Random();
+
+    int noofPatterns = 1;
     private Dictionary<string, string[]> pattern = new Dictionary<string, string[]>();
 
-    //private static readonly List<string[]> letterPatterns = new List<string[]>
-    //{
-    //  //  new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "1, 0", "1, 3", "2, 0","2, 3", "3, 0", "3, 1", "3, 2", "3, 3"},
-    //    //new string[]{"0, 0", "1, 0", "2, 0", "3, 0"},
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 1", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 2", "1, 2", "2, 2", "3, 2", "4, 2" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 0", "0, 3", "1, 0", "1, 3", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 3", "4, 3" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 4", "2, 3", "3, 2", "4, 0" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 0", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    new string[]{"0, 0", "0, 1", "0, 2", "0, 3", "0, 4", "1, 0", "1, 4", "2, 0", "2, 1", "2, 2", "2, 3", "2, 4", "3, 4", "4, 0", "4, 1", "4, 2", "4, 3", "4, 4" },
-    //    // number 9
-    //    // Add more letter patterns
-    //};
-
-    //private static readonly List<string[]> shapePatterns = new List<string[]>
-    //{
-    //    new string[]
-    //    {
-    //        "0, 0", "0, 1", "0, 2", "0, 3", "1, 0", "1, 3", "2, 0", "2, 3", "3, 0", "3, 1", "3, 2", "3, 3"
-    //    }, // Square
-    //    // Add more shape patterns
-    //};
-   
-
-    public PatternBuilderGame(GameConfig config) : base(config)
+    public PatternBuilderGame(GameConfig config, int noofPatterns) : base(config)
     {
-      
+      this.noofPatterns = noofPatterns;
     }
 
     protected override void Initialize()
@@ -78,10 +49,7 @@ public class PatternBuilderGame : BaseMultiDevice
         }
     }
 
-    protected override void OnEnd()
-    {
-        base.OnEnd();
-    }
+ 
     int counter;
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
@@ -128,52 +96,40 @@ public class PatternBuilderGame : BaseMultiDevice
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
     }
-
+    string baseColor = ColorPaletteone.Red;
     protected override void OnIteration() 
     {
-        SendSameColorToAllDevice(ColorPalette.PinkCyanMagenta,true);
+        
+        SendSameColorToAllDevice(baseColor, true);
         BlinkAllAsync(1);
        
-
-        targetColor = ColorPaletteone.Green;
-
-        string basecolor = ColorPaletteone.Red;
-
         foreach (var handler in udpHandlers)
         {
             handler.activeDevices.Clear();
         }
-          List<int> newActiveIndices = new List<int>();
 
-           
-            var pattern = SelectRandomPattern(random.Next(0,config.columns-5), random.Next(0, rows-5), config.columns);
-            //PlacePattern(handler, pattern);
-            foreach (var index in pattern)
-            {
-                newActiveIndices.Add(index);
-               // handlerDevices[handler][index] = targetColor;
-            }
-           
-           // handler.activeDevices.AddRange(newActiveIndices);
-           
-          //  LogData($"before change: {string.Join(",", newActiveIndices)}");
-         //   handler.SendColorsToUdp(ResequencedPositions(handlerDevices[handler], handler));
-          //  LogData($"after change: {string.Join(",", handler.activeDevices)}");
-            // handler.SendColorsToUdp(handlerDevices[handler]);
-            //handlerDevices[handler] = cl;
+        List<int> newActiveIndices = new List<int>();
+        while (newActiveIndices.Count < noofPatterns)
+        {
+            var pattern = SelectRandomPattern(random.Next(0, config.columns - 5), random.Next(0, rows - 5), config.columns);
+            newActiveIndices.AddRange(pattern);
+        }
 
-            //   handler.SendColorsToUdp(handlerDevices[handler]);
-            //    handler.SendColorsToUdp(cl);
-
-
-        
-        Thread.Sleep(2000);
-        SendColorToDevices(basecolor, true);
-
-
-
+     
+        UpdateGrid(newActiveIndices);
+        SendColorToUdpAsync();
+        Thread.Sleep(5000);
+        SendSameColorToAllDevice(baseColor, false);
     }
-
+    private void UpdateGrid(List<int> newActiveIndices)
+    {
+         foreach (int pos in newActiveIndices)
+        {
+            int actualHandlerPos = base.deviceMapping[pos].deviceNo;
+            base.deviceMapping[pos].udpHandler.DeviceList[actualHandlerPos] = ColorPaletteone.Green;
+            base.deviceMapping[pos].udpHandler.activeDevices.Add(actualHandlerPos);            
+        }
+    }
 
     private void PlacePattern(UdpHandler handler, List<int> pattern)
     {
@@ -199,9 +155,9 @@ public class PatternBuilderGame : BaseMultiDevice
         
         var parts = tile.Split(',');
         var row = int.Parse(parts[0]) + y;
-     var   column = int.Parse(parts[1]) + x;
-        if(row * columns + column>139)
-            LogData($"row:{row} column:{column} index:{row * columns + column} x:{x} y:{y}");
+        var   column = int.Parse(parts[1]) + x;
+      //  if(row * columns + column>139)
+      //      LogData($"row:{row} column:{column} index:{row * columns + column} x:{x} y:{y}");
         return row * columns + column;
     }
 

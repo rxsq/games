@@ -165,7 +165,7 @@ namespace scorecard
                 tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(200);
+            
 
         }
 

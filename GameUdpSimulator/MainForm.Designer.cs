@@ -32,7 +32,7 @@ public partial class MainForm : Form
             this.txtNumberOfButtons.Name = "txtNumberOfButtons";
             this.txtNumberOfButtons.Size = new System.Drawing.Size(100, 20);
             this.txtNumberOfButtons.TabIndex = 1;
-            this.txtNumberOfButtons.Text = "224";
+            this.txtNumberOfButtons.Text = "336";
             // 
             // lblButtonsPerRow
             // 
@@ -66,7 +66,7 @@ public partial class MainForm : Form
             this.txtControllersCount.Name = "txtControllersCount";
             this.txtControllersCount.Size = new System.Drawing.Size(100, 20);
             this.txtControllersCount.TabIndex = 5;
-            this.txtControllersCount.Text = "2";
+            this.txtControllersCount.Text = "3";
             // 
             // btnGenerateButtons
             // 
