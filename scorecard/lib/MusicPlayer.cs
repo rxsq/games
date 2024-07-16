@@ -20,6 +20,11 @@ public class MusicPlayer
         isPlayingEffect = false;
     }
 
+    public void Dispose()
+    {
+        StopAllMusic();
+    }
+
     public void PlayBackgroundMusic(string filePath, bool repeat = false)
     {
         if (!File.Exists(filePath))
@@ -202,6 +207,37 @@ public class MusicPlayer
         finally
         {
             effectsPlayer = null;
+        }
+    }
+
+    public void Announcement(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"Announcement file not found: {filePath}");
+            return;
+        }
+
+        StopAllMusic();
+
+        using (var announcementPlayer = new WaveOutEvent())
+        using (var announcementFile = new AudioFileReader(filePath))
+        {
+            announcementPlayer.Init(announcementFile);
+            announcementPlayer.Volume = 1.0f;
+            announcementPlayer.Play();
+
+            // Wait for the announcement to finish
+            while (announcementPlayer.PlaybackState == PlaybackState.Playing)
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+        }
+
+        // Resume background music if it was playing
+        if (backgroundAudioFile != null)
+        {
+            PlayBackgroundMusic(backgroundAudioFile.FileName, repeatBackgroundMusic);
         }
     }
 }

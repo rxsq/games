@@ -42,7 +42,7 @@ public partial class MainForm : Form
                 currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
                 break;
             case "FloorGame":
-                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 20, ReductionTimeEachLevel = 2, NoOfControllers = 3, columns=14 }, 200);
+                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 20, ReductionTimeEachLevel = 2, NoOfControllers = 3, columns=14, introAudio="content\floorgameintro.wav" }, 200);
                 break;
             case "PatternBuilder":
                 currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 3, columns=14 },2);
@@ -54,7 +54,7 @@ public partial class MainForm : Form
                 currentGame = new Snakes(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                 break;
             case "Wipeout":
-                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 5, NoOfControllers = 3, columns = 14 });
+                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 5, NoOfControllers = 3, columns = 14, introAudio="content\\wipeoutintro.wav" });
                 break;
         }
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
@@ -146,9 +146,10 @@ public partial class MainForm : Form
             case "Chaser":
                 return "In the Chaser Game, chase and hit the moving targets. Stay quick and keep up to score points.";
             case "FloorGame":
-                return "Players aim to step on the highlighted tiles as quickly as possible. The game lights up a set of target tiles, and players need to hit these targets within the given time.";
+                return "Welcome to the LED Floor Game!Here's how to play:Avoid the blue line as it moves across the grid.\r\nStep on the green tiles to score points.\r\nEach level gets faster, so stay sharp!\r\nTouch the blue line and it's game over. Survive all iterations to win!Good luck, and have fun!";
             case "PatternBuilder":
                 return "Players must recreate a pattern based off memory as quickly as possible. Each correct pattern earns a point.";
+            case "wipeout": return "Welcome to the LED Wipeout Game! Here's how to play: Your goal is to avoid the rotating obstacles and survive as long as possible. Obstacles will move around the center of the grid.Each full rotation without a collision increases your score. Be careful, the speed and direction of rotation can change, so stay alert! If you touch an obstacle, the game ends. Survive through all iterations to win the game.Good luck, and get ready for the challenge!";
             default:
                 return "";
         }

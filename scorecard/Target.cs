@@ -80,7 +80,7 @@ public class Target : BaseSingleDevice
             if (activeIndices[handler].Contains(actualPos))
             {
                 LogData("Color change detected");
-                musicPlayer.PlayEffect("content/target_hit.mp3");
+                musicPlayer.PlayEffect("content/hit2.wav");
                 ChnageColorToDevice(config.NoofLedPerdevice==1? ColorPaletteone.NoColor:ColorPalette.noColor3, actualPos, handler);
                 handler.activeDevices.Remove(actualPos);
                 base.Score = base.Score + 1;

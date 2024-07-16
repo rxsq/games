@@ -188,7 +188,8 @@ public class FloorGame : BaseMultiDevice
             else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)))
             {
                 isGameRunning = false;
-                musicPlayer.PlayEffect("content/you failed.mp3");
+                //TexttoSpeech: You failed, Try again
+              //  musicPlayer.PlayEffect("content/fail.wav");
                 LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
                 killerRowsDict[handler].Clear();
                 base.Score--;

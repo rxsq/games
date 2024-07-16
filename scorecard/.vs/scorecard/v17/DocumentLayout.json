@@ -1,7 +1,40 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\lib\\basegame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:lib\\basegame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\lib\\musicplayer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:lib\\musicplayer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\floorgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:floorgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\lib\\gameconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:lib\\gameconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\wipeout.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:wipeout.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games1\\scorecard\\target.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:target.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games1\\scorecard\\floorgame1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:floorgame1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,11 +42,115 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainForm.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\MainForm.cs",
+              "RelativeToolTip": "MainForm.cs",
+              "ViewState": "AQIAAIcAAAAAAAAAAAAUwJcAAADmAQAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T02:14:48.833Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Target.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\Target.cs",
+              "RelativeDocumentMoniker": "Target.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\Target.cs",
+              "RelativeToolTip": "Target.cs",
+              "ViewState": "AQIAADkAAAAAAAAAAAAUwFAAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:56:33.501Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FloorGame.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\FloorGame.cs",
+              "RelativeDocumentMoniker": "FloorGame.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\FloorGame.cs",
+              "RelativeToolTip": "FloorGame.cs",
+              "ViewState": "AQIAALkAAAAAAAAAAAAAwNkAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:50:00.696Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MusicPlayer.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\lib\\MusicPlayer.cs",
+              "RelativeDocumentMoniker": "lib\\MusicPlayer.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\lib\\MusicPlayer.cs",
+              "RelativeToolTip": "lib\\MusicPlayer.cs",
+              "ViewState": "AQIAANAAAAAAAAAAAAAswNQAAAAcAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:32:56.692Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BaseGame.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\lib\\BaseGame.cs",
+              "RelativeDocumentMoniker": "lib\\BaseGame.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\lib\\BaseGame.cs",
+              "RelativeToolTip": "lib\\BaseGame.cs",
+              "ViewState": "AQIAAF8AAAAAAAAAAAAmwHAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:30:25.393Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Wipeout.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\Wipeout.cs",
+              "RelativeDocumentMoniker": "Wipeout.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\Wipeout.cs",
+              "RelativeToolTip": "Wipeout.cs",
+              "ViewState": "AQIAAL8AAAAAAAAAAAAkwN4AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:25:01.759Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "GameConfig.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\lib\\GameConfig.cs",
+              "RelativeDocumentMoniker": "lib\\GameConfig.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\lib\\GameConfig.cs",
+              "RelativeToolTip": "lib\\GameConfig.cs",
+              "ViewState": "AQIAAAgAAAAAAAAAAAAxwBYAAAAyAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:21:40.892Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "FloorGame1.cs",
+              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\FloorGame1.cs",
+              "RelativeDocumentMoniker": "FloorGame1.cs",
+              "ToolTip": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\FloorGame1.cs",
+              "RelativeToolTip": "FloorGame1.cs",
+              "ViewState": "AQIAAO4AAAAAAAAAAAAiwP8AAAAMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-16T00:17:33.088Z",
+              "EditorCaption": ""
             }
           ]
         }

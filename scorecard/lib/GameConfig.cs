@@ -13,12 +13,13 @@ namespace scorecard.lib
         public int MaxLevel { get; set; } = 10;
         public int ReductionTimeEachLevel { get; set; } = 5; // Assuming time is in seconds
         public int MaxPlayers { get; set; } = 5;
-        public string IpAddress { get; internal set; } = "192.168.0.7";
+        public string IpAddress { get; internal set; } = "127.0.0.1";
         public int LocalPort { get; internal set; } = 21;
         public int RemotePort { get; internal set; } = 7113;
         public int SocketBReceiverPort { get; internal set; } = 20105;
         public int NoOfControllers { get; internal set; } = 1;
         public int NoofLedPerdevice { get; internal set; } = 1;
         public int columns { get; set; } = 14;
+        public string introAudio { get; set; } = "";
     }
 }

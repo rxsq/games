@@ -70,8 +70,10 @@ public class WipeoutGame : BaseMultiDevice
         {
             if (handler.activeDevices.Contains(position))
             {
+
                 LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
                 isGameRunning = false;
+                handler.activeDevices.Clear();
                 BlinkAllAsync(1);
                 gameTimer.Dispose();
                 TargetTimeElapsed(null);
@@ -94,15 +96,14 @@ public class WipeoutGame : BaseMultiDevice
         }
         LogData($"currentAngle:{currentAngle} angelstep {angleStep}");
         //if (currentAngle == 360 && currentAngle >= 360 - angleStep)
-        if ((currentAngle >= 360) || (currentAngle <= angleStep))
+        if ((currentAngle >= 360) || (currentAngle <= 0))
         {
            
             updateScore(Score + 1);
             revolutions += 1;
             //   currentAngle = currentAngle >= 370? currentAngle - 360: currentAngle + 360;
-            angleStep = -1 * angleStep;
-            currentAngle = currentAngle + angleStep;
-            LogData($"rovolution done detected:{currentAngle} angelstep {angleStep} Score {Score}" );
+            angleStep = -1 * angleStep; 
+           LogData($"rovolution done detected:{currentAngle} angelstep {angleStep} Score {Score}" );
         }
 
 

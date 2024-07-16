@@ -28,7 +28,8 @@ gamesimulator/obj/
 .vscode/
 .vs/
 .vscode/*
-
+scorecard/.vs/
+gamesimulator/.vs/
 # Ignore Rider specific files
 .idea/
 *.sln.iml
