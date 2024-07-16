@@ -2,11 +2,15 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/scorecard/.vs/scorecard/FileContentIndex
-/scorecard/.vs/scorecard/v17/.suo
 # Ignore build outputs
-/bin/
-/obj/
+scorecard/bin/
+scorecard/obj/
+gamesimulator/bin/
+gamesimulator/obj/
+**/bin/
+**/obj/
+**/[Dd]ebug/
+**/[Rr]elease/
 
 # Ignore user-specific files
 *.user
@@ -14,6 +18,8 @@
 *.suo
 *.userosscache
 *.sln.docstates
+*.cache
+*.log
 
 # Ignore MacOS specific files
 .DS_Store
@@ -26,9 +32,6 @@
 # Ignore Rider specific files
 .idea/
 *.sln.iml
-
-# Ignore JetBrains Rider specific files
-.idea/
 
 # Ignore package manager files
 packages/
@@ -76,8 +79,8 @@ coverage/
 *.coveragexml
 
 # Ignore debug and release directories
-[Dd]ebug/
-[Rr]elease/
+**/[Dd]ebug/
+**/[Rr]elease/
 x64/
 x86/
 [Aa][Rr][Mm]/
@@ -153,3 +156,6 @@ node_modules/
 # Ignore Rider and VS Code workspace settings
 .idea/
 .vscode/
+
+# Ignore solution file
+/scorecard/scorecard.sln
