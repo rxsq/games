@@ -1,36 +1,7 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\User\\source\\repos\\games\\scorecard\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|c:\\users\\user\\source\\repos\\games\\scorecard\\floorgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:floorgame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games\\scorecard\\lib\\udphandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:lib\\udphandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games\\scorecard\\basemultidevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:basemultidevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games\\scorecard\\lib\\basegame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:lib\\basegame.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games\\scorecard\\patternbuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:patternbuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games\\scorecard\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|C:\\Users\\User\\source\\repos\\games\\scorecard\\basesingledevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D172D603-0E23-47AF-8368-07A209823A8C}|scorecard.csproj|solutionrelative:basesingledevice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "WorkspaceRootPath": "C:\\Users\\User\\source\\repos\\games1\\scorecard\\",
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -38,96 +9,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "BaseGame.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\lib\\BaseGame.cs",
-              "RelativeDocumentMoniker": "lib\\BaseGame.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\lib\\BaseGame.cs",
-              "RelativeToolTip": "lib\\BaseGame.cs",
-              "ViewState": "AQIAAMEAAAAAAAAAAAASwF8BAAAJAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-28T00:37:37.045Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "UdpHandler.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\lib\\UdpHandler.cs",
-              "RelativeDocumentMoniker": "lib\\UdpHandler.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\lib\\UdpHandler.cs",
-              "RelativeToolTip": "lib\\UdpHandler.cs",
-              "ViewState": "AQIAAE8AAAAAAAAAAAAawF4AAAAIAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-27T20:29:37.016Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "BaseSingleDevice.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\BaseSingleDevice.cs",
-              "RelativeDocumentMoniker": "BaseSingleDevice.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\BaseSingleDevice.cs",
-              "RelativeToolTip": "BaseSingleDevice.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-25T01:08:16.049Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "BaseMultiDevice.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\BaseMultiDevice.cs",
-              "RelativeDocumentMoniker": "BaseMultiDevice.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\BaseMultiDevice.cs",
-              "RelativeToolTip": "BaseMultiDevice.cs",
-              "ViewState": "AQIAAEoAAAAAAAAAAAAiwFIAAAAKAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-23T23:52:06.212Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "FloorGame.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\FloorGame.cs",
-              "RelativeDocumentMoniker": "FloorGame.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\FloorGame.cs",
-              "RelativeToolTip": "FloorGame.cs",
-              "ViewState": "AQIAAFQAAAAAAAAAAAArwFsAAAANAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-25T02:36:51.965Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "PatternBuilder.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\PatternBuilder.cs",
-              "RelativeDocumentMoniker": "PatternBuilder.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\PatternBuilder.cs",
-              "RelativeToolTip": "PatternBuilder.cs",
-              "ViewState": "AQIAADAAAAAAAAAAAIA3wEMAAAASAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-23T21:18:39.432Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\scorecard\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\User\\source\\repos\\games\\scorecard\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABYAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-27T03:03:59.613Z"
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
             }
           ]
         }
