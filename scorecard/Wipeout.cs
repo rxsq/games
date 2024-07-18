@@ -66,9 +66,8 @@ public class WipeoutGame : BaseMultiDevice
                                           .Where(position => position >= 0)
                                           .ToList();
 
-        foreach (int position in positions)
-        {
-            if (handler.activeDevices.Contains(position))
+      
+            if (handler.activeDevices.Exists(x => positions.Contains(x)))
             {
 
                 LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
@@ -79,7 +78,7 @@ public class WipeoutGame : BaseMultiDevice
                 TargetTimeElapsed(null);
                 return;
             }
-        }
+      
 
         if (!isGameRunning)
             return;
@@ -102,7 +101,15 @@ public class WipeoutGame : BaseMultiDevice
             updateScore(Score + 1);
             revolutions += 1;
             //   currentAngle = currentAngle >= 370? currentAngle - 360: currentAngle + 360;
-            angleStep = -1 * angleStep; 
+            angleStep = -1 * angleStep;
+            if(currentAngle <= 0)
+            {
+                angleStep = angleStep <= 0 ? -1*angleStep : angleStep;
+            }
+            else
+            {
+                angleStep = angleStep <= 0 ? angleStep : -1 * angleStep;
+            }
            LogData($"rovolution done detected:{currentAngle} angelstep {angleStep} Score {Score}" );
         }
 
@@ -110,8 +117,8 @@ public class WipeoutGame : BaseMultiDevice
 
          if (revolutions == config.Maxiterations)
         {
-            gameTimer.Dispose();
             isGameRunning = false;
+            gameTimer.Dispose();            
             revolutions = 0;
             MoveToNextIteration();            
             return;
@@ -123,10 +130,10 @@ public class WipeoutGame : BaseMultiDevice
         {
             handler.activeDevices.Clear();
         }
-        currentAngle += angleStep; // Adjust angle based on direction
-        MoveObstacles();
-        UpdateGrid();
-          SendColorToUdpAsync();
+            currentAngle += angleStep; // Adjust angle based on direction
+            MoveObstacles();
+            UpdateGrid();
+           SendColorToUdpAsync();
         
         if (!isGameRunning)
         {

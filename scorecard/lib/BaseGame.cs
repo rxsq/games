@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 using System.Diagnostics.Eventing.Reader;
+using System.Diagnostics;
 public abstract class BaseGame
 {
     protected List<UdpHandler> udpHandlers;
@@ -108,6 +109,7 @@ public abstract class BaseGame
         this.config = config;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer();
+      if(!Debugger.IsAttached)
         musicPlayer.Announcement(config.introAudio);
      
 
@@ -282,10 +284,11 @@ public abstract class BaseGame
             }
             else
             {
-                musicPlayer.StopBackgroundMusic();
+             //   musicPlayer.StopBackgroundMusic();
                 //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
 
-                                musicPlayer.PlayEffect("content/levelwin.wav");
+                musicPlayer.Announcement("content/levelwin.wav");
+                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
             }
             //labelScore.Text = $"Score: {score}";
 
