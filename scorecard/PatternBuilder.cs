@@ -43,7 +43,9 @@ public class PatternBuilderGame : BaseMultiDevice
 
     protected override void OnStart()
     {
-         foreach (var handler in udpHandlers)
+
+        musicPlayer.PlayEffect("content/PatternIntro.wav");
+        foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }

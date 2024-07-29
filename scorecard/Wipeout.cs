@@ -30,6 +30,8 @@ public class WipeoutGame : BaseMultiDevice
 
     protected override void Initialize()
     {
+
+        musicPlayer.PlayEffect("content/WipeoutIntro.wav");
         grid = new List<string>(new string[rows * config.columns]);
         for (int i = 0; i < rows * config.columns; i++)
         {

@@ -29,6 +29,8 @@ public class FloorGame1 : BaseMultiDevice
 
     protected override void Initialize()
     {
+
+        musicPlayer.PlayEffect("content/FloorGameIntro.wav");
         AnimateColor(false);
         AnimateColor(true);
         BlinkAllAsync(4);
@@ -117,7 +119,7 @@ public class FloorGame1 : BaseMultiDevice
         int lastrowmax = device.udpHandler.DeviceList.Count;
         int lastrowmin = lastrowmax - config.columns;
 
-        if (device.deviceNo <= lastrowmax && device.deviceNo > lastrowmin)
+        if ((device.deviceNo <= lastrowmax && device.deviceNo > lastrowmin) || device.deviceNo % 14 == 13)
         {
             return false;
         }
