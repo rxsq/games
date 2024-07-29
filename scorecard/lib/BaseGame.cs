@@ -121,24 +121,24 @@ public abstract class BaseGame
             udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, $"udplog1.log", config.SocketBReceiverPort+i, config.NoofLedPerdevice, config.columns, "handler2"));
         }
 
-        initializeDevices();
+       // initializeDevices();
         
         //devices = udpHandler.DeviceList;
         
         gameColors = getColorList();
     }
-    private void initializeDevices()
-    {
-         handlerDevices = new Dictionary<UdpHandler, List<string>>();
-        activeIndices = new Dictionary<UdpHandler, HashSet<int>>();
+    //private void initializeDevices()
+    //{
+    //     handlerDevices = new Dictionary<UdpHandler, List<string>>();
+    //    activeIndices = new Dictionary<UdpHandler, HashSet<int>>();
 
-        foreach (var handler in udpHandlers)
-        {
-            handlerDevices[handler] = handler.DeviceList;
-            activeIndices[handler] = new HashSet<int>();
+    //    foreach (var handler in udpHandlers)
+    //    {
+    //        handlerDevices[handler] = handler.DeviceList;
+    //        activeIndices[handler] = new HashSet<int>();
 
-        }
-    }
+    //    }
+    //}
     public void StartGame()
     {
         Console.WriteLine("Game starting in 3... 2... 1...");

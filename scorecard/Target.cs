@@ -29,7 +29,7 @@ public class Target : BaseSingleDevice
     protected override void OnStart()
     {
         //base.BlinkLights(new HashSet<int> { starIndex },2, handler);
-        OnIteration();
+        
         handler.BeginReceive(data => ReceiveCallback(data, handler));
        
     }

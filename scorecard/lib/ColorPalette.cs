@@ -28,6 +28,7 @@ public static class ColorPalette
     public static string yellow = $"{ColorPaletteone.Yellow}{ColorPaletteone.Yellow}{ColorPaletteone.Yellow}";
     public static string noColor3 = $"{ColorPaletteone.NoColor}{ColorPaletteone.NoColor}{ColorPaletteone.NoColor}";
 }
+
 public static class ColorPaletteone
 {
     public static string Red = "fe0000";

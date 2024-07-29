@@ -17,8 +17,7 @@ namespace scorecard
         public BaseSingleDevice(GameConfig config) : base(config)
         {
             handler = udpHandlers[0];
-            devices = handlerDevices[handler];
-            activeIndicesSingle= activeIndices[handler];
+           
         }
 
       
