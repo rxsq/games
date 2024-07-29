@@ -21,6 +21,8 @@ public class Target : BaseSingleDevice
     }
     protected override void Initialize()
     {
+
+        musicPlayer.PlayEffect("content/TargetIntro.wav");
         base.SendDataToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Silver : ColorPalette.SilverGrayWhite, starIndex);
         LoopAll(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3,1);
         BlinkAllAsync(2);

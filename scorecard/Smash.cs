@@ -34,7 +34,8 @@ public class Smash : BaseSingleDevice
     }
     protected override void OnStart()
     {
-       
+
+        musicPlayer.PlayEffect("content/SmashIntro.wav");
         base.BlinkAllAsync(1);
         OnIteration();
         handler.BeginReceive(data => ReceiveCallback(data, handler));
