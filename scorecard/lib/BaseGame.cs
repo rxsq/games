@@ -17,7 +17,7 @@ using System.Diagnostics;
 public abstract class BaseGame
 {
     protected List<UdpHandler> udpHandlers;
-    protected Dictionary<UdpHandler, List<string>> handlerDevices;
+    //protected Dictionary<UdpHandler, List<string>> handlerDevices;
     protected Dictionary<UdpHandler, HashSet<int>> activeIndices;
     protected Random random = new Random();
     public TimeSpan Duration { get; protected set; }
@@ -221,15 +221,15 @@ public abstract class BaseGame
         
             foreach (var handler in udpHandlers)
             {
-                handlerDevices[handler][deviceNo] = color;
-                handler.SendColorsToUdp(handlerDevices[handler]);
+                handler.DeviceList[deviceNo] = color;
+                handler.SendColorsToUdp(handler.DeviceList);
             }
     }
     protected void SendSameColorToAllDevice(string color)
     {
         foreach (var handler in udpHandlers)
         {
-            handler.SendColorsToUdp(handlerDevices[handler].Select(x => color).ToList());
+            handler.SendColorsToUdp(handler.DeviceList.Select(x => color).ToList());
         }
 
     }
@@ -241,9 +241,9 @@ public abstract class BaseGame
             {
                 for (int x = 0; x < handler.DeviceList.Count; x++)
                 {
-                    handlerDevices[handler][x] = color;
+                    handler.DeviceList[x] = color;
                 }
-                handler.SendColorsToUdp(handlerDevices[handler]);
+                handler.SendColorsToUdp(handler.DeviceList);
             }
 
         }
@@ -251,7 +251,7 @@ public abstract class BaseGame
         {
             foreach (var handler in udpHandlers)
             {
-                handler.SendColorsToUdp(handlerDevices[handler].Select(x => color).ToList());
+                handler.SendColorsToUdp(handler.DeviceList.Select(x => color).ToList());
             }
         }
 
@@ -325,13 +325,13 @@ public abstract class BaseGame
     {
         try
         {
-            Console.WriteLine($"before change: {string.Join(",", handlerDevices[handler])}");
+            Console.WriteLine($"before change: {string.Join(",", handler.DeviceList)}");
             foreach (int x in deviceNos)
             {
-                handlerDevices[handler][x] = color;
+                handler.DeviceList[x] = color;
             }
-            handler.SendColorsToUdp(handlerDevices[handler]);
-            Console.WriteLine($"after change: {string.Join(",", handlerDevices[handler])}");
+            handler.SendColorsToUdp(handler.DeviceList);
+            Console.WriteLine($"after change: {string.Join(",", handler.DeviceList)}");
         }
         catch (Exception ex)
         {
@@ -348,13 +348,13 @@ public abstract class BaseGame
         {
             if (isDeviceToBeUpdate)
             {
-                for (int x = 0; x < handlerDevices[handler].Count; x++)
+                for (int x = 0; x < handler.DeviceList.Count; x++)
                 {
-                    handlerDevices[handler][x] = color;
+                    handler.DeviceList[x] = color;
                 }
 
             }
-            var colors = handlerDevices[handler].Select(x => color).ToList();
+            var colors = handler.DeviceList.Select(x => color).ToList();
             tasks.Add(handler.SendColorsToUdpAsync(colors));
 
         }
@@ -369,7 +369,7 @@ public abstract class BaseGame
             foreach (var handler in udpHandlers)
             {
                 
-                var colors = handlerDevices[handler].Select(x => config.NoofLedPerdevice == 1 ? ColorPaletteone.Yellow : ColorPalette.yellow).ToList();
+                var colors = handler.DeviceList.Select(x => config.NoofLedPerdevice == 1 ? ColorPaletteone.Yellow : ColorPalette.yellow).ToList();
                 tasks.Add(handler.SendColorsToUdpAsync(colors));
             }
             Task.WhenAll(tasks);
@@ -377,7 +377,7 @@ public abstract class BaseGame
 
             foreach (var handler in udpHandlers)
              {
-                tasks.Add(handler.SendColorsToUdpAsync(handlerDevices[handler]));
+                tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
             Task.WhenAll(tasks);
@@ -388,9 +388,9 @@ public abstract class BaseGame
     {
             for (int j = 0; j < repeation; j++)
             {
-                handler.SendColorsToUdp(handlerDevices[handler].Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
+                handler.SendColorsToUdp(handler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
                 Thread.Sleep(1000);
-                handler.SendColorsToUdp(handlerDevices[handler]);
+                handler.SendColorsToUdp(handler.DeviceList);
             }
     }
     protected void LoopAll()
@@ -403,11 +403,11 @@ public abstract class BaseGame
         {
             foreach (var handler in udpHandlers)
             {
-                var deepCopiedList = handlerDevices[handler].Select(x => basecolor).ToList();
+                var deepCopiedList = handler.DeviceList.Select(x => basecolor).ToList();
                 // handler.SendColorsToUdp(deepCopiedList);
 
                 var loopColor = gameColors[random.Next(gameColors.Count - 1)];
-                for (int j = 0; j < handlerDevices[handler].Count; j++)
+                for (int j = 0; j < handler.DeviceList.Count; j++)
                 {
                     deepCopiedList[j] = loopColor;
                     handler.SendColorsToUdp(deepCopiedList);

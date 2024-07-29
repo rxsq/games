@@ -114,7 +114,7 @@ public class FloorGame : BaseMultiDevice
             for (int row = 0; row < handler.Rows; row++)
             {
                 var colorList = new List<string>();
-                var cl = handlerDevices[handler].Select(x => x).ToList();
+                var cl = handler.DeviceList.Select(x => x).ToList();
                 int rowNum = (row / handler.Rows) % 2 == 0 ? (row % handler.Rows) : handler.Rows - 1 - (row % handler.Rows);
                 var blueLineDevices = new List<int>();
 
@@ -140,7 +140,7 @@ public class FloorGame : BaseMultiDevice
                 Thread.Sleep(1000 - (base.level - 1) * killerSpeedReduction);
             }
 
-            handler.SendColorsToUdp(handlerDevices[handler]);
+            handler.SendColorsToUdp(handler.DeviceList);
         }
 
         if (isGameRunning)

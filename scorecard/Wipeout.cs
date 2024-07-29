@@ -68,19 +68,19 @@ public class WipeoutGame : BaseMultiDevice
                                           .Where(position => position >= 0)
                                           .ToList();
 
-      
-            if (handler.activeDevices.Exists(x => positions.Contains(x)))
-            {
 
-                LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
-                isGameRunning = false;
-                handler.activeDevices.Clear();
-                BlinkAllAsync(1);
-                gameTimer.Dispose();
-                TargetTimeElapsed(null);
-                return;
-            }
-      
+        if (handler.activeDevices.Exists(x => positions.Contains(x)))
+        {
+
+            LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
+            isGameRunning = false;
+            handler.activeDevices.Clear();
+            BlinkAllAsync(1);
+            gameTimer.Dispose();
+            TargetTimeElapsed(null);
+            return;
+        }
+
 
         if (!isGameRunning)
             return;
@@ -90,7 +90,7 @@ public class WipeoutGame : BaseMultiDevice
 
     private void GameLoop(object state)
     {
-      
+
         if (!isGameRunning)
         {
             return;
@@ -99,50 +99,50 @@ public class WipeoutGame : BaseMultiDevice
         //if (currentAngle == 360 && currentAngle >= 360 - angleStep)
         if ((currentAngle >= 360) || (currentAngle <= 0))
         {
-           
+
             updateScore(Score + 1);
             revolutions += 1;
             //   currentAngle = currentAngle >= 370? currentAngle - 360: currentAngle + 360;
             angleStep = -1 * angleStep;
-            if(currentAngle <= 0)
+            if (currentAngle <= 0)
             {
-                angleStep = angleStep <= 0 ? -1*angleStep : angleStep;
+                angleStep = angleStep <= 0 ? -1 * angleStep : angleStep;
             }
             else
             {
                 angleStep = angleStep <= 0 ? angleStep : -1 * angleStep;
             }
-           LogData($"rovolution done detected:{currentAngle} angelstep {angleStep} Score {Score}" );
+            LogData($"rovolution done detected:{currentAngle} angelstep {angleStep} Score {Score}");
         }
 
 
 
-         if (revolutions == config.Maxiterations)
+        if (revolutions == config.Maxiterations)
         {
             isGameRunning = false;
-            gameTimer.Dispose();            
+            gameTimer.Dispose();
             revolutions = 0;
-            MoveToNextIteration();            
+            MoveToNextIteration();
             return;
         }
 
-       
+
         obstaclePositions.Clear();
         foreach (var handler in udpHandlers)
         {
             handler.activeDevices.Clear();
         }
-            currentAngle += angleStep; // Adjust angle based on direction
-            MoveObstacles();
-            UpdateGrid();
-           SendColorToUdpAsync();
-        
+        currentAngle += angleStep; // Adjust angle based on direction
+        MoveObstacles();
+        UpdateGrid();
+        SendColorToUdpAsync();
+
         if (!isGameRunning)
         {
             return;
         }
         Thread.Sleep(200 - config.ReductionTimeEachLevel * Level);
-       
+
         GameLoop(null);
     }
 
@@ -201,7 +201,7 @@ public class WipeoutGame : BaseMultiDevice
                 error += dx;
             }
         }
-       // Console.WriteLine($"x:{x1} x2:{x2}  currentAngle {currentAngle} {string.Join(",", obstaclePositions)}");
+        // Console.WriteLine($"x:{x1} x2:{x2}  currentAngle {currentAngle} {string.Join(",", obstaclePositions)}");
     }
 
     private void Swap(ref int a, ref int b)

@@ -47,9 +47,9 @@ namespace scorecard
                 {
                 for (int iterations = 0; iterations < handler.Rows; iterations++)
                 {
-                    for (int i = 0; i < handlerDevices[handler].Count; i++)
+                    for (int i = 0; i < handler.DeviceList.Count; i++)
                     {
-                        handlerDevices[handler][i] = ColorPaletteone.Red;
+                        handler.DeviceList[i] = ColorPaletteone.Red;
                     }
 
                     int row = (iterations / handler.Rows) % 2 == 0 ? (iterations % handler.Rows) : handler.Rows - 1 - (iterations % handler.Rows);
@@ -61,10 +61,10 @@ namespace scorecard
 
                     for (int i = 0; i < config.columns; i++)
                     {
-                        handlerDevices[handler][row * config.columns + i] = ColorPaletteone.Green;
+                        handler.DeviceList[row * config.columns + i] = ColorPaletteone.Green;
                     }
 
-                    handler.SendColorsToUdp(handlerDevices[handler]);
+                    handler.SendColorsToUdp(handler.DeviceList);
                     Thread.Sleep(75);
                 }
             }
@@ -84,9 +84,9 @@ namespace scorecard
                     int handlerIndex = unchanged[random] / handler.DeviceList.Count;
                     int position = unchanged[random] % handler.DeviceList.Count;
                     Console.WriteLine($"index {handlerIndex} position {position} random {random}");
-                    handlerDevices[udpHandlers[handlerIndex]][unchanged[random] - handler.DeviceList.Count * handlerIndex] = color;
+                   udpHandlers[handlerIndex].DeviceList[unchanged[random] - handler.DeviceList.Count * handlerIndex] = color;
                     unchanged.RemoveAt(random);
-                    udpHandlers[handlerIndex].SendColorsToUdp(handlerDevices[udpHandlers[handlerIndex]]);
+                    udpHandlers[handlerIndex].SendColorsToUdp(udpHandlers[handlerIndex].DeviceList);
                     Thread.Sleep(Convert.ToInt32(38.00 - i/6));
                 }
             }

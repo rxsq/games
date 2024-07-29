@@ -64,10 +64,10 @@ public class Snakes : BaseMultiDevice
             activeSnakes[handler].Add(pos4, currentSnake);
             foreach (var index in currentSnake)
             {
-                handlerDevices[handler][index] = ColorPaletteone.Red;
+                handler.DeviceList[index] = ColorPaletteone.Red;
             }
 
-            handler.SendColorsToUdp(handlerDevices[handler]);
+            handler.SendColorsToUdp(handler.DeviceList);
             Console.WriteLine("REACHED CHECKPOINT");
         }
     }
@@ -79,7 +79,7 @@ public class Snakes : BaseMultiDevice
             foreach (var snakeEntry in activeSnakes[handler].ToList())
             {
                 var snake = snakeEntry.Value;
-                handlerDevices[handler][snake[0]] = ColorPaletteone.NoColor;
+                handler.DeviceList[snake[0]] = ColorPaletteone.NoColor;
 
                 // Shift snake positions
                 for (int i = 0; i < snake.Count - 1; i++)
@@ -108,16 +108,16 @@ public class Snakes : BaseMultiDevice
                 // Update device colors
                 foreach (var pos in snake)
                 {
-                    if (pos >= 0 && pos < handlerDevices[handler].Count)
+                    if (pos >= 0 && pos < handler.DeviceList.Count)
                     {
-                        handlerDevices[handler][pos] = ColorPaletteone.Red;
+                        handler.DeviceList[pos] = ColorPaletteone.Red;
                     }
                 }
             }
 
             // Replace old active snakes with new positions
             activeSnakes[handler] = newActiveSnakes;
-            handler.SendColorsToUdp(handlerDevices[handler]);
+            handler.SendColorsToUdp(handler.DeviceList);
         }
     }
 

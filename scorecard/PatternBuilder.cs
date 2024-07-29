@@ -137,7 +137,7 @@ public class PatternBuilderGame : BaseMultiDevice
     {
         foreach (var tileIndex in pattern)
         {
-            handlerDevices[handler][tileIndex] = targetColor;
+            handler.DeviceList[tileIndex] = targetColor;
         }
     }
 

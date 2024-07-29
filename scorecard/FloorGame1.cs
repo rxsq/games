@@ -190,7 +190,7 @@ public class FloorGame1 : BaseMultiDevice
     private void MoveKillerLine(UdpHandler handler, int row)
     {
         var colorList = new List<string>();
-        var cl = handlerDevices[handler].Select(x => x).ToList();
+        var cl = handler.DeviceList.Select(x => x).ToList();
         int rowNum = (row / handler.Rows) % 2 == 0 ? (row % handler.Rows) : handler.Rows - 1 - (row % handler.Rows);
         var blueLineDevices = new List<int>();
 

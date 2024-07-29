@@ -132,6 +132,7 @@
     <Compile Include="lib\BaseGame.cs" />
     <Compile Include="FloorGame.cs" />
     <Compile Include="lib\GameConfig.cs" />
+    <Compile Include="lib\relay.cs" />
     <Compile Include="lib\SurroundingMap.cs" />
     <Compile Include="Mapping.cs" />
     <Compile Include="PatternBuilder.cs" />
