@@ -12,17 +12,14 @@ namespace scorecard
     public class BaseSingleDevice: BaseGame
     {
         protected HashSet<int> activeIndicesSingle;
-        protected UdpHandler handler;
+        public UdpHandler handler;
         protected List<string> devices;
+
+        protected int rows = 0;
         public BaseSingleDevice(GameConfig config) : base(config)
         {
             handler = udpHandlers[0];
            
-        }
-
-      
-
-       
-    }
-   
+        }       
+    }   
 }
