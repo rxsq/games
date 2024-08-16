@@ -373,7 +373,7 @@ public abstract class BaseGame
                 tasks.Add(handler.SendColorsToUdpAsync(colors));
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(200);
+            Thread.Sleep(75);
 
             foreach (var handler in udpHandlers)
              {
@@ -381,7 +381,7 @@ public abstract class BaseGame
                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(200);
+            Thread.Sleep(75);
         }
     }
     public void BlinkLights(List<int> lightIndex,int repeation, UdpHandler handler, string Color)
