@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Windows;
-using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 
 namespace WpfApp1
@@ -9,20 +8,22 @@ namespace WpfApp1
     public partial class MainWindow : Window
     {
         AsyncLogger logger = new AsyncLogger("wpf.log");
+        string uid = "";
         public MainWindow()
         {
             InitializeComponent();
             InitializeWebView();
             PlayScreensaver();
             SetBrowserFeatureControl();
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R");
-            webView2.Source = new Uri("https://www.aerosportsparks.ca/oakville");
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V");
+            webView2.Source = new Uri("http://localhost:3001/?gameCode=HexaQuest");
             webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid) =>
             {
                 if (uid.Length > 0)
                 {
                     logger.Log($"Card detected: {uid}");
+                    this.uid    = uid;
                     OnCardDetected(this, EventArgs.Empty);
                 }
             };
@@ -31,7 +32,6 @@ namespace WpfApp1
         private void InitializeWebView()
         {
             webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
-            
         }
 
         private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
@@ -44,16 +44,14 @@ namespace WpfApp1
             var message = e.TryGetWebMessageAsString();
             if (message == "show_video")
             {
-                // Restart the video
                 Dispatcher.Invoke(() =>
                 {
                     webView2.Visibility = Visibility.Collapsed;
-                   
-                   // videoPlayer.Position = TimeSpan.Zero;
-                   // videoPlayer.Play();
+                    // Add your logic to handle the message, such as playing a video
                 });
             }
         }
+
         private void SetBrowserFeatureControl()
         {
             string appName = System.Diagnostics.Process.GetCurrentProcess().ProcessName + ".exe";
@@ -62,30 +60,26 @@ namespace WpfApp1
                 key.SetValue(appName, 11001, RegistryValueKind.DWord);
             }
         }
+
         private void PlayScreensaver()
         {
-            
+            // Implement screensaver logic if necessary
         }
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
-            // Restart the video
-           
+            // Implement logic to restart the video
         }
 
         private void OnCardDetected(object sender, EventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
-               
-                webView2.Visibility = Visibility.Visible;
-                webView2.Source = new Uri("https://www.aerosportsparks.ca/oakville");
-                logger.Log("web visible");
+                webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{this.uid}')");
                 
-                // Delay visibility change to ensure the content is loaded
-
             });
         }
 
+       
     }
 }

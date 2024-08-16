@@ -13,20 +13,36 @@ namespace WpfApp1
         {
             InitializeComponent();
             InitializeWebView();
-            PlayScreensaver();
+           // PlayScreensaver();
             SetBrowserFeatureControl();
+            webView2.Source = new Uri("http://localhost:3002/registration");
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R");
-            webView2.Source = new Uri("http://localhost:3001/");
+
             readerWriter.StatusChanged += (s, uid) =>
             {
-                if (uid.Length > 0)
+                if (ifWebaskedtoShow == "ScanCard")
                 {
-                    logger.Log($"Card detected: {uid}");
-                    OnCardDetected(this, EventArgs.Empty);
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (uid.Length > 0)
+                        {
+                            logger.Log($"Card detected: {uid}");
+                            if (webView2.CoreWebView2 != null)
+                            {
+                                string script = $"window.receiveMessageFromWPF('{uid}');";
+                                webView2.CoreWebView2.ExecuteScriptAsync(script);
+                                readerWriter.updateStatus(uid,"R");
+                            }
+                        }
+                        else
+                        {
+                            string script = $"window.receiveMessageFromWPF('');";
+                        }
+                    });
                 }
             };
         }
-
+        string ifWebaskedtoShow = "N";
         private void InitializeWebView()
         {
             webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
@@ -41,17 +57,11 @@ namespace WpfApp1
         private void WebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             var message = e.TryGetWebMessageAsString();
-            if (message == "show_video")
-            {
+           
+                ifWebaskedtoShow = message;
                 // Restart the video
-                Dispatcher.Invoke(() =>
-                {
-                    webView2.Visibility = Visibility.Collapsed;
-                    videoPlayer.Visibility = Visibility.Visible;
-                   // videoPlayer.Position = TimeSpan.Zero;
-                   // videoPlayer.Play();
-                });
-            }
+
+          
         }
         private void SetBrowserFeatureControl()
         {
@@ -63,22 +73,22 @@ namespace WpfApp1
         }
         private void PlayScreensaver()
         {
-            videoPlayer.MediaEnded += VideoPlayer_MediaEnded;
-            videoPlayer.Play();
+            //videoPlayer.MediaEnded += VideoPlayer_MediaEnded;
+            //videoPlayer.Play();
         }
 
         private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
-            // Restart the video
-            videoPlayer.Position = TimeSpan.Zero;
-            videoPlayer.Play();
+            //Restart the video
+            //videoPlayer.Position = TimeSpan.Zero;
+            //videoPlayer.Play();
         }
 
         private void OnCardDetected(object sender, EventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
-                videoPlayer.Visibility = Visibility.Collapsed;
+                //videoPlayer.Visibility = Visibility.Collapsed;
                 webView2.Visibility = Visibility.Visible;
                 webView2.Source = new Uri("http://localhost:8081/");
                 logger.Log("web visible");

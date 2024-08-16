@@ -20,19 +20,7 @@
     </Window.Triggers>
 
     <Grid>
-        <!-- MediaElement for video playback -->
-        <MediaElement Name="videoPlayer" Source="resources/idle.mp4" 
-                      LoadedBehavior="Manual" UnloadedBehavior="Stop" Stretch="Fill" />
-        <!-- Overlay Text -->
-        <TextBlock Text="Pixel Pulse" FontSize="100" Foreground="White" 
-                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                   Panel.ZIndex="1" />
-
-        <TextBlock Text="Scan Your Wristband to register" FontSize="100" Foreground="White" 
-            HorizontalAlignment="Center" VerticalAlignment="Bottom"
-            Panel.ZIndex="1" />
-        
-        <!-- WebBrowser for displaying the registration page -->
-        <wv2:WebView2 Name="webView2" Visibility="Collapsed" Panel.ZIndex="2"/>
+       
+        <wv2:WebView2 Name="webView2" Visibility="Visible"  Panel.ZIndex="2"/>
     </Grid>
 </Window>
