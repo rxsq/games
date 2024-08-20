@@ -109,7 +109,7 @@ public abstract class BaseGame
         this.config = config;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer();
-      if(!Debugger.IsAttached)
+     // if(!Debugger.IsAttached)
         musicPlayer.Announcement(config.introAudio);
      
 
