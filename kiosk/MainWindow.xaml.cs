@@ -16,7 +16,7 @@ namespace WpfApp1
             PlayScreensaver();
             SetBrowserFeatureControl();
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V");
-            webView2.Source = new Uri("http://localhost:3001/?gameCode=HexaQuest");
+            webView2.Source = new Uri("http://localhost:3002/?gameCode=HexaQuest");
             webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid) =>
             {

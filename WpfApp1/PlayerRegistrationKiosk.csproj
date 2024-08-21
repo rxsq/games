@@ -11,7 +11,6 @@
  
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2592.51" />
     <PackageReference Include="PCSC" Version="6.2.0" />
     <PackageReference Include="PCSC.Iso7816" Version="6.2.0" />

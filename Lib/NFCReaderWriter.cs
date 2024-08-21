@@ -44,28 +44,34 @@ namespace Lib
                 logger.Log($"Card inserted, processing...{args.ReaderName}");
 
                 string uid = WriteData(args.ReaderName);
-
-                if (!string.IsNullOrEmpty(uid))
+                try
                 {
-                    string result = "";
-                    if (mode == "I")
+                    if (!string.IsNullOrEmpty(uid))
                     {
-                        result = InsertRecord(uid);
+                        string result = "";
+                        if (mode == "I")
+                        {
+                            result = InsertRecord(uid);
+                        }
+                        else if (mode == "R")
+                        {
+                            result = ifCardRegisted(uid);
+                        }
+                        else if (mode == "V")
+                        {
+                            result = ifPlayerHaveTime(uid);
+                        }
+                        logger.Log($"uuid:{uid} result:{result}");
+                        Console.WriteLine(result);
+                        OnStatusChanged(result.Length == 0 ? uid : "");
+                        // SendUidToWebSocket(uid).Wait();
                     }
-                    else if (mode == "R")
-                    {
-                        result = ifCardRegisted(uid);
-                    }
-                    else if (mode == "V")
-                    {
-                        result = ifPlayerHaveTime(uid);
-                    }
-                    logger.Log($"uuid:{uid} result:{result}");
-                    Console.WriteLine(result);
-                    OnStatusChanged(result.Length == 0 ? uid : "");
-                
-                    // SendUidToWebSocket(uid).Wait();
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occurred: " + ex.Message);
+                }
+               
             };
             monitor.Start(readerName);
             //while (true)
@@ -75,8 +81,9 @@ namespace Lib
         }
         public string updateStatus(string uid, string status)
         {
-            var content = new StringContent($"{{uid:{uid}, \"status\":\"{status}\",\"src\":\"{System.Environment.MachineName}\"}}", Encoding.UTF8, "application/json");
-
+            string b = $"{{\"uid\":\"{uid}\", \"status\":\"{status}\",\"src\":\"{System.Environment.MachineName}\"}}";
+            var content = new StringContent(b, Encoding.UTF8, "application/json");
+            
             try
             {
                 var response = httpClient.PutAsync($"wristbandtran", content);
@@ -125,12 +132,11 @@ namespace Lib
             //}
         }
 
-        private string connectionString = "Server=192.186.105.194;Initial Catalog=Games;User Id=admin;Password=Aero@password1;TrustServerCertificate=True";
 
         public string ifCardRegisted(string uid)
         {
           //  string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE()) and wristbandStatusFlag='I' ";
-            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag='I'&timelimit=60");
+            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag=I&timelimit=60");
             return response.Result.IsSuccessStatusCode ? "" : "Error:Wristband Not in db!";
             //logger.Log(query);
 

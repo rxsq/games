@@ -11,13 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameUdpSimulator", "..\Game
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cardreaderWriter", "..\ConsoleApp1\cardreaderWriter.csproj", "{0065451E-DD63-44C3-A1C6-546599891401}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfApp1", "..\WpfApp1\WpfApp1.csproj", "{117D345A-56A6-436E-88D4-DFFB159591E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayerRegistrationKiosk", "..\WpfApp1\PlayerRegistrationKiosk.csproj", "{117D345A-56A6-436E-88D4-DFFB159591E5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lib", "..\Lib\Lib.csproj", "{BE8F4C3D-22BF-43AE-9DFA-290467B867D9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kiosk", "..\kiosk\kiosk.csproj", "{245EA10D-2F38-489E-82D7-06797B215C52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "importdata", "..\importdata\importdata.csproj", "{D0F136C8-C277-4049-B098-60FA4C7706A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "importdata", "..\importdata\importdata.csproj", "{D0F136C8-C277-4049-B098-60FA4C7706A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
