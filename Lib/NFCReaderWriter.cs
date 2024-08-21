@@ -81,7 +81,7 @@ namespace Lib
         }
         public string updateStatus(string uid, string status)
         {
-            string b = $"{{\"uid\":\"{uid}\", \"status\":\"{status}\",\"src\":\"{System.Environment.MachineName}\"}}";
+            string b = $"{{\"uid\":\"{uid}\", \"status\":\"{status}\",\"currentstatus\":\"I\",\"src\":\"{System.Environment.MachineName}\"}}";
             var content = new StringContent(b, Encoding.UTF8, "application/json");
             
             try
