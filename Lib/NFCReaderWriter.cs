@@ -1,14 +1,9 @@
-﻿using System;
-using System.Net.WebSockets;
-using System.Security.Cryptography;
+﻿using System.Net.WebSockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using PCSC;
 using PCSC.Iso7816;
 using PCSC.Monitoring;
-
+using System.Configuration;
 namespace Lib
 {
     public class NFCReaderWriter : IDisposable
@@ -17,15 +12,17 @@ namespace Lib
         private ISCardContext context;
         private ISCardMonitor monitor;
         private ClientWebSocket webSocket;
-        private static readonly HttpClient httpClient = new HttpClient { BaseAddress = new Uri("http://localhost:3000/api/") };
+        private  HttpClient httpClient =null;
         public event EventHandler<string> StatusChanged;
         protected virtual void OnStatusChanged(string newStatus)
         {
             StatusChanged?.Invoke(this, newStatus);
         }
         AsyncLogger logger = new AsyncLogger("NFCReaderWriter.log");
-        public NFCReaderWriter(string mode)
+        public NFCReaderWriter(string mode, string serverurl)
         {
+            
+            httpClient = new HttpClient { BaseAddress = new Uri(serverurl) };
             var availableReaders = ContextFactory.Instance.Establish(SCardScope.System).GetReaders();
             if (availableReaders.Length == 0)
             {

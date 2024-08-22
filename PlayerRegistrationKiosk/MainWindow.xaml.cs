@@ -3,7 +3,7 @@ using System;
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
-
+using System.Configuration;
 namespace WpfApp1
 {
     public partial class MainWindow : Window
@@ -15,8 +15,9 @@ namespace WpfApp1
             InitializeWebView();
            // PlayScreensaver();
             SetBrowserFeatureControl();
-            webView2.Source = new Uri("http://localhost:3002/registration");
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R");
+            
+            webView2.Source = new Uri(ConfigurationManager.AppSettings["registrationurl"]);
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R", ConfigurationManager.AppSettings["server"]);
 
             readerWriter.StatusChanged += (s, uid) =>
             {

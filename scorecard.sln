@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "scorecard", "scorecard\scor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayerRegistrationKiosk", "PlayerRegistrationKiosk\PlayerRegistrationKiosk.csproj", "{88886AAE-1CCB-4B83-A4FA-F5ACBC95FAFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "..\test\test.csproj", "{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{88886AAE-1CCB-4B83-A4FA-F5ACBC95FAFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88886AAE-1CCB-4B83-A4FA-F5ACBC95FAFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88886AAE-1CCB-4B83-A4FA-F5ACBC95FAFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

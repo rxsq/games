@@ -2,16 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Net.Sockets;
+using System.Net;
 using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
+using System.Threading;
 
 public partial class MainForm : Form
 {
     private List<Point> stars;
     private Timer starTimer;
     private Random random = new Random();
-
+    UdpClient udpClientReceiver;
+    private System.Threading.Timer relayTimer;
+    IPEndPoint remoteEndPoint;
+    string currentState = GameStatus.NotStarted;
     public MainForm()
     {
         InitializeComponent();
@@ -19,8 +28,44 @@ public partial class MainForm : Form
         InitializeStars();
       
         StartStarAnimation();
-        
+        // UdpHandler handler = new UdpHandler("10.0.0.81", 41234, 21, "hjnjnj.log", 41234, 1, 1, "");
+        // handler.BeginReceive(data => ReceiveCallback(data, handler));
+        var remoteEndPoint = new IPEndPoint(IPAddress.Any, 27);
+        udpClientReceiver = new UdpClient(remoteEndPoint);
+        relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
+       
     }
+
+    private void TargetTimeElapsed(object state)
+    {
+        udpClientReceiver.BeginReceive(ar =>
+        {
+            byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref remoteEndPoint);
+            string receivedData = Encoding.UTF8.GetString(receivedBytes);
+            if(receivedData.StartsWith("start") && currentState == GameStatus.NotStarted)
+            {
+              
+                    currentState = GameStatus.Running;
+                    var replyBytes1 = Encoding.UTF8.GetBytes(currentState);
+                    udpClientReceiver.Send(replyBytes1, replyBytes1.Length, remoteEndPoint);
+                   
+                    Thread.Sleep(10000);
+                    
+                    StartGame(receivedData.Split(':')[1].Trim());
+                    Console.WriteLine("game started");
+                // Send a reply to acknowledge the game has started
+                             
+            }
+          
+            byte[] replyBytes = Encoding.UTF8.GetBytes(currentState);
+            udpClientReceiver.Send(replyBytes, replyBytes.Length, remoteEndPoint);
+            Console.WriteLine(currentState);
+
+            Console.WriteLine(receivedData);
+        }, null);
+       
+    }
+   
     BaseGame currentGame = null;
     private void StartGame(string gameType)
     {
@@ -61,11 +106,14 @@ public partial class MainForm : Form
         currentGame.ScoreChanged += CurrentGame_ScoreChanged;
         currentGame.LevelChanged += CurrentGame_LevelChanged;
         currentGame.StatusChanged += CurrentGame_StatusChanged;
+        
         currentGame?.StartGame();
+        
     }
 
     private void CurrentGame_StatusChanged(object sender, string status)
     {
+        currentState = status;
         if (lblStatus.InvokeRequired)
         {
             lblStatus.Invoke(new Action(() => lblStatus.Text = $"{status}"));
@@ -157,7 +205,7 @@ public partial class MainForm : Form
 
     private void ShowGameDescription(string gameTitle, string description)
     {
-        txtGameDescription1.Text = $"{gameTitle}\r\n\r\n{description}";
+       // txtGameDescription1.Text = $"{gameTitle}\r\n\r\n{description}";
     }
 
    
