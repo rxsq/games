@@ -93,6 +93,7 @@ public abstract class BaseGame
     protected virtual void OnScoreChanged(int newScore)
     {
         ScoreChanged?.Invoke(this, newScore);
+
     }
     protected virtual void OnLifelineChanged(int newLifeline)
     {
