@@ -80,6 +80,13 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="PCSC, Version=7.0.0.0, Culture=neutral, PublicKeyToken=13b76e54a2ee80a7, processorArchitecture=MSIL">
+      <HintPath>..\packages\PCSC.7.0.0\lib\netstandard2.0\PCSC.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PCSC.Iso7816, Version=7.0.0.0, Culture=neutral, PublicKeyToken=13b76e54a2ee80a7, processorArchitecture=MSIL">
+      <HintPath>..\packages\PCSC.Iso7816.7.0.0\lib\netstandard2.0\PCSC.Iso7816.dll</HintPath>
+    </Reference>
     <Reference Include="SkiaSharp, Version=2.88.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\ConsoleApp2\packages\SkiaSharp.2.88.8\lib\net462\SkiaSharp.dll</HintPath>
     </Reference>
@@ -145,23 +152,30 @@
     <Compile Include="Chaser.cs" />
     <Compile Include="content\snakes.cs" />
     <Compile Include="FloorGame1.cs" />
+    <Compile Include="GameSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GameSelection.Designer.cs">
+      <DependentUpon>GameSelection.cs</DependentUpon>
+    </Compile>
     <Compile Include="lib\Animations.cs" />
     <Compile Include="lib\AsyncLogger.cs" />
     <Compile Include="lib\BaseGame.cs" />
     <Compile Include="FloorGame.cs" />
     <Compile Include="lib\GameConfig.cs" />
     <Compile Include="lib\GameStatus.cs" />
+    <Compile Include="lib\NFCReaderWriter.cs" />
     <Compile Include="lib\relay.cs" />
     <Compile Include="lib\SurroundingMap.cs" />
     <Compile Include="Mapping.cs" />
     <Compile Include="PatternBuilder.cs" />
     <Compile Include="Smash.cs" />
     <Compile Include="Target.cs" />
-    <Compile Include="MainForm.cs">
+    <Compile Include="ScorecardForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
-      <DependentUpon>MainForm.cs</DependentUpon>
+    <Compile Include="ScorecardForm.Designer.cs">
+      <DependentUpon>ScorecardForm.cs</DependentUpon>
     </Compile>
     <Compile Include="lib\ColorPalette.cs" />
     <Compile Include="lib\MusicPlayer.cs" />
@@ -232,8 +246,11 @@
     <Content Include="content\you failed.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="MainForm.resx">
-      <DependentUpon>MainForm.cs</DependentUpon>
+    <EmbeddedResource Include="GameSelection.resx">
+      <DependentUpon>GameSelection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ScorecardForm.resx">
+      <DependentUpon>ScorecardForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

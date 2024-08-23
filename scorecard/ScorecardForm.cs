@@ -13,7 +13,7 @@ using System.Threading;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net.Http.Json;
-public partial class MainForm : Form
+public partial class ScorecardForm : Form
 {
     private WebView2 webView;
     private UdpClient udpClientReceiver;
@@ -22,7 +22,7 @@ public partial class MainForm : Form
     private string currentState = GameStatus.NotStarted;
     private BaseGame currentGame = null;
 
-    public MainForm()
+    public ScorecardForm()
     {
         InitializeComponent();
         InitializeWebView();
@@ -45,7 +45,7 @@ public partial class MainForm : Form
         // Navigate to the desired URL
         webView.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
     }
-     
+
     private void InitializeUdpReceiver()
     {
         remoteEndPoint = new IPEndPoint(IPAddress.Any, 27);
