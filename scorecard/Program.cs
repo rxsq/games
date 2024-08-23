@@ -1,5 +1,6 @@
 ﻿using scorecard;
 using System;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -12,7 +13,9 @@ class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new GameSelection());
+       // if (!Debugger.IsAttached)
+            Application.Run(new GameSelection());
+       
     }
 
 }

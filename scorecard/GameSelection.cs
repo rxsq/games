@@ -21,21 +21,26 @@ namespace scorecard
             InitializeComponent();
             InitializeScorecardForm();
             InitializeWebView();
-            PlayScreensaver();
+           
             SetBrowserFeatureControl();
            
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", System.Configuration.ConfigurationSettings.AppSettings["server"]);
-            webView2.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["gameurl"]);
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
+            webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"]);
            // webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid) =>
             {
                 if (uid.Length > 0)
                 {
-                    //logger.Log($"Card detected: {uid}");
-                    //this.uid = uid;
-                    OnCardDetected(this, EventArgs.Empty);
+                    webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
+                    
                 }
             };
+            if (ConfigurationSettings.AppSettings["TestGame"]!="")
+            {
+                scorecardForm = new ScorecardForm();
+                scorecardForm.Show();
+                scorecardForm.StartGame(ConfigurationSettings.AppSettings["TestGame"]);
+            }
         }
         private void InitializeScorecardForm()
         {
@@ -73,13 +78,10 @@ namespace scorecard
         private void WebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             var message = e.TryGetWebMessageAsString();
-            if (message == "show_video")
+            if (message.StartsWith("start"))
             {
-                //Dispatcher.Invoke(() =>
-                //{
-                  //  webView2.Visibility = Visibility.Collapsed;
-                    // Add your logic to handle the message, such as playing a video
-                //});
+                string game = message.Split(':')[0];
+                scorecardForm.StartGame(game);
             }
         }
 
@@ -92,10 +94,7 @@ namespace scorecard
             }
         }
 
-        private void PlayScreensaver()
-        {
-            // Implement screensaver logic if necessary
-        }
+       
 
         
         private void OnCardDetected(object sender, EventArgs e)

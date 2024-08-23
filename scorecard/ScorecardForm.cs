@@ -70,7 +70,7 @@ public partial class ScorecardForm : Form
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to fetch game configuration: {ex.Message}");
+                `````MessageBox.Show($"Failed to fetch game configuration: {ex.Message}");
                 return null;
             }
         }
@@ -100,7 +100,7 @@ public partial class ScorecardForm : Form
         }, null);
     }
 
-    private async void StartGame(string gameType)
+    public async void StartGame(string gameType)
     {
         var gameConfig = await FetchGameConfigAsync(gameType);
 
