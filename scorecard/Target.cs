@@ -22,7 +22,7 @@ public class Target : BaseSingleDevice
     }
     protected override void Initialize()
     {
-
+        var handler = udpHandlers[0];
         musicPlayer.PlayEffect("content/TargetIntro.wav");
         base.SendDataToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Silver : ColorPalette.SilverGrayWhite, starIndex);
         //LoopAll(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3,1);

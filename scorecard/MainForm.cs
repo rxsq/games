@@ -45,7 +45,7 @@ public partial class MainForm : Form
         // Navigate to the desired URL
         webView.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
     }
-
+     
     private void InitializeUdpReceiver()
     {
         remoteEndPoint = new IPEndPoint(IPAddress.Any, 27);
