@@ -170,35 +170,35 @@ namespace scorecard
         }
 
 
-        protected List<string> ResequencedPositions1(List<string> colorList,  UdpHandler hangler)
+        protected List<string> ResequencedPositions1(List<string> colorList,  UdpHandler handler)
         {
            
-            Console.WriteLine($" before resequencing  {string.Join(",", hangler.activeDevices)}");
+            Console.WriteLine($" before resequencing  {string.Join(",", handler.activeDevices)}");
             //hold indices in temp list
-          var actind= hangler.activeDevices.Select(x => x).ToList();
+          var actind= handler.activeDevices.Select(x => x).ToList();
            
 
-            for (int i = 0; i < hangler.Rows; i++)
+            for (int i = 0; i < handler.Rows; i++)
             {
                 if (i % 2 != 0)
                 {
-                    for (int j = 0; j < hangler.columns; j++)
+                    for (int j = 0; j < handler.columns; j++)
                     {
-                        int orig = i * hangler.columns + j;
-                        int dest = (i + 1) * hangler.columns - 1 - j;
+                        int orig = i * handler.columns + j;
+                        int dest = (i + 1) * handler.columns - 1 - j;
 
                         if (actind.Contains(orig))
                         {
                             // Swap colors
                             (colorList[orig], colorList[dest]) = (colorList[dest], colorList[orig]);
-                            hangler.activeDevices.Remove(orig);
-                            hangler.activeDevices.Add(dest);
+                            handler.activeDevices.Remove(orig);
+                            handler.activeDevices.Add(dest);
                         }
                     }
                 }
             }
            // activeIndices[hangler] = activeIndicesp;
-            Console.WriteLine(string.Join(",", hangler.activeDevices));
+            Console.WriteLine(string.Join(",", handler.activeDevices));
             return colorList;
         }
 

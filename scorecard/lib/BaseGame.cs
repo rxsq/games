@@ -93,6 +93,7 @@ public abstract class BaseGame
     protected virtual void OnScoreChanged(int newScore)
     {
         ScoreChanged?.Invoke(this, newScore);
+
     }
     protected virtual void OnLifelineChanged(int newLifeline)
     {
@@ -109,7 +110,7 @@ public abstract class BaseGame
         this.config = config;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer();
-      if(!Debugger.IsAttached)
+     // if(!Debugger.IsAttached)
         musicPlayer.Announcement(config.introAudio);
      
 
@@ -373,7 +374,7 @@ public abstract class BaseGame
                 tasks.Add(handler.SendColorsToUdpAsync(colors));
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(200);
+            Thread.Sleep(75);
 
             foreach (var handler in udpHandlers)
              {
@@ -381,7 +382,7 @@ public abstract class BaseGame
                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(200);
+            Thread.Sleep(75);
         }
     }
     public void BlinkLights(List<int> lightIndex,int repeation, UdpHandler handler, string Color)

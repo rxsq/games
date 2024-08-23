@@ -2,138 +2,179 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Reflection.Emit;
+using System.Linq;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
-
+using Microsoft.Web.WebView2.WinForms;
+using System.Threading;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Net.Http.Json;
 public partial class MainForm : Form
 {
-    private List<Point> stars;
-    private Timer starTimer;
-    private Random random = new Random();
+    private WebView2 webView;
+    private UdpClient udpClientReceiver;
+    private System.Threading.Timer relayTimer;
+    private IPEndPoint remoteEndPoint;
+    private string currentState = GameStatus.NotStarted;
+    private BaseGame currentGame = null;
 
     public MainForm()
     {
         InitializeComponent();
-        LoadPictures();
-        InitializeStars();
-      
-        StartStarAnimation();
-        
+        InitializeWebView();
+        InitializeUdpReceiver();
     }
-    BaseGame currentGame = null;
-    private void StartGame(string gameType)
+
+    private async void InitializeWebView()
     {
+        webView = new WebView2
+        {
+            Size = new Size(800, 600),
+            Location = new Point(100, 100), // Adjust as needed
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
+        };
+
+        webView.BringToFront();
+        await webView.EnsureCoreWebView2Async(null);
+        this.Controls.Add(webView);
+
+        // Navigate to the desired URL
+        webView.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
+    }
+
+    private void InitializeUdpReceiver()
+    {
+        remoteEndPoint = new IPEndPoint(IPAddress.Any, 27);
+        udpClientReceiver = new UdpClient(remoteEndPoint);
+        relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
+    }
+    private async Task<GameConfig> FetchGameConfigAsync(string gameType)
+    {
+        using (var httpClient = new HttpClient())
+        {
+            try
+            {
+                // Replace with your Node.js API URL
+                string apiUrl = $"{System.Configuration.ConfigurationSettings.AppSettings["server"]}/games?gameCode={gameType}";
+                var response = await httpClient.GetAsync(apiUrl);
+
+                response.EnsureSuccessStatusCode();
+
+                // Deserialize the JSON response to a GameConfig object
+                var gameConfig = await response.Content.ReadFromJsonAsync<GameConfig>();
+                return gameConfig;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to fetch game configuration: {ex.Message}");
+                return null;
+            }
+        }
+    }
+
+    private void TargetTimeElapsed(object state)
+    {
+        udpClientReceiver.BeginReceive(ar =>
+        {
+            byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref remoteEndPoint);
+            string receivedData = Encoding.UTF8.GetString(receivedBytes);
+            if (receivedData.StartsWith("start") && currentState == GameStatus.NotStarted)
+            {
+                currentState = GameStatus.Running;
+                var replyBytes1 = Encoding.UTF8.GetBytes(currentState);
+                udpClientReceiver.Send(replyBytes1, replyBytes1.Length, remoteEndPoint);
+
+                Thread.Sleep(10000);
+                StartGame(receivedData.Split(':')[1].Trim());
+                Console.WriteLine("game started");
+            }
+
+            byte[] replyBytes = Encoding.UTF8.GetBytes(currentState);
+            udpClientReceiver.Send(replyBytes, replyBytes.Length, remoteEndPoint);
+            Console.WriteLine(currentState);
+            Console.WriteLine(receivedData);
+        }, null);
+    }
+
+    private async void StartGame(string gameType)
+    {
+        var gameConfig = await FetchGameConfigAsync(gameType);
+
+        if (gameConfig == null)
+        {
+            MessageBox.Show("Failed to start the game due to configuration issues.");
+            return;
+        }
+
         ShowGameDescription(gameType, GetGameDescription(gameType));
-        // Start the selected game
-        if(currentGame != null )
+
+        if (currentGame != null)
         {
             currentGame.EndGame();
         }
+
         switch (gameType)
         {
             case "Target":
-                currentGame = new Target(new GameConfig { Maxiterations = 2, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 30, ReductionTimeEachLevel = 5, NoofLedPerdevice =3},18);
+                currentGame = new Target(gameConfig, 18);
                 break;
             case "Smash":
-                currentGame = new Smash(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 },.2);
+                currentGame = new Smash(gameConfig, .2);
                 break;
             case "Chaser":
-                currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
+                currentGame = new Chaser(gameConfig);
                 break;
             case "FloorGame":
-                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 20, ReductionTimeEachLevel = 2, NoOfControllers = 3, columns=14, introAudio="content\floorgameintro.wav" }, 200);
+                currentGame = new FloorGame1(gameConfig, 200);
                 break;
             case "PatternBuilder":
-                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 3, columns=14 },2);
+                currentGame = new PatternBuilderGame(gameConfig, 2);
                 break;
-            //case "Lava":
-            //    currentGame = new FloorIsLavaGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
-            //    break;
             case "Snakes":
-                currentGame = new Snakes(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
+                currentGame = new Snakes(gameConfig, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                 break;
             case "Wipeout":
-                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 5, NoOfControllers = 3, columns = 14, introAudio="content\\wipeoutintro.wav" });
+                currentGame = new WipeoutGame(gameConfig);
                 break;
+            default:
+                MessageBox.Show("Unknown game type.");
+                return;
         }
-        currentGame.LifeLineChanged += CurrentGame_LifeLineChanged; 
+
+        currentGame.LifeLineChanged += CurrentGame_LifeLineChanged;
         currentGame.ScoreChanged += CurrentGame_ScoreChanged;
         currentGame.LevelChanged += CurrentGame_LevelChanged;
         currentGame.StatusChanged += CurrentGame_StatusChanged;
+
         currentGame?.StartGame();
     }
 
     private void CurrentGame_StatusChanged(object sender, string status)
     {
-        if (lblStatus.InvokeRequired)
-        {
-            lblStatus.Invoke(new Action(() => lblStatus.Text = $"{status}"));
-        }
+        currentState = status;
     }
 
     private void CurrentGame_LevelChanged(object sender, int level)
     {
-        if(lblLabel.InvokeRequired )
-        {
-            lblLabel.Invoke(new Action(() => lblLabel.Text = $"Level: {level}"));
-        }
+        // Update level in the React component
+        webView.ExecuteScriptAsync($"window.updateLevel({level});");
     }
-    private void LoadPictures()
+
+    private void CurrentGame_LifeLineChanged(object sender, int newLife)
     {
-       
-          
-               pictureBox1.BackgroundImage = Image.FromFile("content/heart_green.png");
-         pictureBox2.BackgroundImage = Image.FromFile("content/heart_green.png");
-
-
-        pictureBox3.BackgroundImage = Image.FromFile("content/heart_green.png");
-
-
-        pictureBox4.BackgroundImage = Image.FromFile("content/heart_green.png");
-
-
-        pictureBox5.BackgroundImage = Image.FromFile("content/heart_green.png");
-          
+        // Update lives in the React component
+        webView.ExecuteScriptAsync($"window.updateLives({newLife});");
     }
-    private void CurrentGame_LifeLineChanged(object sender, int newLIfe)
-    {
-        if (newLIfe == 0)
-         if (pictureBox1.InvokeRequired)
-        {
-            pictureBox1.Invoke(new Action(() => pictureBox1.BackgroundImage = Image.FromFile("content/heart_gray.png")));
-        }
-        if (newLIfe == 1)
-        if (pictureBox2.InvokeRequired)
-        {
-            pictureBox2.Invoke(new Action(() => pictureBox2.BackgroundImage = Image.FromFile("content/heart_gray.png")));
-        }
-            if (newLIfe == 2)
-            if (pictureBox3.InvokeRequired)
-            {
-                pictureBox3.Invoke(new Action(() => pictureBox3.BackgroundImage = Image.FromFile("content/heart_gray.png")));
-            }
-           if (newLIfe == 3)
-            if (pictureBox4.InvokeRequired)
-            {
-                pictureBox4.Invoke(new Action(() => pictureBox4.BackgroundImage = Image.FromFile("content/heart_gray.png")));
-            }
-            if (newLIfe == 4)
-            if (pictureBox5.InvokeRequired)
-            {
-                pictureBox5.Invoke(new Action(() => pictureBox5.BackgroundImage = Image.FromFile("content/heart_gray.png")));
-            }
-    }
+
     private void CurrentGame_ScoreChanged(object sender, int newScore)
     {
-        if (lblScore1.InvokeRequired)
-        {
-            lblScore1.Invoke(new Action(() =>  lblScore1.Text = $"Score: {newScore}"));
-        }
-       // lblScore1.Text = $"Score: {newScore}";
+        // Update score in the React component
+        webView.ExecuteScriptAsync($"window.updateScore({newScore});");
     }
-
-   
 
     private string GetGameDescription(string gameType)
     {
@@ -146,10 +187,11 @@ public partial class MainForm : Form
             case "Chaser":
                 return "In the Chaser Game, chase and hit the moving targets. Stay quick and keep up to score points.";
             case "FloorGame":
-                return "Welcome to the LED Floor Game!Here's how to play:Avoid the blue line as it moves across the grid.\r\nStep on the green tiles to score points.\r\nEach level gets faster, so stay sharp!\r\nTouch the blue line and it's game over. Survive all iterations to win!Good luck, and have fun!";
+                return "Welcome to the LED Floor Game! Here's how to play: Avoid the blue line as it moves across the grid. Step on the green tiles to score points. Each level gets faster, so stay sharp! Touch the blue line and it's game over. Survive all iterations to win! Good luck, and have fun!";
             case "PatternBuilder":
                 return "Players must recreate a pattern based off memory as quickly as possible. Each correct pattern earns a point.";
-            case "wipeout": return "Welcome to the LED Wipeout Game! Here's how to play: Your goal is to avoid the rotating obstacles and survive as long as possible. Obstacles will move around the center of the grid.Each full rotation without a collision increases your score. Be careful, the speed and direction of rotation can change, so stay alert! If you touch an obstacle, the game ends. Survive through all iterations to win the game.Good luck, and get ready for the challenge!";
+            case "wipeout":
+                return "Welcome to the LED Wipeout Game! Here's how to play: Your goal is to avoid the rotating obstacles and survive as long as possible. Obstacles will move around the center of the grid. Each full rotation without a collision increases your score. Be careful, the speed and direction of rotation can change, so stay alert! If you touch an obstacle, the game ends. Survive through all iterations to win the game. Good luck, and get ready for the challenge!";
             default:
                 return "";
         }
@@ -157,68 +199,6 @@ public partial class MainForm : Form
 
     private void ShowGameDescription(string gameTitle, string description)
     {
-        txtGameDescription1.Text = $"{gameTitle}\r\n\r\n{description}";
-    }
-
-   
-
-    private void InitializeStars()
-    {
-        stars = new List<Point>();
-        for (int i = 0; i < 50; i++) // Create 50 stars
-        {
-            stars.Add(new Point(random.Next(this.Width), random.Next(this.Height)));
-        }
-    }
-
-    private void StartStarAnimation()
-    {
-        starTimer = new Timer();
-        starTimer.Interval = 50; // Update every 50 milliseconds
-        starTimer.Tick += (sender, e) => MoveStars();
-        starTimer.Start();
-    }
-
-    private void MoveStars()
-    {
-        for (int i = 0; i < stars.Count; i++)
-        {
-            stars[i] = new Point(stars[i].X, stars[i].Y + 5); // Move star down
-            if (stars[i].Y > this.Height)
-            {
-                stars[i] = new Point(random.Next(this.Width), 0); // Reset star to top
-            }
-        }
-        panel1.Invalidate();
-    }
-
-    private void MainForm_Paint(object sender, PaintEventArgs e)
-    {
-        ControlPaint.DrawBorder(e.Graphics, this.ClientRectangle,
-            Color.LimeGreen, 10, ButtonBorderStyle.Solid, // Left
-            Color.LimeGreen, 10, ButtonBorderStyle.Solid, // Top
-            Color.LimeGreen, 10, ButtonBorderStyle.Solid, // Right
-            Color.LimeGreen, 10, ButtonBorderStyle.Solid); // Bottom
-    }
-
-    private void panelBackground_Paint(object sender, PaintEventArgs e)
-    {
-        foreach (var star in stars)
-        {
-            e.Graphics.FillEllipse(Brushes.White, star.X, star.Y, 3, 3); // Draw star as white dot
-        }
-    }
-
-    
-
-    private void button1_Click(object sender, EventArgs e)
-    {
-        currentGame?.EndGame();
-       
-    }
-
-    private void button2_Click(object sender, EventArgs e)
-    {
-        StartGame(comboBox1.SelectedItem.ToString());
+        // Show game description if necessary
     }
 }

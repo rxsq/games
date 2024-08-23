@@ -1,13 +1,9 @@
-﻿using System;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using PCSC;
 using PCSC.Iso7816;
 using PCSC.Monitoring;
-
+using System.Configuration;
 namespace Lib
 {
     public class NFCReaderWriter : IDisposable
@@ -16,15 +12,17 @@ namespace Lib
         private ISCardContext context;
         private ISCardMonitor monitor;
         private ClientWebSocket webSocket;
-
+        private  HttpClient httpClient =null;
         public event EventHandler<string> StatusChanged;
         protected virtual void OnStatusChanged(string newStatus)
         {
             StatusChanged?.Invoke(this, newStatus);
         }
         AsyncLogger logger = new AsyncLogger("NFCReaderWriter.log");
-        public NFCReaderWriter(string mode)
+        public NFCReaderWriter(string mode, string serverurl)
         {
+            
+            httpClient = new HttpClient { BaseAddress = new Uri(serverurl) };
             var availableReaders = ContextFactory.Instance.Establish(SCardScope.System).GetReaders();
             if (availableReaders.Length == 0)
             {
@@ -43,28 +41,34 @@ namespace Lib
                 logger.Log($"Card inserted, processing...{args.ReaderName}");
 
                 string uid = WriteData(args.ReaderName);
-
-                if (!string.IsNullOrEmpty(uid))
+                try
                 {
-                    string result = "";
-                    if (mode == "I")
+                    if (!string.IsNullOrEmpty(uid))
                     {
-                        result = InsertRecord(uid);
+                        string result = "";
+                        if (mode == "I")
+                        {
+                            result = InsertRecord(uid);
+                        }
+                        else if (mode == "R")
+                        {
+                            result = ifCardRegisted(uid);
+                        }
+                        else if (mode == "V")
+                        {
+                            result = ifPlayerHaveTime(uid);
+                        }
+                        logger.Log($"uuid:{uid} result:{result}");
+                        Console.WriteLine(result);
+                        OnStatusChanged(result.Length == 0 ? uid : "");
+                        // SendUidToWebSocket(uid).Wait();
                     }
-                    else if (mode == "R")
-                    {
-                        result = ifCardRegisted(uid);
-                    }
-                    else if (mode == "V")
-                    {
-                        result = ifPlayerHaveTime(uid);
-                    }
-                    logger.Log($"uuid:{uid} result:{result}");
-                    Console.WriteLine(result);
-                    OnStatusChanged(result.Length == 0 ? uid : "");
-                
-                    // SendUidToWebSocket(uid).Wait();
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("An error occurred: " + ex.Message);
+                }
+               
             };
             monitor.Start(readerName);
             //while (true)
@@ -72,67 +76,115 @@ namespace Lib
             //    Thread.Sleep(1000); // Sleep to reduce CPU usage, adjust as needed.
             //}
         }
+        public string updateStatus(string uid, string status)
+        {
+            string b = $"{{\"uid\":\"{uid}\", \"status\":\"{status}\",\"currentstatus\":\"I\",\"src\":\"{System.Environment.MachineName}\"}}";
+            var content = new StringContent(b, Encoding.UTF8, "application/json");
+            
+            try
+            {
+                var response = httpClient.PutAsync($"wristbandtran", content);
+                return response.Result.IsSuccessStatusCode ? "" : "Error updating data into Database!";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred: " + ex.Message);
+                return "Error communicating with API";
+            }
+            //string query = $"update WristbandTrans set wristbandStatusFlag='{status}', updatedAt =getdate(), src='{System.Environment.MachineName}' where wristbandCode='{uid}' ";
+            //         logger.Log(query);
 
+            //using (SqlConnection conn = new SqlConnection(connectionString))
+            //{
+            //    conn.Open();
+            //    using (SqlCommand cmd = new SqlCommand(query, conn))
+            //    {
+            //        int result = (int)cmd.ExecuteScalar();
+            //        return result <= 0 ? "Error:Wristband Not in db!" : "";
+            //    }
+            //}
+        }
         private string ifPlayerHaveTime(string uid)
         {
-            string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND playerEndDate > GETDATE() and wristbandStatusFlag='R' ";
+            //string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND playerEndDate > GETDATE() and wristbandStatusFlag='R' ";
 
+            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag='R'&timelimit=60");
+            return  response.Result.IsSuccessStatusCode  ? "": "Error:Wristband Not in db!" ;
+            //{
+            //    var result = response.Result.Content.ReadAsStringAsync().Result;
 
-            logger.Log(query);
+            //    return result;
+            //}
+            //logger.Log(query);
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
+            //using (SqlConnection conn = new SqlConnection(connectionString))
+            //{
+            //    conn.Open();
 
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    int result =  (int)cmd.ExecuteScalar();
-                    return result <= 0 ? "Error:Wristband Not in db!" : "";
-                }
-            }
+            //    using (SqlCommand cmd = new SqlCommand(query, conn))
+            //    {
+            //        int result =  (int)cmd.ExecuteScalar();
+            //        return result <= 0 ? "Error:Wristband Not in db!" : "";
+            //    }
+            //}
         }
 
-        private string connectionString = "Server=192.186.105.194;Initial Catalog=Games;User Id=admin;Password=Aero@password1;TrustServerCertificate=True";
 
         public string ifCardRegisted(string uid)
         {
-            string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE()) and wristbandStatusFlag='I' ";
+          //  string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE()) and wristbandStatusFlag='I' ";
+            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag=I&timelimit=60");
+            return response.Result.IsSuccessStatusCode ? "" : "Error:Wristband Not in db!";
+            //logger.Log(query);
+
+            //using (SqlConnection conn = new SqlConnection(connectionString))
+            //{
+            //    conn.Open();
+
+            //    using (SqlCommand cmd = new SqlCommand(query, conn))
+            //    {
+            //        int result = (int)cmd.ExecuteScalar();
+            //        return result <= 0 ? $"Error:Wristband Not in db! count:{result}" : "";
 
 
-            logger.Log(query);
-
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                conn.Open();
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    int result = (int)cmd.ExecuteScalar();
-                    return result <= 0 ? $"Error:Wristband Not in db! count:{result}" : "";
-
-
-                }
-            }
+            //    }
+            //}
         }
 
         public string InsertRecord(string uid)
         {
-            string query = $"IF NOT EXISTS (SELECT * FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE())) " +
-                           "INSERT INTO [dbo].[WristbandTrans] (wristbandCode, wristbandStatusFlag, WristbandTranDate, createdat, updatedat) " +
-                           $"VALUES('{uid}', 'I', GETDATE(), GETDATE(), GETDATE())";
-            logger.Log(query);
+            var content = new StringContent($"{{\"uid\":\"{uid}\",\"status\":\"I\"}}", Encoding.UTF8, "application/json");
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                conn.Open();
+                var response = httpClient.PutAsync("wristbandtran", content);
+                return response.Result.IsSuccessStatusCode ? "" : "Error inserting data into Database!";
 
-                using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    int result = cmd.ExecuteNonQuery();
-                    return result < 0 ? "Error inserting data into Database!" : "";
 
-                }
+
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred: " + ex.Message);
+                return "Error communicating with API";
+            }
+
+            //string query = $"IF NOT EXISTS (SELECT * FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE())) " +
+            //               "INSERT INTO [dbo].[WristbandTrans] (wristbandCode, wristbandStatusFlag, WristbandTranDate, createdat, updatedat) " +
+            //               $"VALUES('{uid}', 'I', GETDATE(), GETDATE(), GETDATE())";
+            //logger.Log(query);
+
+            //using (SqlConnection conn = new SqlConnection(connectionString))
+            //{
+            //    conn.Open();
+
+            //    using (SqlCommand cmd = new SqlCommand(query, conn))
+            //    {
+            //        int result = cmd.ExecuteNonQuery();
+            //        return result < 0 ? "Error inserting data into Database!" : "";
+
+            //    }
+            //}
         }
 
         private string WriteData(string readerName)
