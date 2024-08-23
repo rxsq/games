@@ -10,7 +10,9 @@ using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 using Microsoft.Web.WebView2.WinForms;
 using System.Threading;
-
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Net.Http.Json;
 public partial class MainForm : Form
 {
     private WebView2 webView;
@@ -41,7 +43,7 @@ public partial class MainForm : Form
         this.Controls.Add(webView);
 
         // Navigate to the desired URL
-        webView.Source = new Uri("http://localhost:3002/scorecard");
+        webView.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
     }
 
     private void InitializeUdpReceiver()
@@ -49,6 +51,29 @@ public partial class MainForm : Form
         remoteEndPoint = new IPEndPoint(IPAddress.Any, 27);
         udpClientReceiver = new UdpClient(remoteEndPoint);
         relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
+    }
+    private async Task<GameConfig> FetchGameConfigAsync(string gameType)
+    {
+        using (var httpClient = new HttpClient())
+        {
+            try
+            {
+                // Replace with your Node.js API URL
+                string apiUrl = $"{System.Configuration.ConfigurationSettings.AppSettings["server"]}/games?gameCode={gameType}";
+                var response = await httpClient.GetAsync(apiUrl);
+
+                response.EnsureSuccessStatusCode();
+
+                // Deserialize the JSON response to a GameConfig object
+                var gameConfig = await response.Content.ReadFromJsonAsync<GameConfig>();
+                return gameConfig;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to fetch game configuration: {ex.Message}");
+                return null;
+            }
+        }
     }
 
     private void TargetTimeElapsed(object state)
@@ -75,8 +100,16 @@ public partial class MainForm : Form
         }, null);
     }
 
-    private void StartGame(string gameType)
+    private async void StartGame(string gameType)
     {
+        var gameConfig = await FetchGameConfigAsync(gameType);
+
+        if (gameConfig == null)
+        {
+            MessageBox.Show("Failed to start the game due to configuration issues.");
+            return;
+        }
+
         ShowGameDescription(gameType, GetGameDescription(gameType));
 
         if (currentGame != null)
@@ -87,26 +120,29 @@ public partial class MainForm : Form
         switch (gameType)
         {
             case "Target":
-                currentGame = new Target(new GameConfig { Maxiterations = 2, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 30, ReductionTimeEachLevel = 5, NoofLedPerdevice = 1 }, 18);
+                currentGame = new Target(gameConfig, 18);
                 break;
             case "Smash":
-                currentGame = new Smash(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 }, .2);
+                currentGame = new Smash(gameConfig, .2);
                 break;
             case "Chaser":
-                currentGame = new Chaser(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoofLedPerdevice = 3 });
+                currentGame = new Chaser(gameConfig);
                 break;
             case "FloorGame":
-                currentGame = new FloorGame1(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 20, ReductionTimeEachLevel = 2, NoOfControllers = 3, columns = 14, introAudio = "content\\floorgameintro.wav" }, 200);
+                currentGame = new FloorGame1(gameConfig, 200);
                 break;
             case "PatternBuilder":
-                currentGame = new PatternBuilderGame(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 3, columns = 14 }, 2);
+                currentGame = new PatternBuilderGame(gameConfig, 2);
                 break;
             case "Snakes":
-                currentGame = new Snakes(new GameConfig { Maxiterations = 3, MaxLevel = 3, MaxPlayers = 2, MaxIterationTime = 60, ReductionTimeEachLevel = 10, NoOfControllers = 2, columns = 14 }, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
+                currentGame = new Snakes(gameConfig, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                 break;
             case "Wipeout":
-                currentGame = new WipeoutGame(new GameConfig { Maxiterations = 3, MaxLevel = 5, MaxPlayers = 5, MaxIterationTime = 60, ReductionTimeEachLevel = 5, NoOfControllers = 3, columns = 14, introAudio = "content\\wipeoutintro.wav" });
+                currentGame = new WipeoutGame(gameConfig);
                 break;
+            default:
+                MessageBox.Show("Unknown game type.");
+                return;
         }
 
         currentGame.LifeLineChanged += CurrentGame_LifeLineChanged;

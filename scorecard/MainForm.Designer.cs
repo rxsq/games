@@ -14,7 +14,7 @@ partial class MainForm
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(1216, 604);
             this.Name = "MainForm";
-            //this.Paint += new System.Windows.Forms.PaintEventHandler(this.MainForm_Paint);
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.ResumeLayout(false);
 
     }
