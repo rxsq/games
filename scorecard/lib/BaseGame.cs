@@ -109,12 +109,11 @@ public abstract class BaseGame
     {
         this.config = config;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
-        musicPlayer = new MusicPlayer();
-      if(!Debugger.IsAttached)
+        musicPlayer = new MusicPlayer("content/background_music.wav");
+    //  if(!Debugger.IsAttached)
         musicPlayer.Announcement(config.introAudio);
-     
-
-        musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
+     // else
+       // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
         udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
         for(int i = 1; i < config.NoOfControllers; i++)
@@ -163,14 +162,14 @@ public abstract class BaseGame
     {
         isGameRunning = false;
         LogData($"iteration failed within {IterationTime} second");
-        musicPlayer.PlayEffect("content/fail.wav");
+        musicPlayer.Announcement("content/fail.wav");
         iterationTimer.Dispose();
         LifeLine = LifeLine - 1;
         Status = $"Lost Lifeline {LifeLine}";
         if (lifeLine <= 0)
         {
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
-            musicPlayer.PlayEffect("content/gameoverlost.wav");
+            musicPlayer.Announcement("content/gameoverlost.wav");
             Thread.Sleep(3000);
             EndGame();
             musicPlayer.StopAllMusic();
@@ -281,7 +280,8 @@ public abstract class BaseGame
                 Status = $"Reached to last Level {config.MaxLevel} ending game";
                 LogData(Status);
                 //Text to speech : Congratulations! 🎉You’ve won the game! You’ve completed all the levels. You’re a champion! 🏆
-                musicPlayer.PlayEffect("content/GameWin.wav");
+              
+                musicPlayer.Announcement("content/GameWin.wav");
                 EndGame();
                 return;
             }
@@ -289,9 +289,9 @@ public abstract class BaseGame
             {
              //   musicPlayer.StopBackgroundMusic();
                 //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
-
+                LogData(Status);
                 musicPlayer.Announcement("content/levelwin.wav");
-                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
+//                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
             }
             //labelScore.Text = $"Score: {score}";
 

@@ -18,7 +18,7 @@ public class Smash : BaseSingleDevice
     
     public Smash(GameConfig config) : base(config)
     {
-        this.config.MaxPlayers = 3;
+        this.config.MaxPlayers = 1;
     }
     protected override void Initialize()
     {
@@ -119,10 +119,7 @@ public class Smash : BaseSingleDevice
         if (handler.activeDevices.Count() == 0)
         {
             int random = new Random().Next(0, 9);
-
-            if (random == 0) { musicPlayer.PlayEffect("content/voicelines/praise1.mp3"); }
-            if (random == 1) { musicPlayer.PlayEffect("content/voicelines/praise2.mp3"); }
-            if (random == 2) { musicPlayer.PlayEffect("content/voicelines/praise3.mp3"); }
+                      
             MoveToNextIteration();
         }
         else

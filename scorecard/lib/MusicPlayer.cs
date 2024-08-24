@@ -13,11 +13,13 @@ public class MusicPlayer
     private ConcurrentQueue<string> effectQueue;
     private Task effectPlayingTask;
     private bool isPlayingEffect;
+    string backgroundFilePath;
 
-    public MusicPlayer()
+    public MusicPlayer(string backgroundFile)
     {
         effectQueue = new ConcurrentQueue<string>();
         isPlayingEffect = false;
+         backgroundFilePath=backgroundFile;
     }
 
     public void Dispose()
@@ -73,6 +75,7 @@ public class MusicPlayer
 
     public void PlayEffect(string filePath)
     {
+        Console.Write($"using playefect {filePath} {isPlayingEffect}");
         if (!File.Exists(filePath))
         {
             Console.WriteLine($"Music File not found: {filePath}");
@@ -82,6 +85,7 @@ public class MusicPlayer
         effectQueue.Enqueue(filePath);
         if (!isPlayingEffect)
         {
+          
             PlayNextEffect();
         }
     }
@@ -102,29 +106,44 @@ public class MusicPlayer
 
                     effectsPlayer = new WaveOutEvent();
                     var audioFile = new AudioFileReader(filePath);
-                    effectsPlayer.Init(audioFile);
-                    effectsPlayer.Volume = 1.0f;
-                    effectsPlayer.Play();
-                    effectsPlayer.PlaybackStopped += (s, e) =>
+                    if (effectsPlayer == null)
                     {
-                        try
+                        Console.WriteLine("sound could not play as effectplayer is null");
+                        return;
+
+                    }
+                    effectsPlayer.Init(audioFile);
+                    Console.WriteLine(audioFile);
+                    // effectsPlayer.Volume = 1.0f;
+                    if (effectsPlayer == null)
+                    {
+                        Console.WriteLine("sound could not play as effectplayer is null");
+                        return;
+
+                    }
+                        effectsPlayer.Play();
+
+                        effectsPlayer.PlaybackStopped += (s, e) =>
                         {
-                            audioFile.Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error disposing effect audio file: {ex.Message}");
-                        }
-                        finally
-                        {
-                            if (backgroundMusicPlayer != null)
+                            try
                             {
-                                backgroundMusicPlayer.Volume = 0.4f;
+                                audioFile.Dispose();
                             }
-                            isPlayingEffect = false;
-                            PlayNextEffect();
-                        }
-                    };
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error disposing effect audio file: {ex.Message}");
+                            }
+                            finally
+                            {
+                                if (backgroundMusicPlayer != null)
+                                {
+                                    backgroundMusicPlayer.Volume = 0.4f;
+                                }
+                                isPlayingEffect = false;
+                                PlayNextEffect();
+                            }
+                        };
+                    
                 }
                 catch (Exception ex)
                 {
@@ -235,9 +254,9 @@ public class MusicPlayer
         }
 
         // Resume background music if it was playing
-        if (backgroundAudioFile != null)
-        {
-            PlayBackgroundMusic(backgroundAudioFile.FileName, repeatBackgroundMusic);
-        }
+       // if (backgroundAudioFile != null)
+       // {
+            PlayBackgroundMusic(backgroundFilePath, true);
+       // }
     }
 }
