@@ -108,9 +108,11 @@ namespace Lib
         private string ifPlayerHaveTime(string uid)
         {
             //string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND playerEndDate > GETDATE() and wristbandStatusFlag='R' ";
-
-            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag='R'&timelimit=60");
-            return  response.Result.IsSuccessStatusCode  ? "": "Error:Wristband Not in db!" ;
+            Console.WriteLine("calling service");
+            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag=R&timelimit=60");
+            Console.WriteLine(response.Result);
+           string result=  response.Result.IsSuccessStatusCode  ? "": "Error:Wristband Not in db!" ;
+            return result;
             //{
             //    var result = response.Result.Content.ReadAsStringAsync().Result;
 

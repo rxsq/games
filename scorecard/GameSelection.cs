@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Configuration;
+using System.Threading;
 namespace scorecard
 {
     public partial class GameSelection : Form
@@ -19,11 +20,11 @@ namespace scorecard
         public GameSelection()
         {
             InitializeComponent();
-            InitializeScorecardForm();
+            
             InitializeWebView();
            
             SetBrowserFeatureControl();
-           
+            InitializeScorecardForm();
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"]);
            // webView2.Visibility = Visibility.Visible;
@@ -31,7 +32,17 @@ namespace scorecard
             {
                 if (uid.Length > 0)
                 {
-                    webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
+                    if (webView2.InvokeRequired)
+                    {
+                        webView2.Invoke(new Action(() =>
+                            webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')")
+                        ));
+                    }
+                    else
+                    {
+                        webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
+                    }
+                   
                     
                 }
             };
@@ -39,7 +50,8 @@ namespace scorecard
             {
                 scorecardForm = new ScorecardForm();
                 scorecardForm.Show();
-                scorecardForm.StartGame(ConfigurationSettings.AppSettings["TestGame"]);
+                
+                
             }
         }
         private void InitializeScorecardForm()
@@ -80,8 +92,9 @@ namespace scorecard
             var message = e.TryGetWebMessageAsString();
             if (message.StartsWith("start"))
             {
-                string game = message.Split(':')[0];
-                scorecardForm.StartGame(game);
+                string game = message.Split(':')[1];
+                int noofplayers = int.Parse(message.Split(':')[2]);
+                scorecardForm.StartGame(game, noofplayers);
             }
         }
 

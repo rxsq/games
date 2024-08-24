@@ -3,6 +3,7 @@ using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -19,11 +20,11 @@ public class UdpHandler
     private string logFile;
     private AsyncLogger logger;
     private bool receiving;
-    public  int columns;
+    public int columns;
     public int Rows;
     public string name;
     public List<int> activeDevices = new List<int>();
-    public Dictionary<int,List<int>> activeDevicesGroup = new Dictionary<int, List<int>>();
+    public Dictionary<int, List<int>> activeDevicesGroup = new Dictionary<int, List<int>>();
     public List<string> DeviceList { get; private set; }
 
     public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice, int columns, string namep)
@@ -32,7 +33,7 @@ public class UdpHandler
         destinationPort = destPort;
         sourcePort = srcPort;
 
-       this.name = namep;
+        this.name = namep;
         udpClient2 = new UdpClient(receiverPort);
         udpClient = new UdpClient(sourcePort);
         RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -42,22 +43,22 @@ public class UdpHandler
 
         this.Rows = DeviceList.Count / columns;
         this.columns = columns;
-       // this .Rows = rows;
-         receiving = false;
+        // this .Rows = rows;
+        receiving = false;
     }
-    public List<string>  ReceiveMessage( int noofledPerdevice)
+    public List<string> ReceiveMessage(int noofledPerdevice)
     {
-      byte[] t= udpClient2.Receive(ref RemoteEndPoint);
+        byte[] t = udpClient2.Receive(ref RemoteEndPoint);
         int o;
-        int noofdevices = Math.DivRem(( t.Length - 2),noofledPerdevice, out o);
+        int noofdevices = Math.DivRem((t.Length - 2), noofledPerdevice, out o);
 
-       var l = new List<string>(noofdevices);
+        var l = new List<string>(noofdevices);
         for (int i = 0; i < noofdevices; i++)
         {
             l.Add(noofledPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3);
-          //  deviceMap.Add(i, new Device { color = noofledPerdevice==1?ColorPaletteone.NoColor: ColorPalette.noColor3, isActive = false, sequence = i });
+            //  deviceMap.Add(i, new Device { color = noofledPerdevice==1?ColorPaletteone.NoColor: ColorPalette.noColor3, isActive = false, sequence = i });
         }
-                return l;
+        return l;
     }
     public void BeginReceive(Action<byte[]> receiveCallback)
     {
@@ -94,7 +95,13 @@ public class UdpHandler
     {
 
         byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
-        udpClient.Send(data, data.Length, destinationIpAddress, destinationPort);
+        try
+        {
+            udpClient.Send(data, data.Length, destinationIpAddress, destinationPort);
+                }
+        catch(Exception ex){
+            LogData(ex.StackTrace);
+        }
        // LogData($"Sent data: ffff{string.Join("", colorList)} at {destinationPort}");
     }
     public async Task SendColorsToUdpAsync(List<string> colorList)

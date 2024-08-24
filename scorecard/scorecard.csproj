@@ -168,6 +168,7 @@
     <Compile Include="lib\relay.cs" />
     <Compile Include="lib\SurroundingMap.cs" />
     <Compile Include="Mapping.cs" />
+    <Compile Include="model\Game.cs" />
     <Compile Include="PatternBuilder.cs" />
     <Compile Include="Smash.cs" />
     <Compile Include="Target.cs" />
@@ -227,7 +228,9 @@
     <Content Include="content\target_hit.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="content\voicelines\FloorGameIntro.mp3" />
+    <Content Include="content\voicelines\FloorGameIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\voicelines\praise1.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -237,9 +240,15 @@
     <Content Include="content\voicelines\praise3.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="content\voicelines\SmashIntro.mp3" />
-    <Content Include="content\voicelines\TargetsIntro.mp3" />
-    <Content Include="content\voicelines\WipeoutIntro.mp3" />
+    <Content Include="content\voicelines\SmashIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\TargetsIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\WipeoutIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\wipeoutintro.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

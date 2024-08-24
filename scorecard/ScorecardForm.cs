@@ -13,37 +13,76 @@ using System.Threading;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Net.Http.Json;
+using scorecard.model;
+using System.Text.Json;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Win32;
+using System.Configuration;
+using System.Reflection.Emit;
 public partial class ScorecardForm : Form
 {
-    private WebView2 webView;
+    
     private UdpClient udpClientReceiver;
     private System.Threading.Timer relayTimer;
     private IPEndPoint remoteEndPoint;
     private string currentState = GameStatus.NotStarted;
     private BaseGame currentGame = null;
-
+    private string gameType = "";
     public ScorecardForm()
     {
         InitializeComponent();
         InitializeWebView();
-        InitializeUdpReceiver();
+        SetBrowserFeatureControl();
+       // InitializeUdpReceiver();
     }
-
     private async void InitializeWebView()
     {
-        webView = new WebView2
-        {
-            Size = new Size(800, 600),
-            Location = new Point(100, 100), // Adjust as needed
-            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
-        };
+        webView2.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
+        // Initialize the WebView2 control and set its source
+        await webView2.EnsureCoreWebView2Async(null);
 
-        webView.BringToFront();
-        await webView.EnsureCoreWebView2Async(null);
-        this.Controls.Add(webView);
+        // Set up the NavigationCompleted event handler
+        webView2.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
 
         // Navigate to the desired URL
-        webView.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
+       
+    }
+    private void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        if (e.IsSuccess)
+        {
+            Console.WriteLine("Navigation completed successfully.");
+            // Perform any additional actions after navigation is complete
+        }
+        else
+        {
+            Console.WriteLine($"Navigation failed with error: {e.WebErrorStatus}");
+            // Handle navigation errors or perform fallback actions
+        }
+        //StartGame(ConfigurationSettings.AppSettings["TestGame"]);
+    }
+    //private async void InitializeWebView()
+    //{
+
+    //    // Navigate to the desired URL
+    //    webView2.Source = new Uri(System.Configuration.ConfigurationSettings.AppSettings["scorecardurl"]);
+    //    webView2.CoreWebView2InitializationCompleted += WebView2_CoreWebView2InitializationCompleted;
+    //}
+    private void WebView2_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
+    {
+        webView2.CoreWebView2.WebMessageReceived += WebView2_WebMessageReceived;
+    }
+    private void WebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+       
+    }
+    private void SetBrowserFeatureControl()
+    {
+        string appName = System.Diagnostics.Process.GetCurrentProcess().ProcessName + ".exe";
+        using (var key = Registry.CurrentUser.CreateSubKey($@"Software\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION"))
+        {
+            key.SetValue(appName, 11001, RegistryValueKind.DWord);
+        }
     }
 
     private void InitializeUdpReceiver()
@@ -59,18 +98,44 @@ public partial class ScorecardForm : Form
             try
             {
                 // Replace with your Node.js API URL
-                string apiUrl = $"{System.Configuration.ConfigurationSettings.AppSettings["server"]}/games?gameCode={gameType}";
+                string apiUrl = $"{System.Configuration.ConfigurationSettings.AppSettings["server"]}/gamesVariant/findall?name={gameType}";
                 var response = await httpClient.GetAsync(apiUrl);
 
                 response.EnsureSuccessStatusCode();
 
+                // Get the raw JSON response as a string
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                var gameVariant = JsonSerializer.Deserialize<GameVariant>(jsonResponse);
+                //var gameVariants = JsonSerializer.Deserialize<List<GameVariant>>(jsonResponse);
                 // Deserialize the JSON response to a GameConfig object
-                var gameConfig = await response.Content.ReadFromJsonAsync<GameConfig>();
-                return gameConfig;
+                //var gameVariant = gameVariants.FirstOrDefault();
+                if (gameVariant != null)
+                {
+                    GameConfig gameConfig = new GameConfig
+                    {
+                        Maxiterations = gameVariant.MaxIterations,
+                        MaxIterationTime = gameVariant.MaxIterationTime,
+                        MaxLevel = gameVariant.MaxLevel,
+                        ReductionTimeEachLevel = gameVariant.ReductionTimeEachLevel,
+                        IpAddress = gameVariant.game.IpAddress,
+                        LocalPort = gameVariant.game.LocalPort,
+                        RemotePort = gameVariant.game.RemotePort,
+                        SocketBReceiverPort = gameVariant.game.SocketBReceiverPort,
+                        NoOfControllers = gameVariant.game.NoOfControllers,
+                        NoofLedPerdevice = gameVariant.game.NoofLedPerdevice,
+                        columns = gameVariant.game.columns,
+                        introAudio = gameVariant.introAudio ?? string.Empty
+                    };
+                    return gameConfig;
+
+                    // Use your gameConfig object as needed
+                }
+
+                return null;
             }
             catch (Exception ex)
             {
-                `````MessageBox.Show($"Failed to fetch game configuration: {ex.Message}");
+                MessageBox.Show($"Failed to fetch game configuration: {ex.Message}");
                 return null;
             }
         }
@@ -89,7 +154,7 @@ public partial class ScorecardForm : Form
                 udpClientReceiver.Send(replyBytes1, replyBytes1.Length, remoteEndPoint);
 
                 Thread.Sleep(10000);
-                StartGame(receivedData.Split(':')[1].Trim());
+                //StartGame(receivedData.Split(':')[1].Trim());
                 Console.WriteLine("game started");
             }
 
@@ -100,7 +165,7 @@ public partial class ScorecardForm : Form
         }, null);
     }
 
-    public async void StartGame(string gameType)
+    public async void StartGame(string gameType, int noofplayers)
     {
         var gameConfig = await FetchGameConfigAsync(gameType);
 
@@ -109,7 +174,7 @@ public partial class ScorecardForm : Form
             MessageBox.Show("Failed to start the game due to configuration issues.");
             return;
         }
-
+        gameConfig.MaxPlayers = noofplayers;
         ShowGameDescription(gameType, GetGameDescription(gameType));
 
         if (currentGame != null)
@@ -123,7 +188,7 @@ public partial class ScorecardForm : Form
                 currentGame = new Target(gameConfig, 18);
                 break;
             case "Smash":
-                currentGame = new Smash(gameConfig, .2);
+                currentGame = new Smash(gameConfig);
                 break;
             case "Chaser":
                 currentGame = new Chaser(gameConfig);
@@ -151,30 +216,76 @@ public partial class ScorecardForm : Form
         currentGame.StatusChanged += CurrentGame_StatusChanged;
 
         currentGame?.StartGame();
+
+        //setTimer
+        uiupdate("updateTimer", currentGame.IterationTime);
     }
 
     private void CurrentGame_StatusChanged(object sender, string status)
     {
         currentState = status;
+        uiupdate("updateTimer", currentGame.IterationTime);
     }
 
     private void CurrentGame_LevelChanged(object sender, int level)
     {
         // Update level in the React component
-        webView.ExecuteScriptAsync($"window.updateLevel({level});");
+       // webView2.ExecuteScriptAsync($"window.updateLevel({level});");
+        uiupdate("updateLevel", level);
+        uiupdate("updateTimer", currentGame.IterationTime);
     }
 
     private void CurrentGame_LifeLineChanged(object sender, int newLife)
     {
         // Update lives in the React component
-        webView.ExecuteScriptAsync($"window.updateLives({newLife});");
+        uiupdate("updateLives", newLife);
+        uiupdate("updateTimer", currentGame.IterationTime);
+
+        //  webView2.ExecuteScriptAsync($"window.updateLives({newLife});");
     }
 
-    private void CurrentGame_ScoreChanged(object sender, int newScore)
+    private async void CurrentGame_ScoreChanged(object sender, int newScore)
     {
-        // Update score in the React component
-        webView.ExecuteScriptAsync($"window.updateScore({newScore});");
+        uiupdate("updateScore", newScore);
     }
+    private async void uiupdate(string func, int newScore)
+    {
+        string script = @"
+        try {
+            window."+ func + "(" + newScore + @");
+        } catch (error) {
+            console.error('Error executing script:', error);
+        }";
+
+        if (webView2.InvokeRequired)
+        {
+            webView2.Invoke(new Action(async () =>
+            {
+                try
+                {
+                    await webView2.ExecuteScriptAsync(script);
+                    Console.WriteLine("Script executed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Script execution failed: " + ex.Message);
+                }
+            }));
+        }
+        else
+        {
+            try
+            {
+                await webView2.ExecuteScriptAsync(script);
+                Console.WriteLine("Script executed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Script execution failed: " + ex.Message);
+            }
+        }
+    }
+
 
     private string GetGameDescription(string gameType)
     {

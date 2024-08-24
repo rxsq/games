@@ -14,8 +14,10 @@ public class Target : BaseSingleDevice
     protected HashSet<int> usedStarIndices1 = new HashSet<int>();
     private int starIndex = 18;
     private List<int> starIndices = new List<int>();
+   
     public Target(GameConfig config, int starIndex) : base(config)
     {
+        this.config.MaxPlayers = 3;
         this.starIndex = starIndex;
         //if(istest)
         //    this.colors = new List<string> { ColorPaletteone.Pink, ColorPaletteone.Purple, ColorPaletteone.Navy, ColorPaletteone.Yellow, ColorPaletteone.Coral, ColorPaletteone.White, ColorPaletteone.Cyan };
@@ -23,7 +25,7 @@ public class Target : BaseSingleDevice
     protected override void Initialize()
     {
         var handler = udpHandlers[0];
-        musicPlayer.PlayEffect("content/TargetIntro.wav");
+      //  musicPlayer.PlayEffect("content/TargetIntro.wav");
         base.SendDataToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Silver : ColorPalette.SilverGrayWhite, starIndex);
         //LoopAll(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3,1);
         BlinkAllAsync(2);
@@ -32,19 +34,32 @@ public class Target : BaseSingleDevice
     protected override void OnStart()
     {
         //base.BlinkLights(new HashSet<int> { starIndex },2, handler);
-        
+
         handler.BeginReceive(data => ReceiveCallback(data, handler));
-       
+        Task.Run(() => blinkTargetLight());
+
     }
 
     protected override void OnIteration()
     {
          SendSameColorToAllDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.PinkCyanMagenta);
          BlinkAllAsync(1);
-         SetColorsOfDevices();
+         SetTarget();
+
        
     }
+    private void blinkTargetLight()
+    {
+        if (!isGameRunning)
+            return;
 
+        BlinkLights(handler.activeDevices, 1, handler, config.NoofLedPerdevice == 1 ? ColorPaletteone.Blue : ColorPalette.Blue);
+        if (isGameRunning)
+        {
+            Thread.Sleep(2000);
+            blinkTargetLight();
+        }
+    }
     private string GetStarColor()
     {
         int index;
@@ -66,65 +81,56 @@ public class Target : BaseSingleDevice
     int blinktime = 0;
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
+        if (!isGameRunning)
+            return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
 
         List<int> positions = receivedData.Select((value, index) => new { value, index })
                                           .Where(x => x.value == 0x0A)
-                                          .Select(x => x.index - 2)
+                                          .Select(x => (x.index - 2) / config.NoofLedPerdevice)
                                           .Where(position => position >= 0)
                                           .ToList();
 
         LogData($"Touch detected: {string.Join(",", positions)}");
 
-        foreach (int position in positions)
+        var touchedActiveDevices = handler.activeDevices.FindAll(x => positions.Contains(x));
+        if (touchedActiveDevices.Count > 0)
         {
-            int actualPos = position / config.NoofLedPerdevice;
-            if (handler.activeDevices.Contains(actualPos))
-            {
-                LogData("Color change detected");
-                musicPlayer.PlayEffect("content/hit2.wav");
-                ChnageColorToDevice(config.NoofLedPerdevice==1? ColorPaletteone.NoColor:ColorPalette.noColor3, actualPos, handler);
-                handler.activeDevices.Remove(actualPos);
-                base.Score = base.Score + 1;
-                LogData($"Score updated: {Score}");
-            }
+            ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
+            handler.activeDevices.RemoveAll(x => touchedActiveDevices.Contains(x));
+            updateScore(Score + 1);
+            LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", handler.activeDevices)}");
         }
 
-        if (handler.activeDevices.Count() != 0)
+        if (handler.activeDevices.Count() == 0)
         {
-            blinktime++;
-            if (blinktime > 30)
-            {
-                BlinkLights(handler.activeDevices, 1, handler, ColorPaletteone.Blue);
-                blinktime = 0;
-            }
-            handler.BeginReceive(data => ReceiveCallback(data, handler));
+            MoveToNextIteration();
         }
         else
         {
-            MoveToNextIteration();
+            handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
 
     }
 
-    private void SetColorsOfDevices()
+    private void SetTarget()
     {
         handler.activeDevices.Clear();
         string starColor = GetStarColor();
-        int numberOfStarColorDevices = (int)Math.Round(handler.DeviceList.Count() * 0.3);
+        int numberOfStarColorDevices = config.MaxPlayers * 2;
         // HashSet<int> usedIndices = new HashSet<int> { starIndex };
-       
+     
         for (int i = 0; i < numberOfStarColorDevices; i++)
         {
             int index;
             do
             {
-                index = random.Next(handler.DeviceList.Count());
-            } while (handler.activeDevices.Contains(index));
+                index = random.Next(0,handler.DeviceList.Count());
+            } while (handler.activeDevices.Contains(index) && index != 30);
 
-            handler.DeviceList[i] = ColorPalette.Red;
-            handler.activeDevices.Add(i);
+            handler.DeviceList[index] = starColor;
+            handler.activeDevices.Add(index);
         }
         //make sure star is colord
        
@@ -138,8 +144,8 @@ public class Target : BaseSingleDevice
                 string newColor;
                 do
                 {
-                    newColor = ColorPalette.Blue;
-                    //newColor = gameColors[random.Next(gameColors.Count-1)];
+                    //newColor = ColorPalette.Blue;
+                    newColor = gameColors[random.Next(gameColors.Count-1)];
                 } while (newColor == starColor);
 
                 handler.DeviceList[i] = newColor;

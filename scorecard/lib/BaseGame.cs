@@ -77,7 +77,7 @@ public abstract class BaseGame
             //  LogData($"GameLost lifeLine: {lifeLine}");
         }
     }
-    protected int IterationTime { get { return (config.MaxIterationTime - (Level - 1) * config.ReductionTimeEachLevel) * 1000; } }
+    public int IterationTime { get { return (config.MaxIterationTime - (Level - 1) * config.ReductionTimeEachLevel) * 1000; } }
     public event EventHandler<int> ScoreChanged;
     public event EventHandler<int> LifeLineChanged;
     public event EventHandler<int> LevelChanged;
@@ -171,6 +171,7 @@ public abstract class BaseGame
         {
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
             musicPlayer.PlayEffect("content/gameoverlost.wav");
+            Thread.Sleep(3000);
             EndGame();
             musicPlayer.StopAllMusic();
         }
@@ -196,6 +197,7 @@ public abstract class BaseGame
 
         SendSameColorToAllDevice(ColorPaletteone.NoColor);
         Thread.Sleep(100);
+
         BlinkAllAsync(2);
         foreach (var handler in udpHandlers)
         {
@@ -310,9 +312,6 @@ public abstract class BaseGame
     {
         Score = score;
         int random = new Random().Next(0, 9);
-        //if (random == 0) { musicPlayer.PlayEffect("content/voicelines/praise1.mp3"); }
-        //if (random == 1) { musicPlayer.PlayEffect("content/voicelines/praise2.mp3"); }
-        //if (random == 2) { musicPlayer.PlayEffect("content/voicelines/praise3.mp3"); }
         if (0 <= random && random < 3) { musicPlayer.PlayEffect("content//hit2.wav"); }
         if (3 <= random && random < 6) { musicPlayer.PlayEffect("content/hit2.wav"); }
         if (6 <= random) { musicPlayer.PlayEffect("content/hit2.wav"); }
@@ -390,7 +389,7 @@ public abstract class BaseGame
             for (int j = 0; j < repeation; j++)
             {
                 handler.SendColorsToUdp(handler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
                 handler.SendColorsToUdp(handler.DeviceList);
             }
     }
