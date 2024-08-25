@@ -164,16 +164,23 @@ public partial class ScorecardForm : Form
             Console.WriteLine(receivedData);
         }, null);
     }
-
+    TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
     public async void StartGame(string gameType, int noofplayers)
     {
+        
         var gameConfig = await FetchGameConfigAsync(gameType);
-
+        if (plug == null)
+        {
+            // var discoveredDevices = new TPLinkSmartDevices.TPLinkDiscovery().Discover().Result;
+            plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug("10.0.1.163");
+        }
+        plug.OutletPowered = true;
         if (gameConfig == null)
         {
             MessageBox.Show("Failed to start the game due to configuration issues.");
             return;
         }
+       
         gameConfig.MaxPlayers = noofplayers;
         ShowGameDescription(gameType, GetGameDescription(gameType));
 

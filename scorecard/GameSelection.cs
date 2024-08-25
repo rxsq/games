@@ -74,7 +74,9 @@ namespace scorecard
             }
             else
             {
-                MessageBox.Show("Secondary monitor not detected.");
+                scorecardForm = new ScorecardForm();
+                scorecardForm.Show();
+                //MessageBox.Show("Secondary monitor not detected.");
             }
         }
         private void InitializeWebView()
