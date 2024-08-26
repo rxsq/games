@@ -67,7 +67,7 @@ public class Chaser : BaseSingleDevice
             ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, positions, handler);
             updateScore( base.Score + 1);
             LogData($"Score updated: {Score}  position {String.Join(",", positions)}");
-            MoveToNextIteration();
+            IterationWon();
         }
         else
         {

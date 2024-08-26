@@ -157,7 +157,7 @@
     <Compile Include="BaseSingleDevice.cs" />
     <Compile Include="Chaser.cs" />
     <Compile Include="content\snakes.cs" />
-    <Compile Include="FloorGame1.cs" />
+    <Compile Include="TileHunt.cs" />
     <Compile Include="GameSelection.cs">
       <SubType>Form</SubType>
     </Compile>

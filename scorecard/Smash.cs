@@ -120,7 +120,7 @@ public class Smash : BaseSingleDevice
         {
             int random = new Random().Next(0, 9);
                       
-            MoveToNextIteration();
+            IterationWon();
         }
         else
         {

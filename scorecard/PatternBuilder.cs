@@ -84,7 +84,7 @@ public class PatternBuilderGame : BaseMultiDevice
         {
             if (!isGameRunning)
                 return;
-            MoveToNextIteration();
+            IterationWon();
         }
         else
         {
