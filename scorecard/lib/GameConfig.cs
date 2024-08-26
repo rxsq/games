@@ -21,5 +21,7 @@ namespace scorecard.lib
         public int NoofLedPerdevice { get; internal set; } = 1;
         public int columns { get; set; } = 14;
         public string introAudio { get; set; } = "";
+
+        public bool timerPointLoss = true;
     }
 }

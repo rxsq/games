@@ -105,7 +105,7 @@ public class Target : BaseSingleDevice
 
         if (handler.activeDevices.Count() == 0)
         {
-            MoveToNextIteration();
+            IterationWon();
         }
         else
         {

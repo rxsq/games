@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Web.WebView2.Core;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -14,6 +15,7 @@ using System.Drawing;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 using System.Diagnostics.Eventing.Reader;
 using System.Diagnostics;
+using System.Security.Cryptography;
 public abstract class BaseGame
 {
     protected List<UdpHandler> udpHandlers;
@@ -108,10 +110,11 @@ public abstract class BaseGame
     public BaseGame(GameConfig config)
     {
         this.config = config;
+        this.config.MaxPlayers = 3;
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer("content/background_music.wav");
     //  if(!Debugger.IsAttached)
-        musicPlayer.Announcement(config.introAudio);
+//        musicPlayer.Announcement(config.introAudio);
      // else
        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
@@ -153,13 +156,17 @@ public abstract class BaseGame
         OnIteration();
         isGameRunning = true;
         // Start target timer
-        iterationTimer = new Timer(TargetTimeElapsed, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
+        iterationTimer = new Timer(IterationLost, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
         OnStart();
 
        
     }
-    protected virtual void TargetTimeElapsed(object state)
+    protected virtual void IterationLost(object state)
     {
+        if (!config.timerPointLoss  &&  state==null) {
+            IterationWon();
+            return;
+        }
         isGameRunning = false;
         LogData($"iteration failed within {IterationTime} second");
         musicPlayer.Announcement("content/fail.wav");
@@ -170,9 +177,10 @@ public abstract class BaseGame
         {
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
             musicPlayer.Announcement("content/gameoverlost.wav");
+            LogData("GAME OVER");
             Thread.Sleep(3000);
             EndGame();
-            musicPlayer.StopAllMusic();
+           
         }
         else
         {
@@ -191,13 +199,14 @@ public abstract class BaseGame
     public void EndGame()
     {
 
-
-        iterationTimer.Dispose();
+        if(iterationTimer != null) 
+            iterationTimer.Dispose();
 
         SendSameColorToAllDevice(ColorPaletteone.NoColor);
         Thread.Sleep(100);
 
         BlinkAllAsync(2);
+
         foreach (var handler in udpHandlers)
         {
             if (handler != null)
@@ -206,7 +215,7 @@ public abstract class BaseGame
         }
         musicPlayer.Dispose();
 
-        //OnEnd();
+        OnEnd();
     }
     protected virtual void Initialize() { }
     protected virtual void OnStart() { }
@@ -258,7 +267,7 @@ public abstract class BaseGame
         }
 
     }
-    protected void MoveToNextIteration()
+    protected void IterationWon()
     {
         isGameRunning = false;
         LogData("All targets hit");

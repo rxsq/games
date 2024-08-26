@@ -25,13 +25,14 @@ public class WipeoutGame : BaseMultiDevice
 
     public WipeoutGame(GameConfig config) : base(config)
     {
+        config.timerPointLoss = false;
         Initialize();
     }
 
     protected override void Initialize()
     {
 
-        musicPlayer.PlayEffect("content/WipeoutIntro.wav");
+        //musicPlayer.PlayEffect("content/WipeoutIntro.wav");
         grid = new List<string>(new string[rows * config.columns]);
         for (int i = 0; i < rows * config.columns; i++)
         {
@@ -50,6 +51,7 @@ public class WipeoutGame : BaseMultiDevice
 
     protected override void OnStart()
     {
+        iterationTimer.Dispose();
         gameTimer = new System.Threading.Timer(GameLoop, null, 0, 1000000); // Game loop runs every 200ms
         foreach (var handler in udpHandlers)
         {
@@ -72,12 +74,12 @@ public class WipeoutGame : BaseMultiDevice
         if (handler.activeDevices.Exists(x => positions.Contains(x)))
         {
 
-            LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
             isGameRunning = false;
             handler.activeDevices.Clear();
+            LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
             BlinkAllAsync(1);
             gameTimer.Dispose();
-            TargetTimeElapsed(null);
+            IterationLost("Lost Iteration");
             return;
         }
 
@@ -122,7 +124,7 @@ public class WipeoutGame : BaseMultiDevice
             isGameRunning = false;
             gameTimer.Dispose();
             revolutions = 0;
-            MoveToNextIteration();
+            IterationWon();
             return;
         }
 
@@ -141,7 +143,8 @@ public class WipeoutGame : BaseMultiDevice
         {
             return;
         }
-        Thread.Sleep(200 - config.ReductionTimeEachLevel * Level);
+        int waittime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
+        Thread.Sleep(waittime);
 
         GameLoop(null);
     }
@@ -227,5 +230,9 @@ public class WipeoutGame : BaseMultiDevice
             base.deviceMapping[pos].udpHandler.DeviceList[actualHandlerPos] = ColorPaletteone.Red;
             base.deviceMapping[pos].udpHandler.activeDevices.Add(actualHandlerPos);
         }
+    }
+    protected override void OnEnd()
+    {
+       gameTimer.Dispose();
     }
 }

@@ -180,9 +180,12 @@ public partial class ScorecardForm : Form
         if (currentGame != null)
         {
             currentGame.EndGame();
+            currentGame = null;           
+
         }
 
-        switch (gameType)
+        initializedWebView2();
+        switch (gameType.Replace(" ",""))
         {
             case "Target":
                 currentGame = new Target(gameConfig, 18);
@@ -193,8 +196,8 @@ public partial class ScorecardForm : Form
             case "Chaser":
                 currentGame = new Chaser(gameConfig);
                 break;
-            case "FloorGame":
-                currentGame = new FloorGame1(gameConfig, 200);
+            case "TileHunt":
+                currentGame = new TileHunt(gameConfig, 200);
                 break;
             case "PatternBuilder":
                 currentGame = new PatternBuilderGame(gameConfig, 2);
@@ -221,6 +224,13 @@ public partial class ScorecardForm : Form
         uiupdate("updateTimer", currentGame.IterationTime);
     }
 
+    private void initializedWebView2()
+    {
+        uiupdate("updateTimer", 0);
+        uiupdate("updateLevel", 0);
+        uiupdate("updateLives", 5);
+        uiupdate("updateScore", 0);
+    }
     private void CurrentGame_StatusChanged(object sender, string status)
     {
         currentState = status;

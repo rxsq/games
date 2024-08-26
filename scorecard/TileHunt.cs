@@ -7,17 +7,18 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class FloorGame1 : BaseMultiDevice
+public class TileHunt : BaseMultiDevice
 {
     private int killerSpeedReduction = 200;
     private System.Threading.Timer gameTimer;
     private bool isReversed = false; // Track the direction of the killer line
 
-    public FloorGame1(GameConfig config, int killerSpeedReduction) : base(config)
+    public TileHunt(GameConfig config, int killerSpeedReduction) : base(config)
     {
         this.killerSpeedReduction = killerSpeedReduction;
     }
@@ -30,7 +31,7 @@ public class FloorGame1 : BaseMultiDevice
     protected override void Initialize()
     {
 
-        musicPlayer.PlayEffect("content/FloorGameIntro.wav");
+       
         AnimateColor(false);
         AnimateColor(true);
         BlinkAllAsync(4);
@@ -258,7 +259,7 @@ public class FloorGame1 : BaseMultiDevice
                 LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
                 killerRowsDict[handler].Clear();
                 base.Score--;
-                TargetTimeElapsed(null);
+                IterationLost(null);
                 return;
             }
         }
@@ -266,7 +267,7 @@ public class FloorGame1 : BaseMultiDevice
         LogData($"{handler.name} processing received data");
         if (udpHandlers.Where(x => x.activeDevicesGroup.Count > 0).Count() == 0)
         {
-            MoveToNextIteration();
+            IterationWon();
         }
         else
         {
