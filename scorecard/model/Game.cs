@@ -20,7 +20,7 @@ namespace scorecard.model
         public int NoOfControllers { get; set; }
         public int NoofLedPerdevice { get; set; }
         public int columns { get; set; }
-        
+        public string SmartPlugip { get; internal set; }
     }
 
     public class GameVariant

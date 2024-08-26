@@ -19,6 +19,7 @@ using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using System.Configuration;
 using System.Reflection.Emit;
+using System.ComponentModel;
 public partial class ScorecardForm : Form
 {
     
@@ -91,6 +92,12 @@ public partial class ScorecardForm : Form
         udpClientReceiver = new UdpClient(remoteEndPoint);
         relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
     }
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (currentGame != null)
+            currentGame.lightonoff(false);
+        base.OnClosing(e);
+    }
     private async Task<GameConfig> FetchGameConfigAsync(string gameType)
     {
         using (var httpClient = new HttpClient())
@@ -124,7 +131,8 @@ public partial class ScorecardForm : Form
                         NoOfControllers = gameVariant.game.NoOfControllers,
                         NoofLedPerdevice = gameVariant.game.NoofLedPerdevice,
                         columns = gameVariant.game.columns,
-                        introAudio = gameVariant.introAudio ?? string.Empty
+                        introAudio = gameVariant.introAudio ?? string.Empty,
+                         SmartPlugip = gameVariant.game.SmartPlugip
                     };
                     return gameConfig;
 
@@ -164,17 +172,12 @@ public partial class ScorecardForm : Form
             Console.WriteLine(receivedData);
         }, null);
     }
-    TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
+   
     public async void StartGame(string gameType, int noofplayers)
     {
         
         var gameConfig = await FetchGameConfigAsync(gameType);
-        if (plug == null)
-        {
-            // var discoveredDevices = new TPLinkSmartDevices.TPLinkDiscovery().Discover().Result;
-            plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug("10.0.1.163");
-        }
-        plug.OutletPowered = true;
+        
         if (gameConfig == null)
         {
             MessageBox.Show("Failed to start the game due to configuration issues.");
@@ -231,6 +234,8 @@ public partial class ScorecardForm : Form
     private void CurrentGame_StatusChanged(object sender, string status)
     {
         currentState = status;
+      
+       
         uiupdate("updateTimer", currentGame.IterationTime);
     }
 
