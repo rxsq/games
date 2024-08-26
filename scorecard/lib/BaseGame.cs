@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 public abstract class BaseGame
 {
+    TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
     protected List<UdpHandler> udpHandlers;
     //protected Dictionary<UdpHandler, List<string>> handlerDevices;
     protected Dictionary<UdpHandler, HashSet<int>> activeIndices;
@@ -106,11 +107,20 @@ public abstract class BaseGame
     public string targetColor;
     //  public int numberOfDevices = 12; // 4x3 grid
     protected AsyncLogger logger;
-    
+    public void lightonoff(bool on)
+    {
+        var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
+        plug.OutletPowered = on;
+    }
     public BaseGame(GameConfig config)
     {
         this.config = config;
+
         this.config.MaxPlayers = 3;
+
+        lightonoff(true);
+        
+
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer("content/background_music.wav");
     //  if(!Debugger.IsAttached)
@@ -199,8 +209,13 @@ public abstract class BaseGame
     public void EndGame()
     {
 
+
         if(iterationTimer != null) 
             iterationTimer.Dispose();
+
+        Status = GameStatus.Completed;
+        iterationTimer.Dispose();
+
 
         SendSameColorToAllDevice(ColorPaletteone.NoColor);
         Thread.Sleep(100);
@@ -216,6 +231,10 @@ public abstract class BaseGame
         musicPlayer.Dispose();
 
         OnEnd();
+
+
+        lightonoff(false);
+
     }
     protected virtual void Initialize() { }
     protected virtual void OnStart() { }

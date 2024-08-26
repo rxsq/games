@@ -13,8 +13,11 @@ class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-       // if (!Debugger.IsAttached)
-            Application.Run(new GameSelection());
+        // if (!Debugger.IsAttached)
+
+       var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug("10.0.1.228");
+       plug.OutletPowered = true;
+        Application.Run(new GameSelection());
        
     }
 

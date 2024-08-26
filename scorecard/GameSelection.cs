@@ -46,13 +46,7 @@ namespace scorecard
                     
                 }
             };
-            if (ConfigurationSettings.AppSettings["TestGame"]!="")
-            {
-                scorecardForm = new ScorecardForm();
-                scorecardForm.Show();
-                
-                
-            }
+           
         }
         private void InitializeScorecardForm()
         {
@@ -74,6 +68,8 @@ namespace scorecard
             }
             else
             {
+                scorecardForm = new ScorecardForm();
+                scorecardForm.Show();
                 MessageBox.Show("Secondary monitor not detected.");
             }
         }

@@ -23,5 +23,7 @@ namespace scorecard.lib
         public string introAudio { get; set; } = "";
 
         public bool timerPointLoss = true;
+        public string SmartPlugip {  get; set; }
+
     }
 }
