@@ -266,7 +266,7 @@ public partial class ScorecardForm : Form
         //  webView2.ExecuteScriptAsync($"window.updateLives({newLife});");
     }
 
-    private async void CurrentGame_ScoreChanged(object sender, int newScore)
+    private void CurrentGame_ScoreChanged(object sender, int newScore)
     {
         uiupdate("updateScore", newScore);
     }

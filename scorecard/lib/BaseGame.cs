@@ -110,6 +110,7 @@ public abstract class BaseGame
     public void lightonoff(bool on)
     {
         var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
+        plug.OutletPowered = !on;
         plug.OutletPowered = on;
     }
     public BaseGame(GameConfig config)
@@ -123,15 +124,15 @@ public abstract class BaseGame
 
         logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
         musicPlayer = new MusicPlayer("content/background_music.wav");
-    //  if(!Debugger.IsAttached)
-//        musicPlayer.Announcement(config.introAudio);
+      if(!Debugger.IsAttached)
+       musicPlayer.Announcement(config.introAudio);
      // else
        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
         udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
         for(int i = 1; i < config.NoOfControllers; i++)
         {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, $"udplog1.log", config.SocketBReceiverPort+i, config.NoofLedPerdevice, config.columns, "handler2"));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, $"udplog1.log", config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, "handler2"));
         }
 
        // initializeDevices();
