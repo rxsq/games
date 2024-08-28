@@ -20,6 +20,7 @@ using Microsoft.Win32;
 using System.Configuration;
 using System.Reflection.Emit;
 using System.ComponentModel;
+using System.Web.UI.WebControls;
 public partial class ScorecardForm : Form
 {
     
@@ -91,7 +92,7 @@ public partial class ScorecardForm : Form
     {
         remoteEndPoint = new IPEndPoint(IPAddress.Any, 27);
         udpClientReceiver = new UdpClient(remoteEndPoint);
-        relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
+      //  relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
     }
     protected override void OnClosing(CancelEventArgs e)
     {
@@ -147,33 +148,33 @@ public partial class ScorecardForm : Form
         }
     }
 
-    private void TargetTimeElapsed(object state)
-    {
-        udpClientReceiver.BeginReceive(ar =>
-        {
-            byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref remoteEndPoint);
-            string receivedData = Encoding.UTF8.GetString(receivedBytes);
-            if (receivedData.StartsWith("start") && currentState == GameStatus.NotStarted)
-            {
-                currentState = GameStatus.Running;
-                var replyBytes1 = Encoding.UTF8.GetBytes(currentState);
-                udpClientReceiver.Send(replyBytes1, replyBytes1.Length, remoteEndPoint);
+    //private void TargetTimeElapsed(object state)
+    //{
+    //    udpClientReceiver.BeginReceive(ar =>
+    //    {
+    //        byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref remoteEndPoint);
+    //        string receivedData = Encoding.UTF8.GetString(receivedBytes);
+    //        if (receivedData.StartsWith("start") && currentState == GameStatus.NotStarted)
+    //        {
+    //            currentState = GameStatus.Running;
+    //            var replyBytes1 = Encoding.UTF8.GetBytes(currentState);
+    //            udpClientReceiver.Send(replyBytes1, replyBytes1.Length, remoteEndPoint);
 
-                Thread.Sleep(10000);
-                //StartGame(receivedData.Split(':')[1].Trim());
-                Console.WriteLine("game started");
-            }
+    //            Thread.Sleep(10000);
+    //            //StartGame(receivedData.Split(':')[1].Trim());
+    //            Console.WriteLine("game started");
+    //        }
 
-            byte[] replyBytes = Encoding.UTF8.GetBytes(currentState);
-            udpClientReceiver.Send(replyBytes, replyBytes.Length, remoteEndPoint);
-            Console.WriteLine(currentState);
-            Console.WriteLine(receivedData);
-        }, null);
-    }
-   
-    public  void StartGame(string gameType, int noofplayers)
+    //        byte[] replyBytes = Encoding.UTF8.GetBytes(currentState);
+    //        udpClientReceiver.Send(replyBytes, replyBytes.Length, remoteEndPoint);
+    //        Console.WriteLine(currentState);
+    //        Console.WriteLine(receivedData);
+    //    }, null);
+    //}
+    List<Player> playerList=null;
+    public  void StartGame(string gameType, List<Player> p)
     {
-        
+        this.playerList = p;
         var gameConfig =  FetchGameConfig(gameType);
         
         if (gameConfig == null)
@@ -182,7 +183,7 @@ public partial class ScorecardForm : Form
             return;
         }
        
-        gameConfig.MaxPlayers = noofplayers;
+        gameConfig.MaxPlayers = playerList.Count;
         ShowGameDescription(gameType, GetGameDescription(gameType));
 
         if (currentGame != null)
@@ -240,14 +241,17 @@ public partial class ScorecardForm : Form
     }
     private void CurrentGame_StatusChanged(object sender, string status)
     {
-        currentState = status;
-        
+        currentState = status;        
     }
 
     private void CurrentGame_LevelChanged(object sender, int level)
     {
         // Update level in the React component
        // webView2.ExecuteScriptAsync($"window.updateLevel({level});");
+       foreach(var p in playerList)
+        {
+            p.LevelPlayed = level;
+        }
         uiupdate("updateLevel", level);
         uiupdate("updateTimer", currentGame.IterationTime);
     }
@@ -264,7 +268,14 @@ public partial class ScorecardForm : Form
     private void CurrentGame_ScoreChanged(object sender, int newScore)
     {
         uiupdate("updateScore", newScore);
+        foreach (var p in playerList)
+        {
+            p.Points = newScore;
+        }
+        // insert score
+
     }
+  
     private  void uiupdate(string func, int newScore)
     {
         util.uiupdate($"window.{func}({newScore})", webView2);

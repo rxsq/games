@@ -109,27 +109,12 @@ namespace Lib
         {
             //string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND playerEndDate > GETDATE() and wristbandStatusFlag='R' ";
             Console.WriteLine("calling service");
-            var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag=R&timelimit=60");
+            var response = httpClient.GetAsync($"wristbandtran/validate/{uid}");
+
             Console.WriteLine(response.Result);
            string result=  response.Result.IsSuccessStatusCode  ? "": "Error:Wristband Not in db!" ;
             return result;
-            //{
-            //    var result = response.Result.Content.ReadAsStringAsync().Result;
-
-            //    return result;
-            //}
-            //logger.Log(query);
-
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        int result =  (int)cmd.ExecuteScalar();
-            //        return result <= 0 ? "Error:Wristband Not in db!" : "";
-            //    }
-            //}
+           
         }
 
 
