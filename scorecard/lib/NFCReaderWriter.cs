@@ -19,7 +19,7 @@ namespace Lib
         {
             StatusChanged?.Invoke(this, newStatus);
         }
-        AsyncLogger logger = new AsyncLogger("NFCReaderWriter.log");
+        AsyncLogger logger = new AsyncLogger("nfccardreader");
         public NFCReaderWriter(string mode, string serverurl)
         {
             

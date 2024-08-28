@@ -27,8 +27,9 @@ public partial class ScorecardForm : Form
     private System.Threading.Timer relayTimer;
     private IPEndPoint remoteEndPoint;
     private string currentState = GameStatus.NotStarted;
-    private BaseGame currentGame = null;
+    public BaseGame currentGame = null;
     private string gameType = "";
+    AsyncLogger logger = new AsyncLogger("scorecardform");
     public ScorecardForm()
     {
         InitializeComponent();
@@ -98,7 +99,7 @@ public partial class ScorecardForm : Form
             currentGame.lightonoff(false);
         base.OnClosing(e);
     }
-    private async Task<GameConfig> FetchGameConfigAsync(string gameType)
+    private GameConfig FetchGameConfig(string gameType)
     {
         using (var httpClient = new HttpClient())
         {
@@ -106,16 +107,14 @@ public partial class ScorecardForm : Form
             {
                 // Replace with your Node.js API URL
                 string apiUrl = $"{System.Configuration.ConfigurationSettings.AppSettings["server"]}/gamesVariant/findall?name={gameType}";
-                var response = await httpClient.GetAsync(apiUrl);
+                var response = httpClient.GetAsync(apiUrl).Result;
 
                 response.EnsureSuccessStatusCode();
 
                 // Get the raw JSON response as a string
-                string jsonResponse = await response.Content.ReadAsStringAsync();
+                string jsonResponse = response.Content.ReadAsStringAsync().Result;
                 var gameVariant = JsonSerializer.Deserialize<GameVariant>(jsonResponse);
-                //var gameVariants = JsonSerializer.Deserialize<List<GameVariant>>(jsonResponse);
-                // Deserialize the JSON response to a GameConfig object
-                //var gameVariant = gameVariants.FirstOrDefault();
+
                 if (gameVariant != null)
                 {
                     GameConfig gameConfig = new GameConfig
@@ -132,11 +131,10 @@ public partial class ScorecardForm : Form
                         NoofLedPerdevice = gameVariant.game.NoofLedPerdevice,
                         columns = gameVariant.game.columns,
                         introAudio = gameVariant.introAudio ?? string.Empty,
-                         SmartPlugip = gameVariant.game.SmartPlugip
+                        SmartPlugip = gameVariant.game.SmartPlugip
                     };
+                    logger.Log("congig fetched");
                     return gameConfig;
-
-                    // Use your gameConfig object as needed
                 }
 
                 return null;
@@ -173,10 +171,10 @@ public partial class ScorecardForm : Form
         }, null);
     }
    
-    public async void StartGame(string gameType, int noofplayers)
+    public  void StartGame(string gameType, int noofplayers)
     {
         
-        var gameConfig = await FetchGameConfigAsync(gameType);
+        var gameConfig =  FetchGameConfig(gameType);
         
         if (gameConfig == null)
         {
@@ -230,8 +228,7 @@ public partial class ScorecardForm : Form
 
         currentGame?.StartGame();
 
-        //setTimer
-        uiupdate("updateTimer", currentGame.IterationTime);
+        
     }
 
     private void initializedWebView2()
@@ -244,9 +241,7 @@ public partial class ScorecardForm : Form
     private void CurrentGame_StatusChanged(object sender, string status)
     {
         currentState = status;
-      
-       
-        uiupdate("updateTimer", currentGame.IterationTime);
+        
     }
 
     private void CurrentGame_LevelChanged(object sender, int level)
@@ -270,42 +265,10 @@ public partial class ScorecardForm : Form
     {
         uiupdate("updateScore", newScore);
     }
-    private async void uiupdate(string func, int newScore)
+    private  void uiupdate(string func, int newScore)
     {
-        string script = @"
-        try {
-            window."+ func + "(" + newScore + @");
-        } catch (error) {
-            console.error('Error executing script:', error);
-        }";
-
-        if (webView2.InvokeRequired)
-        {
-            webView2.Invoke(new Action(async () =>
-            {
-                try
-                {
-                    await webView2.ExecuteScriptAsync(script);
-                    Console.WriteLine("Script executed successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Script execution failed: " + ex.Message);
-                }
-            }));
-        }
-        else
-        {
-            try
-            {
-                await webView2.ExecuteScriptAsync(script);
-                Console.WriteLine("Script executed successfully.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Script execution failed: " + ex.Message);
-            }
-        }
+        util.uiupdate($"window.{func}({newScore})", webView2);
+       
     }
 
 

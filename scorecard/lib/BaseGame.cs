@@ -16,6 +16,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 using System.Diagnostics.Eventing.Reader;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Configuration;
 public abstract class BaseGame
 {
     TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
@@ -29,7 +30,7 @@ public abstract class BaseGame
     protected MusicPlayer musicPlayer;
     protected int lifeLine = 5;
     protected Timer iterationTimer;
-    private string logFile = "log1.log";
+   
      protected int iterations = 0;
     private int score;
     protected GameConfig config;
@@ -87,26 +88,30 @@ public abstract class BaseGame
     public event EventHandler<string> StatusChanged;
     protected virtual void OnStatusChanged(string newStatus)
     {
+       LogData($"status changed to:{newStatus}");
         StatusChanged?.Invoke(this, newStatus);
     }
     protected virtual void OnLevelChanged(int newLevel)
     {
+        LogData($"level changed to:{newLevel}");
         LevelChanged?.Invoke(this, newLevel);
     }
     protected virtual void OnScoreChanged(int newScore)
     {
+        LogData($"score changed to:{newScore}");
         ScoreChanged?.Invoke(this, newScore);
 
     }
     protected virtual void OnLifelineChanged(int newLifeline)
     {
+        LogData($"score changed to:{newLifeline}");
         LifeLineChanged?.Invoke(this, newLifeline);
     }
 
     protected int noOfPlayers = 5;
     public string targetColor;
     //  public int numberOfDevices = 12; // 4x3 grid
-    protected AsyncLogger logger;
+    protected AsyncLogger logger = new AsyncLogger("scorecard");
     public void lightonoff(bool on)
     {
         var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
@@ -122,17 +127,17 @@ public abstract class BaseGame
         lightonoff(true);
         
 
-        logger = new AsyncLogger($"{DateTime.Now:ddMMyy}{logFile}");
+        
         musicPlayer = new MusicPlayer("content/background_music.wav");
       if(!Debugger.IsAttached)
        musicPlayer.Announcement(config.introAudio);
      // else
        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
-        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, "udplog.log", config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
+        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort,  config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
         for(int i = 1; i < config.NoOfControllers; i++)
         {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, $"udplog1.log", config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, "handler2"));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i,  config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, "handler2"));
         }
 
        // initializeDevices();
@@ -243,9 +248,8 @@ public abstract class BaseGame
 
     public void LogData(string message)
     {
-        string logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fef} {message}";
         logger.Log(message);
-        Console.WriteLine(logMessage);
+        
     }
     protected void SendDataToDevice(string color, int deviceNo)
     {

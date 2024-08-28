@@ -17,7 +17,7 @@ public class UdpHandler
     private int destinationPort;
     private int sourcePort;
     public IPEndPoint RemoteEndPoint;
-    private string logFile;
+    
     private AsyncLogger logger;
     private bool receiving;
     public int columns;
@@ -27,18 +27,20 @@ public class UdpHandler
     public Dictionary<int, List<int>> activeDevicesGroup = new Dictionary<int, List<int>>();
     public List<string> DeviceList { get; private set; }
 
-    public UdpHandler(string ipAddress, int destPort, int srcPort, string logfile, int receiverPort, int noofledPerdevice, int columns, string namep)
+    public UdpHandler(string ipAddress, int destPort, int srcPort, int receiverPort, int noofledPerdevice, int columns, string namep)
     {
+        logger = new AsyncLogger("udp");
         destinationIpAddress = ipAddress;
         destinationPort = destPort;
         sourcePort = srcPort;
+      
 
         this.name = namep;
         udpClient2 = new UdpClient(receiverPort);
         udpClient = new UdpClient(sourcePort);
         RemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        logFile = $"{DateTime.Now:HHmmssfef} {logfile}";
-        logger = new AsyncLogger(logFile);
+        
+        
         DeviceList = ReceiveMessage(noofledPerdevice);
 
         this.Rows = DeviceList.Count / columns;

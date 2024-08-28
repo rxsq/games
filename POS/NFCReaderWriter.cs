@@ -4,6 +4,9 @@ using PCSC;
 using PCSC.Iso7816;
 using PCSC.Monitoring;
 using System.Configuration;
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 namespace Lib
 {
     public class NFCReaderWriter : IDisposable
@@ -20,7 +23,7 @@ namespace Lib
         {
             StatusChanged?.Invoke(this, newStatus);
         }
-        AsyncLogger logger = new AsyncLogger("NFCReaderWriter.log");
+       
 
         public NFCReaderWriter(string mode, string serverurl)
         {
@@ -31,6 +34,7 @@ namespace Lib
             process(mode, serverurl, count, time);
 
         }
+        
 
         private void process(string mode, string serverurl, int count, int time)
         {
@@ -50,7 +54,7 @@ namespace Lib
             monitor.CardInserted += (sender, args) =>
             {
 
-                logger.Log($"Card inserted, processing...{args.ReaderName}");
+                Console.WriteLine($"Card inserted, processing...{args.ReaderName}");
 
                 string uid = WriteData(args.ReaderName);
                 try
@@ -70,7 +74,7 @@ namespace Lib
                         {
                             result = ifPlayerHaveTime(uid);
                         }
-                        logger.Log($"uuid:{uid} result:{result}");
+                        //logger.Log($"uuid:{uid} result:{result}");
                         Console.WriteLine(result);
                         OnStatusChanged(result.Length == 0 ? uid : "");
                         // SendUidToWebSocket(uid).Wait();
@@ -165,41 +169,43 @@ namespace Lib
 
         public string InsertRecord(string uid, int count, double time)
         {
-            DateTime totime = DateTime.Now.AddMinutes(120.0);
+            DateTime totime = DateTime.Now.AddMinutes(time);
             string toTime = totime.ToString("yyyy-MM-dd HH:mm:ss");
-            var content = new StringContent($"{{\"uid\":\"{uid}\",\"status\":\"I\",\"count\":\"{count}\",\"playerStartTime\":\"{DateTime.Now.ToString("yyyy-mm-dd HH:mm:ss")}\", \"playerEndTime\":\"{toTime}\" }} ", Encoding.UTF8, "application/json");
+            string playerStartTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
+            // Construct JSON content
+            var jsonContent = $"{{\"uid\":\"{uid}\",\"status\":\"I\",\"gameType\":\"PixelPulse\",\"count\":{count},\"playerStartTime\":\"{playerStartTime}\", \"playerEndTime\":\"{toTime}\"}}";
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            Console.WriteLine(jsonContent);
             try
             {
-                var response = httpClient.PostAsync("wristbandtran/create", content);
-                return response.Result.IsSuccessStatusCode ? "" : response.Result.Content.ToString();
+                // Perform the POST request synchronously
+                var responseTask = httpClient.PostAsync("wristbandtran/create", content);
+                responseTask.Wait(); // Blocks until the task completes
 
+                var response = responseTask.Result; // Access the result
+                var responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult(); // Read the content synchronously
 
+                Console.WriteLine(responseContent);
 
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    return "";
+                }
+                else
+                {
+                    return $"Error: {response.StatusCode} - {responseContent}";
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("An error occurred: " + ex.Message);
                 return "Error communicating with API";
             }
-
-            //string query = $"IF NOT EXISTS (SELECT * FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE())) " +
-            //               "INSERT INTO [dbo].[WristbandTrans] (wristbandCode, wristbandStatusFlag, WristbandTranDate, createdat, updatedat) " +
-            //               $"VALUES('{uid}', 'I', GETDATE(), GETDATE(), GETDATE())";
-            //logger.Log(query);
-
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        int result = cmd.ExecuteNonQuery();
-            //        return result < 0 ? "Error inserting data into Database!" : "";
-
-            //    }
-            //}
         }
+
+
 
         private string WriteData(string readerName)
         {
@@ -246,27 +252,7 @@ namespace Lib
             return "";
         }
 
-        private async Task SendUidToWebSocket(string uid)
-        {
-            try
-            {
-                if (webSocket == null || webSocket.State != WebSocketState.Open)
-                {
-                    webSocket = new ClientWebSocket();
-                    await webSocket.ConnectAsync(new Uri("ws://localhost:8080"), CancellationToken.None);
-                }
-
-                var data = Encoding.UTF8.GetBytes(uid);
-                var buffer = new ArraySegment<byte>(data);
-                await webSocket.SendAsync(buffer, WebSocketMessageType.Text, true, CancellationToken.None);
-                Console.WriteLine($"UID sent to WebSocket: {uid}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("WebSocket error: " + ex.Message);
-            }
-        }
-
+       
         public void Dispose()
         {
             monitor.Cancel();

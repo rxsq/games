@@ -157,6 +157,7 @@
     <Compile Include="BaseSingleDevice.cs" />
     <Compile Include="Chaser.cs" />
     <Compile Include="content\snakes.cs" />
+    <Compile Include="lib\util.cs" />
     <Compile Include="TileHunt.cs" />
     <Compile Include="GameSelection.cs">
       <SubType>Form</SubType>
@@ -283,6 +284,9 @@
     <Content Include="content\moving_effect.webp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="logs\t.log">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

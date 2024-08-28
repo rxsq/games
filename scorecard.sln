@@ -5,8 +5,6 @@ VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameUdpSimulator", "GameUdpSimulator\GameUdpSimulator.csproj", "{6D4D9E35-D25A-4A47-BA6D-2D676B5647D4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cardreaderWriter", "ConsoleApp1\cardreaderWriter.csproj", "{0065451E-DD63-44C3-A1C6-546599891401}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lib", "Lib\Lib.csproj", "{BE8F4C3D-22BF-43AE-9DFA-290467B867D9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "kiosk", "kiosk\kiosk.csproj", "{245EA10D-2F38-489E-82D7-06797B215C52}"
@@ -19,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlayerRegistrationKiosk", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test", "..\test\test.csproj", "{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "POS", "POS\POS.csproj", "{86487B5C-D08B-4691-AFD4-07BF5340ADB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +29,6 @@ Global
 		{6D4D9E35-D25A-4A47-BA6D-2D676B5647D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D4D9E35-D25A-4A47-BA6D-2D676B5647D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D4D9E35-D25A-4A47-BA6D-2D676B5647D4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0065451E-DD63-44C3-A1C6-546599891401}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0065451E-DD63-44C3-A1C6-546599891401}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0065451E-DD63-44C3-A1C6-546599891401}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0065451E-DD63-44C3-A1C6-546599891401}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BE8F4C3D-22BF-43AE-9DFA-290467B867D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BE8F4C3D-22BF-43AE-9DFA-290467B867D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE8F4C3D-22BF-43AE-9DFA-290467B867D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,6 +53,10 @@ Global
 		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F81CE15F-A53D-4D62-9E3A-FCDC0331D915}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86487B5C-D08B-4691-AFD4-07BF5340ADB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86487B5C-D08B-4691-AFD4-07BF5340ADB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86487B5C-D08B-4691-AFD4-07BF5340ADB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86487B5C-D08B-4691-AFD4-07BF5340ADB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
