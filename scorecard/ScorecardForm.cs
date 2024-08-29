@@ -31,11 +31,11 @@ public partial class ScorecardForm : Form
     private string currentState = GameStatus.NotStarted;
     public BaseGame currentGame = null;
     private string gameType = "";
-    AsyncLogger logger;// = new AsyncLogger("scorecardform");
+    //Logger logger;// = new Logger("scorecardform");
     List<Player> players = null;
-    public ScorecardForm(AsyncLogger l)
+    public ScorecardForm()
     {
-        logger = l;
+       // logger = l;
         InitializeComponent();
         InitializeWebView();
         SetBrowserFeatureControl();

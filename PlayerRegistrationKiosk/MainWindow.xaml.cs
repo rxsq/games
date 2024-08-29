@@ -8,7 +8,7 @@ namespace WpfApp1
 {
     public partial class MainWindow : Window
     {
-        AsyncLogger logger = new AsyncLogger("playerregistration");
+        Logger logger = new AsyncLogger("playerregistration");
         public MainWindow()
         {
             InitializeComponent();

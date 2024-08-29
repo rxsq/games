@@ -18,7 +18,7 @@ public class UdpHandler
     private int sourcePort;
     public IPEndPoint RemoteEndPoint;
     
-    private AsyncLogger logger;
+   // private Logger logger;
     private bool receiving;
     public int columns;
     public int Rows;
@@ -29,7 +29,7 @@ public class UdpHandler
 
     public UdpHandler(string ipAddress, int destPort, int srcPort, int receiverPort, int noofledPerdevice, int columns, string namep)
     {
-        logger = new AsyncLogger("udp");
+       // logger = new AsyncLogger(namep);
         destinationIpAddress = ipAddress;
         destinationPort = destPort;
         sourcePort = srcPort;
@@ -154,6 +154,7 @@ public class UdpHandler
     public void Close()
     {
         StopReceive();
+        //logger.Dispose();
         udpClient.Close();
         udpClient2.Close();
     }

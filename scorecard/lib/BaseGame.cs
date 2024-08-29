@@ -17,6 +17,9 @@ using System.Diagnostics.Eventing.Reader;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Configuration;
+using System.Reflection;
+using log4net;
+using log4net.Config;
 public abstract class BaseGame
 {
     TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
@@ -111,7 +114,8 @@ public abstract class BaseGame
     protected int noOfPlayers = 5;
     public string targetColor;
     //  public int numberOfDevices = 12; // 4x3 grid
-    protected AsyncLogger logger = new AsyncLogger("game");
+    //protected Logger logger = new AsyncLogger("game");
+    private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     public void lightonoff(bool on)
     {
         var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
@@ -122,7 +126,7 @@ public abstract class BaseGame
     {
         this.config = config;
 
-        this.config.MaxPlayers = 3;
+      //  this.config.MaxPlayers = 3;
 
         lightonoff(true);
         
@@ -132,10 +136,10 @@ public abstract class BaseGame
      // else
        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
-        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort,  config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler1"));
+        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort,  config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler"));
         for(int i = 1; i < config.NoOfControllers; i++)
         {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i,  config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, "handler2"));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i,  config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler{i}"));
         }
         
         // initializeDevices();
@@ -159,7 +163,7 @@ public abstract class BaseGame
     public void StartGame()
     {
         Console.WriteLine("Game starting in 3... 2... 1...");
-        musicPlayer = new MusicPlayer("content/background_music.wav",logger);
+        musicPlayer = new MusicPlayer("content/background_music.wav");
         if (!Debugger.IsAttached)
             musicPlayer.Announcement(config.introAudio);
         
@@ -220,6 +224,7 @@ public abstract class BaseGame
 
         if(iterationTimer != null) 
             iterationTimer.Dispose();
+       // logger.Dispose();
 
         Status = GameStatus.Completed;
         iterationTimer.Dispose();

@@ -24,7 +24,7 @@ namespace scorecard
         private ScorecardForm scorecardForm;
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
-        AsyncLogger logger = new AsyncLogger("scorecard");
+       // Logger logger = new AsyncLogger("scorecard");
 
         public GameSelection()
         {
@@ -42,7 +42,7 @@ namespace scorecard
 
             SetBrowserFeatureControl();
             InitializeScorecardForm();
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"], logger);
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"])  ;
             // webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid1) =>
@@ -126,7 +126,7 @@ namespace scorecard
             if (secondaryScreen != null)
             {
                
-                scorecardForm = new ScorecardForm(logger);
+                scorecardForm = new ScorecardForm();
                 
                 // Set the position of the scorecard form to the secondary screen
                 scorecardForm.StartPosition = FormStartPosition.Manual;
@@ -138,7 +138,7 @@ namespace scorecard
             }
             else
             {
-                scorecardForm = new ScorecardForm(logger);
+                scorecardForm = new ScorecardForm();
                 scorecardForm.Show();
                 MessageBox.Show("Secondary monitor not detected.");
             }

@@ -8,7 +8,7 @@ namespace POS
     public partial class Form1 : Form
     {
         private readonly NFCReaderWriter _readerWriter;
-        private readonly AsyncLogger _logger;
+        private readonly Logger _logger;
         private string _selectedGameType = string.Empty;
         private int _selectedCount;
         private double _selectedTime; // Time in hours

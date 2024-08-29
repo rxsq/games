@@ -15,11 +15,11 @@ public class MusicPlayer
     private Task effectPlayingTask;
     private bool isPlayingEffect;
     string backgroundFilePath;
-    AsyncLogger logger;
+    //Logger logger;
 
-    public MusicPlayer(string backgroundFile, AsyncLogger logger)
+    public MusicPlayer(string backgroundFile)
     {
-        this.logger = logger;
+        //this.logger = logger;
         effectQueue = new ConcurrentQueue<string>();
         isPlayingEffect = false;
          backgroundFilePath=backgroundFile;
