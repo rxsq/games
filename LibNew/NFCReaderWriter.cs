@@ -4,31 +4,42 @@ using PCSC;
 using PCSC.Iso7816;
 using PCSC.Monitoring;
 using System.Configuration;
-using System;
 using System.Net.Http;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
 namespace Lib
 {
     public class NFCReaderWriter : IDisposable
     {
-        private readonly string readerName;
+        private string readerName;
         private ISCardContext context;
         private ISCardMonitor monitor;
-        private  HttpClient httpClient =null;
+        
+        private HttpClient httpClient = null;
+        public int NoogGames;
+        public int Duration;
         public event EventHandler<string> StatusChanged;
-        AsyncLogger logger = null;
         protected virtual void OnStatusChanged(string newStatus)
         {
             StatusChanged?.Invoke(this, newStatus);
         }
-       
+        AsyncLogger logger;// = new AsyncLogger("NFCReaderWriter.log");
+        
         public NFCReaderWriter(string mode, string serverurl, AsyncLogger logger)
         {
             this.logger = logger;
+            process(mode, serverurl);
+        }
+       
+
+        private void process(string mode, string serverurl)
+        {
             httpClient = new HttpClient { BaseAddress = new Uri(serverurl) };
             var availableReaders = ContextFactory.Instance.Establish(SCardScope.System).GetReaders();
             if (availableReaders.Length == 0)
             {
-                logger.Log("No readers found.");
+                Console.WriteLine("No readers found.");
                 return;
             }
 
@@ -39,10 +50,11 @@ namespace Lib
             monitor = new SCardMonitor(ContextFactory.Instance, SCardScope.System);
             monitor.CardInserted += (sender, args) =>
             {
-               
+
                 logger.Log($"Card inserted, processing...{args.ReaderName}");
 
                 string uid = WriteData(args.ReaderName);
+                logger.Log($"received card number...{uid}");
                 try
                 {
                     if (!string.IsNullOrEmpty(uid))
@@ -50,7 +62,7 @@ namespace Lib
                         string result = "";
                         if (mode == "I")
                         {
-                            result = InsertRecord(uid);
+                            result = "";
                         }
                         else if (mode == "R")
                         {
@@ -61,16 +73,16 @@ namespace Lib
                             result = ifPlayerHaveTime(uid);
                         }
                         logger.Log($"uuid:{uid} result:{result}");
-                        logger.Log(result);
+                        Console.WriteLine(result);
                         OnStatusChanged(result.Length == 0 ? uid : "");
                         // SendUidToWebSocket(uid).Wait();
                     }
                 }
                 catch (Exception ex)
                 {
-                    logger.Log("An error occurred: " + ex.Message);
+                    Console.WriteLine("An error occurred: " + ex.Message);
                 }
-               
+
             };
             monitor.Start(readerName);
             //while (true)
@@ -78,11 +90,13 @@ namespace Lib
             //    Thread.Sleep(1000); // Sleep to reduce CPU usage, adjust as needed.
             //}
         }
-        public string updateStatus(string uid, string status)
+  
+
+        public string updateStatus(string uid, string status, int playerid)
         {
-            string b = $"{{\"uid\":\"{uid}\", \"status\":\"{status}\",\"currentstatus\":\"I\",\"src\":\"{System.Environment.MachineName}\"}}";
+            string b = $"{{\"uid\":\"{uid}\", \"status\":\"{status}\",\"currentstatus\":\"I\",\"src\":\"{System.Environment.MachineName}\",\"playerID\":{playerid} }}";
             var content = new StringContent(b, Encoding.UTF8, "application/json");
-            
+
             try
             {
                 var response = httpClient.PutAsync($"wristbandtran", content);
@@ -93,18 +107,7 @@ namespace Lib
                 logger.Log("An error occurred: " + ex.Message);
                 return "Error communicating with API";
             }
-            //string query = $"update WristbandTrans set wristbandStatusFlag='{status}', updatedAt =getdate(), src='{System.Environment.MachineName}' where wristbandCode='{uid}' ";
-            //         logger.Log(query);
-
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        int result = (int)cmd.ExecuteScalar();
-            //        return result <= 0 ? "Error:Wristband Not in db!" : "";
-            //    }
-            //}
+           
         }
         private string ifPlayerHaveTime(string uid)
         {
@@ -112,68 +115,57 @@ namespace Lib
             logger.Log("calling service");
             var response = httpClient.GetAsync($"wristbandtran/validate?wristbandCode={uid}");
 
-          //  logger.Log(response.Result);
-           string result=  response.Result.IsSuccessStatusCode  ? "": "Error:Wristband Not in db!" ;
+            //  logger.Log(response.Result);
+            string result = response.Result.IsSuccessStatusCode ? "" : "Error:Wristband Not in db!";
             return result;
-           
+
         }
 
 
         public string ifCardRegisted(string uid)
         {
-          //  string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE()) and wristbandStatusFlag='I' ";
+            //  string query = $"SELECT count(*) FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE()) and wristbandStatusFlag='I' ";
             var response = httpClient.GetAsync($"wristbandtran?wristbandcode={uid}&flag=I&timelimit=60");
             return response.Result.IsSuccessStatusCode ? "" : "Error:Wristband Not in db!";
-            //logger.Log(query);
-
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        int result = (int)cmd.ExecuteScalar();
-            //        return result <= 0 ? $"Error:Wristband Not in db! count:{result}" : "";
-
-
-            //    }
-            //}
+           
         }
 
-        public string InsertRecord(string uid)
+        public string InsertRecord(string uid, int count, double time)
         {
-            var content = new StringContent($"{{\"uid\":\"{uid}\",\"status\":\"I\"}}", Encoding.UTF8, "application/json");
+            DateTime totime = DateTime.Now.AddMinutes(time);
+            string toTime = totime.ToString("yyyy-MM-dd HH:mm:ss");
+            string playerStartTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
+            // Construct JSON content
+            var jsonContent = $"{{\"uid\":\"{uid}\",\"status\":\"I\",\"gameType\":\"PixelPulse\",\"count\":{count},\"playerStartTime\":\"{playerStartTime}\", \"playerEndTime\":\"{toTime}\"}}";
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+            logger.Log(jsonContent);
             try
             {
-                var response = httpClient.PutAsync("wristbandtran", content);
-                return response.Result.IsSuccessStatusCode ? "" : "Error inserting data into Database!";
+                // Perform the POST request synchronously
+                var responseTask = httpClient.PostAsync("wristbandtran/create", content);
+                responseTask.Wait(); // Blocks until the task completes
 
+                var response = responseTask.Result; // Access the result
+                var responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult(); // Read the content synchronously
 
+                Console.WriteLine(responseContent);
 
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    return "";
+                }
+                else
+                {
+                    return $"Error: {response.StatusCode} - {responseContent}";
+                }
             }
             catch (Exception ex)
             {
                 logger.Log("An error occurred: " + ex.Message);
                 return "Error communicating with API";
             }
-
-            //string query = $"IF NOT EXISTS (SELECT * FROM [dbo].[WristbandTrans] WHERE wristbandCode = '{uid}' AND WristbandTranDate > DATEADD(HOUR, -1, GETDATE())) " +
-            //               "INSERT INTO [dbo].[WristbandTrans] (wristbandCode, wristbandStatusFlag, WristbandTranDate, createdat, updatedat) " +
-            //               $"VALUES('{uid}', 'I', GETDATE(), GETDATE(), GETDATE())";
-            //logger.Log(query);
-
-            //using (SqlConnection conn = new SqlConnection(connectionString))
-            //{
-            //    conn.Open();
-
-            //    using (SqlCommand cmd = new SqlCommand(query, conn))
-            //    {
-            //        int result = cmd.ExecuteNonQuery();
-            //        return result < 0 ? "Error inserting data into Database!" : "";
-
-            //    }
-            //}
         }
 
         private string WriteData(string readerName)
@@ -193,7 +185,7 @@ namespace Lib
 
                     using (r.Transaction(SCardReaderDisposition.Leave))
                     {
-                        logger.Log("Retrieving the UID .... ");
+                        Console.WriteLine("Retrieving the UID .... ");
                         var sendPci = SCardPCI.GetPci(r.Protocol);
                         var receivePci = new SCardPCI();
 
@@ -216,7 +208,7 @@ namespace Lib
             }
             catch (Exception ex)
             {
-                logger.Log("An error occurred: " + ex.Message);
+                Console.WriteLine("An error occurred: " + ex.Message);
             }
             return "";
         }

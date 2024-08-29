@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 public class MusicPlayer
 {
@@ -14,9 +15,11 @@ public class MusicPlayer
     private Task effectPlayingTask;
     private bool isPlayingEffect;
     string backgroundFilePath;
+    AsyncLogger logger;
 
-    public MusicPlayer(string backgroundFile)
+    public MusicPlayer(string backgroundFile, AsyncLogger logger)
     {
+        this.logger = logger;
         effectQueue = new ConcurrentQueue<string>();
         isPlayingEffect = false;
          backgroundFilePath=backgroundFile;
@@ -31,7 +34,7 @@ public class MusicPlayer
     {
         if (!File.Exists(filePath))
         {
-            Console.WriteLine($"Music File not found: {filePath}");
+            logger.Log($"Music File not found: {filePath}");
             return;
         }
 
@@ -59,7 +62,7 @@ public class MusicPlayer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error playing background music: {ex.Message}");
+            logger.Log($"Error playing background music: {ex.Message}");
             CleanUpBackgroundMusicResources();
         }
     }
@@ -75,10 +78,10 @@ public class MusicPlayer
 
     public void PlayEffect(string filePath)
     {
-        Console.Write($"using playefect {filePath} {isPlayingEffect}");
+       logger.Log($"using playefect {filePath} {isPlayingEffect}");
         if (!File.Exists(filePath))
         {
-            Console.WriteLine($"Music File not found: {filePath}");
+            logger.Log($"Music File not found: {filePath}");
             return;
         }
 
@@ -108,16 +111,16 @@ public class MusicPlayer
                     var audioFile = new AudioFileReader(filePath);
                     if (effectsPlayer == null)
                     {
-                        Console.WriteLine("sound could not play as effectplayer is null");
+                        logger.Log("sound could not play as effectplayer is null");
                         return;
 
                     }
                     effectsPlayer.Init(audioFile);
-                    Console.WriteLine(audioFile);
+                    logger.Log(filePath);
                     // effectsPlayer.Volume = 1.0f;
                     if (effectsPlayer == null)
                     {
-                        Console.WriteLine("sound could not play as effectplayer is null");
+                        logger.Log("sound could not play as effectplayer is null");
                         return;
 
                     }
@@ -131,7 +134,7 @@ public class MusicPlayer
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Error disposing effect audio file: {ex.Message}");
+                                logger.Log($"Error disposing effect audio file: {ex.Message}");
                             }
                             finally
                             {
@@ -147,7 +150,7 @@ public class MusicPlayer
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error playing effect: {ex.Message}");
+                    logger.Log($"Error playing effect: {ex.Message}");
                     CleanUpEffectsResources();
                     isPlayingEffect = false;
                     PlayNextEffect();
@@ -169,7 +172,7 @@ public class MusicPlayer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error stopping background music: {ex.Message}");
+            logger.Log($"Error stopping background music: {ex.Message}");
         }
     }
 
@@ -191,7 +194,7 @@ public class MusicPlayer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error stopping effects: {ex.Message}");
+            logger.Log($"Error stopping effects: {ex.Message}");
         }
     }
 
@@ -204,7 +207,7 @@ public class MusicPlayer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error cleaning up background music resources: {ex.Message}");
+            logger.Log($"Error cleaning up background music resources: {ex.Message}");
         }
         finally
         {
@@ -221,7 +224,7 @@ public class MusicPlayer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error cleaning up effects resources: {ex.Message}");
+            logger.Log($"Error cleaning up effects resources: {ex.Message}");
         }
         finally
         {
@@ -233,7 +236,7 @@ public class MusicPlayer
     {
         if (!File.Exists(filePath))
         {
-            Console.WriteLine($"Announcement file not found: {filePath}");
+            logger.Log($"Announcement file not found: {filePath}");
             return;
         }
 

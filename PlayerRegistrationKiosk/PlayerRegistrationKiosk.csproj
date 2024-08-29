@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lib\Lib.csproj" />
+    <Folder Include="resources\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="resources\" />
+    <ProjectReference Include="..\LibNew\LibNew.csproj" />
   </ItemGroup>
 
 </Project>

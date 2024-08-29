@@ -111,7 +111,7 @@ public abstract class BaseGame
     protected int noOfPlayers = 5;
     public string targetColor;
     //  public int numberOfDevices = 12; // 4x3 grid
-    protected AsyncLogger logger = new AsyncLogger("scorecard");
+    protected AsyncLogger logger = new AsyncLogger("game");
     public void lightonoff(bool on)
     {
         var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
@@ -128,9 +128,7 @@ public abstract class BaseGame
         
 
         
-        musicPlayer = new MusicPlayer("content/background_music.wav");
-      if(!Debugger.IsAttached)
-       musicPlayer.Announcement(config.introAudio);
+
      // else
        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
@@ -139,11 +137,11 @@ public abstract class BaseGame
         {
             udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i,  config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, "handler2"));
         }
+        
+        // initializeDevices();
 
-       // initializeDevices();
-        
         //devices = udpHandler.DeviceList;
-        
+
         gameColors = getColorList();
     }
     //private void initializeDevices()
@@ -161,7 +159,10 @@ public abstract class BaseGame
     public void StartGame()
     {
         Console.WriteLine("Game starting in 3... 2... 1...");
-        Status = "Starting";
+        musicPlayer = new MusicPlayer("content/background_music.wav",logger);
+        if (!Debugger.IsAttached)
+            musicPlayer.Announcement(config.introAudio);
+        
         Thread.Sleep(3000); // Countdown
         Initialize();
         RunGameInSequence();
@@ -169,6 +170,7 @@ public abstract class BaseGame
     }
     protected void RunGameInSequence()
     {
+        Status = GameStatus.Running;
         OnIteration();
         isGameRunning = true;
         // Start target timer
@@ -188,7 +190,7 @@ public abstract class BaseGame
         musicPlayer.Announcement("content/fail.wav");
         iterationTimer.Dispose();
         LifeLine = LifeLine - 1;
-        Status = $"Lost Lifeline {LifeLine}";
+        Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
         if (lifeLine <= 0)
         {
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
@@ -248,7 +250,7 @@ public abstract class BaseGame
 
     public void LogData(string message)
     {
-        logger.Log(message);
+        logger.Log($"scorecard: {message}");
         
     }
     protected void SendDataToDevice(string color, int deviceNo)
@@ -304,7 +306,7 @@ public abstract class BaseGame
         if (iterations >= config.Maxiterations)
         {
             
-            Status = $"Moved to Next Level {Level}";
+            Status = $"{GameStatus.Running}: Moved to Next Level {Level}";
             LogData($"Game Win level: {Level}");
             Level = Level + 1;
             iterations = 1;
@@ -330,7 +332,7 @@ public abstract class BaseGame
 
         }
         else { BlinkAllAsync(1); }
-        Status = $"Moved to Next iterations {iterations}";
+        Status = $"{GameStatus.Running}: Moved to Next iterations {iterations}";
       //  if (IterationTime > 0)
        // {
             RunGameInSequence();

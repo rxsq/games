@@ -174,7 +174,7 @@ namespace Lib
             string playerStartTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             // Construct JSON content
-            var jsonContent = $"{{\"uid\":\"{uid}\",\"status\":\"I\",\"gameType\":\"PixelPulse\",\"count\":{count},\"playerStartDate\":\"{playerStartTime}\", \"playerEndTime\":\"{toTime}\"}}";
+            var jsonContent = $"{{\"uid\":\"{uid}\",\"status\":\"I\",\"gameType\":\"PixelPulse\",\"count\":{count},\"playerStartTime\":\"{playerStartTime}\", \"playerEndTime\":\"{toTime}\"}}";
             var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
             Console.WriteLine(jsonContent);
             try

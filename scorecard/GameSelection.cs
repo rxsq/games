@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using RestSharp;
 using System.Text.Json;
+using System.Diagnostics;
 namespace scorecard
 {
     public partial class GameSelection : Form
@@ -23,27 +24,39 @@ namespace scorecard
         private ScorecardForm scorecardForm;
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
-        private string gameVarient;
+        AsyncLogger logger = new AsyncLogger("scorecard");
+
         public GameSelection()
         {
            
         InitializeComponent();
             StartCheckInTimer();
-            this.FormBorderStyle = FormBorderStyle.None;
-            this.WindowState = FormWindowState.Maximized;
-            this.TopMost = true;
-
+            if (!Debugger.IsAttached)
+            {
+                this.FormBorderStyle = FormBorderStyle.None;
+                this.WindowState = FormWindowState.Maximized;
+                this.TopMost = true;
+            }
+            logger.Log("application started");
             InitializeWebView();
 
             SetBrowserFeatureControl();
             InitializeScorecardForm();
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"], logger);
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"])  ;
             // webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid) =>
             {
+
                 if (uid.Length > 0)
                 {
+                    logger.Log($"card uid detected {uid}");
+                    if (Waitingplayers.FindAll(x => x.wristbandCode == uid).Count > 0)
+                    {
+
+                        logger.Log($"card already added {uid}");
+                        return;
+                    }
                     //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
                     Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
                     if (webView2.InvokeRequired)
@@ -59,13 +72,18 @@ namespace scorecard
 
 
                 }
-            };
+                else
+                {
+                    logger.Log($"card uid not detected {uid}");
+                }
+                };
 
         }
         private System.Windows.Forms.Timer checkInTimer;
 
         private void StartCheckInTimer()
         {
+            
             checkInTimer = new System.Windows.Forms.Timer();
             checkInTimer.Interval = 300000; // 5 minutes
             checkInTimer.Tick += CheckInTimer_Tick;
@@ -78,6 +96,7 @@ namespace scorecard
             {
                 if (Waitingplayers.FindAll(x => x.CheckInTime > DateTime.Now.AddMinutes(-5)).Count > 0)
                 {
+                    logger.Log($"player did play game minute so clearing them");
                     Waitingplayers.Clear();
                     RefreshWebView();
                 }
@@ -106,7 +125,8 @@ namespace scorecard
 
             if (secondaryScreen != null)
             {
-                scorecardForm = new ScorecardForm();
+               
+                scorecardForm = new ScorecardForm(logger);
                 
                 // Set the position of the scorecard form to the secondary screen
                 scorecardForm.StartPosition = FormStartPosition.Manual;
@@ -118,7 +138,7 @@ namespace scorecard
             }
             else
             {
-                scorecardForm = new ScorecardForm();
+                scorecardForm = new ScorecardForm(logger);
                 scorecardForm.Show();
                 MessageBox.Show("Secondary monitor not detected.");
             }
@@ -136,16 +156,12 @@ namespace scorecard
         private void WebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             var message = e.TryGetWebMessageAsString();
+            logger.Log($"receive message from front end message{message}");
             if (message.StartsWith("start"))
             {
                 
                 string game = message.Split(':')[1];
-                gameVarient = game;
-                foreach (var item in players)
-                {
-                    item.GamesVariantCode = gameVarient;
-                    item.playerStartTime = DateTime.Now;                    
-                }
+               
                 int noofplayers = int.Parse(message.Split(':')[2]);
                 scorecardForm.StartGame(game, Waitingplayers);
                 scorecardForm.currentGame.StatusChanged += CurrentGame_StatusChanged;
@@ -158,53 +174,24 @@ namespace scorecard
             if (scorecardForm != null)
             {
                 util.uiupdate($"window.updateStaus('{status}')", webView2);
-
+                logger.Log($"receive status change message in select form status:{status}");
                 if (status == GameStatus.Completed)
                 {
+                    
 
-                    UpdateWristBandStatus(players);
                     players.Clear();
                  //   Waitingplayers.Clear(); // Clear the waiting list
                     RefreshWebView(); // Refresh WebView2
                 }
-                if (status == GameStatus.Running)
+                if (status.StartsWith(GameStatus.Running))
                 {
                     players.AddRange(Waitingplayers);
                     Waitingplayers.Clear();
                 } 
             }
         }
-        private HttpClient httpClient = null;
-        private void UpdateWristBandStatus(List<Player> players)
-        {
-            foreach (var item in players)
-            {
-                item.playerEndTime = DateTime.Now;
-            }
-            var request = new
-            {
-               players = players
-            };
-
-            // Serialize the object to JSON
-            string jsonRequest = JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true });
-            Console.WriteLine(jsonRequest);
-
-            httpClient = new HttpClient { BaseAddress = new Uri(ConfigurationSettings.AppSettings["server"]) };
-            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = httpClient.PostAsync("playerScore/addPlayerScores", content);
-                Console.WriteLine( response.Result.IsSuccessStatusCode ? "" : "Error inserting data into Database!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occurred: " + ex.Message);
-                // "Error communicating with API";
-            }
-
-        }
+        
+       
 
         private void SetBrowserFeatureControl()
         {

@@ -21,6 +21,7 @@ using System.Configuration;
 using System.Reflection.Emit;
 using System.ComponentModel;
 using System.Web.UI.WebControls;
+using System.Net.Mail;
 public partial class ScorecardForm : Form
 {
     
@@ -30,9 +31,11 @@ public partial class ScorecardForm : Form
     private string currentState = GameStatus.NotStarted;
     public BaseGame currentGame = null;
     private string gameType = "";
-    AsyncLogger logger = new AsyncLogger("scorecardform");
-    public ScorecardForm()
+    AsyncLogger logger;// = new AsyncLogger("scorecardform");
+    List<Player> players = null;
+    public ScorecardForm(AsyncLogger l)
     {
+        logger = l;
         InitializeComponent();
         InitializeWebView();
         SetBrowserFeatureControl();
@@ -54,12 +57,12 @@ public partial class ScorecardForm : Form
     {
         if (e.IsSuccess)
         {
-            Console.WriteLine("Navigation completed successfully.");
+            logger.Log("Navigation completed successfully.");
             // Perform any additional actions after navigation is complete
         }
         else
         {
-            Console.WriteLine($"Navigation failed with error: {e.WebErrorStatus}");
+            logger.Log($"Navigation failed with error: {e.WebErrorStatus}");
             // Handle navigation errors or perform fallback actions
         }
         //StartGame(ConfigurationSettings.AppSettings["TestGame"]);
@@ -134,10 +137,14 @@ public partial class ScorecardForm : Form
                         introAudio = gameVariant.introAudio ?? string.Empty,
                         SmartPlugip = gameVariant.game.SmartPlugip
                     };
+                    if (ConfigurationSettings.AppSettings["isTestMode"] == "1")
+                    {
+                        gameConfig.IpAddress = "127.0.0.1";
+                    }
                     logger.Log("congig fetched");
                     return gameConfig;
                 }
-
+                
                 return null;
             }
             catch (Exception ex)
@@ -147,7 +154,38 @@ public partial class ScorecardForm : Form
             }
         }
     }
+    private HttpClient httpClient = null;
+    private string gameVarient;
+    private void UpdateWristBandStatus(List<Player> players)
+    {
+        foreach (var item in players)
+        {
+            item.playerEndTime = DateTime.Now;
+        }
+        var request = new
+        {
+            players = players
+        };
 
+        // Serialize the object to JSON
+        string jsonRequest = JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true });
+        logger.Log(jsonRequest);
+
+        httpClient = new HttpClient { BaseAddress = new Uri(ConfigurationSettings.AppSettings["server"]) };
+        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+        try
+        {
+            var response = httpClient.PostAsync("playerScore/addPlayerScores", content);
+            logger.Log(response.Result.IsSuccessStatusCode ? "" : "Error inserting data into Database!");
+        }
+        catch (Exception ex)
+        {
+            logger.Log("An error occurred: " + ex.Message);
+            // "Error communicating with API";
+        }
+
+    }
     //private void TargetTimeElapsed(object state)
     //{
     //    udpClientReceiver.BeginReceive(ar =>
@@ -162,19 +200,19 @@ public partial class ScorecardForm : Form
 
     //            Thread.Sleep(10000);
     //            //StartGame(receivedData.Split(':')[1].Trim());
-    //            Console.WriteLine("game started");
+    //            logger.Log("game started");
     //        }
 
     //        byte[] replyBytes = Encoding.UTF8.GetBytes(currentState);
     //        udpClientReceiver.Send(replyBytes, replyBytes.Length, remoteEndPoint);
-    //        Console.WriteLine(currentState);
-    //        Console.WriteLine(receivedData);
+    //        logger.Log(currentState);
+    //        logger.Log(receivedData);
     //    }, null);
     //}
-    List<Player> playerList=null;
+   
     public  void StartGame(string gameType, List<Player> p)
     {
-        this.playerList = p;
+        this.players = new List<Player>(p);
         var gameConfig =  FetchGameConfig(gameType);
         
         if (gameConfig == null)
@@ -182,8 +220,13 @@ public partial class ScorecardForm : Form
             MessageBox.Show("Failed to start the game due to configuration issues.");
             return;
         }
-       
-        gameConfig.MaxPlayers = playerList.Count;
+        gameVarient = gameType;
+        foreach (var item in p)
+        {
+            item.GamesVariantCode = gameVarient;
+            item.playerStartTime = DateTime.Now;
+        }
+        gameConfig.MaxPlayers = players.Count;
         ShowGameDescription(gameType, GetGameDescription(gameType));
 
         if (currentGame != null)
@@ -242,13 +285,17 @@ public partial class ScorecardForm : Form
     private void CurrentGame_StatusChanged(object sender, string status)
     {
         currentState = status;        
+        if(status == GameStatus.Completed)
+        {
+            UpdateWristBandStatus(players);
+        }
     }
 
     private void CurrentGame_LevelChanged(object sender, int level)
     {
         // Update level in the React component
        // webView2.ExecuteScriptAsync($"window.updateLevel({level});");
-       foreach(var p in playerList)
+       foreach(var p in players)
         {
             p.LevelPlayed = level;
         }
@@ -268,7 +315,7 @@ public partial class ScorecardForm : Form
     private void CurrentGame_ScoreChanged(object sender, int newScore)
     {
         uiupdate("updateScore", newScore);
-        foreach (var p in playerList)
+        foreach (var p in players)
         {
             p.Points = newScore;
         }

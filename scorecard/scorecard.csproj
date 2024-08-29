@@ -172,12 +172,10 @@
       <DependentUpon>GameSelection.cs</DependentUpon>
     </Compile>
     <Compile Include="lib\Animations.cs" />
-    <Compile Include="lib\AsyncLogger.cs" />
     <Compile Include="lib\BaseGame.cs" />
     <Compile Include="FloorGame.cs" />
     <Compile Include="lib\GameConfig.cs" />
     <Compile Include="lib\GameStatus.cs" />
-    <Compile Include="lib\NFCReaderWriter.cs" />
     <Compile Include="lib\relay.cs" />
     <Compile Include="lib\SurroundingMap.cs" />
     <Compile Include="Mapping.cs" />
@@ -268,6 +266,9 @@
     <Content Include="content\you failed.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="logs\TextFile1.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <EmbeddedResource Include="GameSelection.resx">
       <DependentUpon>GameSelection.cs</DependentUpon>
     </EmbeddedResource>
@@ -290,9 +291,6 @@
     <Content Include="content\moving_effect.webp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <None Include="logs\t.log">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -314,6 +312,12 @@
     <Content Include="content\win_music.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LibNew\LibNew.csproj">
+      <Project>{6f629595-458b-42b8-a329-96c8cbffbc26}</Project>
+      <Name>LibNew</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\ConsoleApp2\packages\SkiaSharp.NativeAssets.macOS.2.88.8\build\net462\SkiaSharp.NativeAssets.macOS.targets" Condition="Exists('..\ConsoleApp2\packages\SkiaSharp.NativeAssets.macOS.2.88.8\build\net462\SkiaSharp.NativeAssets.macOS.targets')" />

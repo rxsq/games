@@ -129,7 +129,7 @@ public class UdpHandler
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending data: {ex.Message}");
+            LogData($"Error sending data: {ex.Message}");
         }
     }
 

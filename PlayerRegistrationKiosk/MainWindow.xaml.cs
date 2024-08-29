@@ -8,7 +8,7 @@ namespace WpfApp1
 {
     public partial class MainWindow : Window
     {
-        AsyncLogger logger = new AsyncLogger("wpf.log");
+        AsyncLogger logger = new AsyncLogger("playerregistration");
         public MainWindow()
         {
             InitializeComponent();
@@ -17,12 +17,13 @@ namespace WpfApp1
             SetBrowserFeatureControl();
             
             webView2.Source = new Uri(ConfigurationManager.AppSettings["registrationurl"]);
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R", ConfigurationManager.AppSettings["server"]);
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R", ConfigurationManager.AppSettings["server"],  logger);
 
             readerWriter.StatusChanged += (s, uid) =>
             {
-                if (ifWebaskedtoShow == "ScanCard")
+                if (ifWebaskedtoShow.StartsWith("ScanCard"))
                 {
+                    int playerid= int.Parse(ifWebaskedtoShow.Split(':')[1]);
                     Dispatcher.Invoke(() =>
                     {
                         if (uid.Length > 0)
@@ -32,7 +33,7 @@ namespace WpfApp1
                             {
                                 string script = $"window.receiveMessageFromWPF('{uid}');";
                                 webView2.CoreWebView2.ExecuteScriptAsync(script);
-                                readerWriter.updateStatus(uid,"R");
+                                readerWriter.updateStatus(uid,"R", playerid);
                             }
                         }
                         else
@@ -72,32 +73,6 @@ namespace WpfApp1
                 key.SetValue(appName, 11001, RegistryValueKind.DWord);
             }
         }
-        private void PlayScreensaver()
-        {
-            //videoPlayer.MediaEnded += VideoPlayer_MediaEnded;
-            //videoPlayer.Play();
-        }
-
-        private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
-        {
-            //Restart the video
-            //videoPlayer.Position = TimeSpan.Zero;
-            //videoPlayer.Play();
-        }
-
-        private void OnCardDetected(object sender, EventArgs e)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                //videoPlayer.Visibility = Visibility.Collapsed;
-                webView2.Visibility = Visibility.Visible;
-                webView2.Source = new Uri("http://localhost:8081/");
-                logger.Log("web visible");
-                
-                // Delay visibility change to ensure the content is loaded
-
-            });
-        }
-
+        
     }
 }
