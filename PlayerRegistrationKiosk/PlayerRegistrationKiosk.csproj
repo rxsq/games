@@ -12,9 +12,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2592.51" />
-    <PackageReference Include="PCSC" Version="6.2.0" />
-    <PackageReference Include="PCSC.Iso7816" Version="6.2.0" />
-    <PackageReference Include="PCSC.Reactive" Version="6.2.0" />
   </ItemGroup>
 
   <ItemGroup>

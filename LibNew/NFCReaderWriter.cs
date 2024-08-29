@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
+using System.Runtime.Remoting.Contexts;
 namespace Lib
 {
     public class NFCReaderWriter : IDisposable
@@ -19,6 +20,7 @@ namespace Lib
         private HttpClient httpClient = null;
         public int NoogGames;
         public int Duration;
+        
         public event EventHandler<string> StatusChanged;
         protected virtual void OnStatusChanged(string newStatus)
         {
@@ -54,12 +56,18 @@ namespace Lib
                 logger.Log($"Card inserted, processing...{args.ReaderName}");
 
                 string uid = WriteData(args.ReaderName);
+                if(uid.Length==0)
+                {
+                    OnStatusChanged($"{uid}:card could not be read please try again");
+                    return;
+                }
                 logger.Log($"received card number...{uid}");
+                string result = "";
                 try
                 {
                     if (!string.IsNullOrEmpty(uid))
                     {
-                        string result = "";
+                       
                         if (mode == "I")
                         {
                             result = "";
@@ -73,22 +81,18 @@ namespace Lib
                             result = ifPlayerHaveTime(uid);
                         }
                         logger.Log($"uuid:{uid} result:{result}");
-                        Console.WriteLine(result);
-                        OnStatusChanged(result.Length == 0 ? uid : "");
-                        // SendUidToWebSocket(uid).Wait();
+                        
                     }
                 }
                 catch (Exception ex)
                 {
+                    result = ex.Message;
                     Console.WriteLine("An error occurred: " + ex.Message);
                 }
-
+                OnStatusChanged($"{uid}:{result}");
             };
             monitor.Start(readerName);
-            //while (true)
-            //{
-            //    Thread.Sleep(1000); // Sleep to reduce CPU usage, adjust as needed.
-            //}
+           
         }
   
 
@@ -170,50 +174,78 @@ namespace Lib
 
         private string WriteData(string readerName)
         {
-            try
+            const int MaxRetries = 3;
+            const int RetryDelayMilliseconds = 1000;
+
+            for (int retry = 0; retry < MaxRetries; retry++)
             {
-                using (var r = context.ConnectReader(readerName, SCardShareMode.Shared, SCardProtocol.Any))
+                try
                 {
-                    var apdu = new CommandApdu(IsoCase.Case2Short, r.Protocol)
+                    using (var reader = context.ConnectReader(readerName, SCardShareMode.Shared, SCardProtocol.Any))
                     {
-                        CLA = 0xFF,
-                        Instruction = InstructionCode.GetData,
-                        P1 = 0x00,
-                        P2 = 0x00,
-                        Le = 0
-                    };
+                        var apdu = new CommandApdu(IsoCase.Case2Short, reader.Protocol)
+                        {
+                            CLA = 0xFF,
+                            Instruction = InstructionCode.GetData,
+                            P1 = 0x00,
+                            P2 = 0x00,
+                            Le = 0x00 // Expecting full response
+                        };
 
-                    using (r.Transaction(SCardReaderDisposition.Leave))
-                    {
-                        Console.WriteLine("Retrieving the UID .... ");
-                        var sendPci = SCardPCI.GetPci(r.Protocol);
-                        var receivePci = new SCardPCI();
+                        using (reader.Transaction(SCardReaderDisposition.Leave))
+                        {
+                            logger.Log("Sending APDU command to retrieve UID...");
 
-                        var receiveBuffer = new byte[256];
-                        var command = apdu.ToArray();
+                            var sendPci = SCardPCI.GetPci(reader.Protocol);
+                            var receivePci = new SCardPCI();
+                            var receiveBuffer = new byte[256];
+                            var command = apdu.ToArray();
 
-                        var bytesReceived = r.Transmit(
-                            sendPci,
-                            command,
-                            command.Length,
-                            receivePci,
-                            receiveBuffer,
-                            receiveBuffer.Length);
+                            int bytesReceived = reader.Transmit(
+                                sendPci,
+                                command,
+                                command.Length,
+                                receivePci,
+                                receiveBuffer,
+                                receiveBuffer.Length);
 
-                        var responseApdu = new ResponseApdu(receiveBuffer, bytesReceived, IsoCase.Case2Short, r.Protocol);
-                        logger.Log($"SW1: {responseApdu.SW1:X2}, SW2: {responseApdu.SW2:X2}\nUid: {BitConverter.ToString(responseApdu.GetData())}");
-                        return BitConverter.ToString(responseApdu.GetData()).Replace("-", "");
+                            if (bytesReceived > 0)
+                            {
+                                var responseApdu = new ResponseApdu(receiveBuffer, bytesReceived, IsoCase.Case2Short, reader.Protocol);
+
+                                if (responseApdu.SW1 == 0x90 && responseApdu.SW2 == 0x00)
+                                {
+                                    string uid = BitConverter.ToString(responseApdu.GetData()).Replace("-", "");
+                                    logger.Log($"UID retrieved successfully: {uid}");
+                                    return uid;
+                                }
+                                else
+                                {
+                                    logger.Log($"APDU response indicates an error: SW1: {responseApdu.SW1:X2}, SW2: {responseApdu.SW2:X2}");
+                                }
+                            }
+                            else
+                            {
+                                logger.Log("No bytes received from the card.");
+                            }
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    logger.Log($"Exception occurred while reading UID: {ex.Message}");
+                }
+
+                // Wait before retrying
+                Task.Delay(RetryDelayMilliseconds).Wait();
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("An error occurred: " + ex.Message);
-            }
-            return "";
+
+            // After retries, if UID is not retrieved, return an empty string
+            logger.Log("Failed to retrieve UID after multiple attempts.");
+            return string.Empty;
         }
 
-       
+
         public void Dispose()
         {
             monitor.Cancel();

@@ -19,13 +19,14 @@ namespace WpfApp1
             webView2.Source = new Uri(ConfigurationManager.AppSettings["registrationurl"]);
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R", ConfigurationManager.AppSettings["server"],  logger);
 
-            readerWriter.StatusChanged += (s, uid) =>
+            readerWriter.StatusChanged += (s, uid1) =>
             {
                 if (ifWebaskedtoShow.StartsWith("ScanCard"))
                 {
                     int playerid= int.Parse(ifWebaskedtoShow.Split(':')[1]);
                     Dispatcher.Invoke(() =>
                     {
+                        string uid = uid1.Split(':')[0];
                         if (uid.Length > 0)
                         {
                             logger.Log($"Card detected: {uid}");

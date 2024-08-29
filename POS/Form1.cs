@@ -25,6 +25,7 @@ namespace POS
             _readerWriter.StatusChanged += ReaderWriter_StatusChanged;
         }
 
+        
         private void cmbNoOfGames_SelectedValueChanged(object sender, EventArgs e)
         {
             if (int.TryParse(cmbNoOfGames.Text, out int count))
@@ -63,16 +64,29 @@ namespace POS
             _logger.Log($"Selection reset to: {text}");
         }
 
-        private void ReaderWriter_StatusChanged(object sender, string uid)
+        private void ReaderWriter_StatusChanged(object sender, string resultp)
         {
-            if (!string.IsNullOrEmpty(uid))
-            {
+            string uid= resultp.Split(':')[0];
+            string resultreader = resultp.Split(':')[1];
+           
                 _logger.Log($"Wristband scanned: {uid}");
-
-               // setStatus($"Wristband {uid} scanned, updating database...");
-
-                if (_selectedCount > 0 || _selectedTime > 0)
+                if (_selectedCount == 0 && _selectedTime == 0)
                 {
+                    MessageBox.Show("Please select no of games");
+
+                    setStatus("Select Time or number of games then try. Please retry");
+                    return;
+                }
+                    if (uid.Length == 0)
+                {
+                    setStatus(resultreader);
+                    MessageBox.Show($"{resultreader}");
+                    return;
+
+                }
+                // setStatus($"Wristband {uid} scanned, updating database...");
+
+              
                     _logger.Log($"Attempting to insert record with count: {_selectedCount}, time: {(_selectedCount > 0 ? 120.0 : _selectedTime)}");
 
                     string result = _readerWriter.InsertRecord(uid, _selectedCount, _selectedCount > 0 ? 120.0 : _selectedTime);
@@ -80,28 +94,18 @@ namespace POS
                     if (string.IsNullOrEmpty(result))
                     {
                         setStatus("Wristband is good to go");
+                _selectedCount = 0;
                         resetSelection(string.Empty);
                         _logger.Log("Wristband successfully processed.");
-                        setStatus(result);
+                       
                     }
                     else
                     {
                        
                         _logger.Log($"Insert record failed with result: {result}");
+                        setStatus(result);
                     }
-                }
-                else
-                {
-                    MessageBox.Show("Please select no of games");
-                    
-                    setStatus("Select Time or number of games then try. Please retry");
-                    _logger.Log("No time or number of games selected. User prompted to select.");
-                }
-            }
-            else
-            {
-                _logger.Log("Received empty or null UID in status change event.");
-            }
+           
         }
     }
 }

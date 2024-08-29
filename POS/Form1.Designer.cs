@@ -49,7 +49,7 @@
             this.cmbNoOfGames.Name = "cmbNoOfGames";
             this.cmbNoOfGames.Size = new System.Drawing.Size(459, 50);
             this.cmbNoOfGames.TabIndex = 0;
-            this.cmbNoOfGames.SelectedValueChanged += new System.EventHandler(this.cmbNoOfGames_SelectedValueChanged);
+            this.cmbNoOfGames.SelectedIndexChanged += new System.EventHandler(this.cmbNoOfGames_SelectedValueChanged);
             // 
             // label1
             // 

@@ -45,9 +45,9 @@ namespace scorecard
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"], logger);
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"])  ;
             // webView2.Visibility = Visibility.Visible;
-            readerWriter.StatusChanged += (s, uid) =>
+            readerWriter.StatusChanged += (s, uid1) =>
             {
-
+                string uid = uid1.Split(':')[0];
                 if (uid.Length > 0)
                 {
                     logger.Log($"card uid detected {uid}");
