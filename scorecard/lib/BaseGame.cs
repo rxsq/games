@@ -129,12 +129,17 @@ public abstract class BaseGame
       //  this.config.MaxPlayers = 3;
 
         lightonoff(true);
-        
+        Console.WriteLine("Game starting in 3... 2... 1...");
+        musicPlayer = new MusicPlayer("content/background_music.wav");
+        if (!Debugger.IsAttached)
+            musicPlayer.Announcement(config.introAudio);
 
-        
+        Thread.Sleep(3000); // Countdown 
 
-     // else
-       // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
+
+
+        // else
+        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
         udpHandlers = new List<UdpHandler>();
         udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort,  config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler"));
         for(int i = 1; i < config.NoOfControllers; i++)
@@ -162,12 +167,7 @@ public abstract class BaseGame
     //}
     public void StartGame()
     {
-        Console.WriteLine("Game starting in 3... 2... 1...");
-        musicPlayer = new MusicPlayer("content/background_music.wav");
-        if (!Debugger.IsAttached)
-            musicPlayer.Announcement(config.introAudio);
-        
-        Thread.Sleep(3000); // Countdown
+       
         Initialize();
         RunGameInSequence();
 
@@ -226,7 +226,7 @@ public abstract class BaseGame
             iterationTimer.Dispose();
        // logger.Dispose();
 
-        Status = GameStatus.Completed;
+       
         iterationTimer.Dispose();
 
 
@@ -244,9 +244,10 @@ public abstract class BaseGame
         musicPlayer.Dispose();
 
         OnEnd();
-
+        
 
         lightonoff(false);
+        Status = GameStatus.Completed;
 
     }
     protected virtual void Initialize() { }

@@ -174,7 +174,7 @@ namespace scorecard
             if (scorecardForm != null)
             {
                 util.uiupdate($"window.updateStaus('{status}')", webView2);
-                logger.Log($"receive status change message in select form status:{status}");
+                logger.Log($"gameselection-receive status change message in select form status:{status}");
                 if (status == GameStatus.Completed)
                 {
                     

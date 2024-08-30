@@ -42,7 +42,7 @@ public class UdpHandler
         
         
         DeviceList = ReceiveMessage(noofledPerdevice);
-
+        logger.Log($"no of devices found:{DeviceList.Count} :{namep}");
         this.Rows = DeviceList.Count / columns;
         this.columns = columns;
         // this .Rows = rows;

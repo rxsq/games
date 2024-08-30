@@ -288,6 +288,9 @@ public partial class ScorecardForm : Form
         if(status == GameStatus.Completed)
         {
             UpdateWristBandStatus(players);
+            logger.Log("scorecardform completed form: status ");
+
+            currentGame = null;
         }
     }
 
