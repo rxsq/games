@@ -214,7 +214,12 @@ public class TileHunt : BaseMultiDevice
         killerRowsDict.Add(handler, blueLineDevices);
         LogData($"filling data handler row:{row} handler:{handler.name} active:{string.Join(",", handler.activeDevices)} blueline: {string.Join(",", blueLineDevices)}");
 
-        Thread.Sleep(1000 - (base.level - 1) * killerSpeedReduction);
+        int killerlineClipTime = 1200 - (base.level - 1) * killerSpeedReduction;
+        if(killerlineClipTime < 200 )
+        {
+            killerlineClipTime = 200;
+        }
+        Thread.Sleep(killerlineClipTime);
     }
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
