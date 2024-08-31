@@ -142,7 +142,7 @@ public partial class MainForm : Form
     {
         string receivedData = BitConverter.ToString(receivedBytes);
         var colors = receivedData.Split('-').ToList<string>();
-        Console.WriteLine($"Received data: {receivedData}");
+        logger.Log($"Received data: {receivedData}");
         ProcessGameResponse(receivedData.Substring(6), handler);
         handler.BeginReceive(data => ReceiveCallback(data, handler));
     }
@@ -161,7 +161,7 @@ public partial class MainForm : Form
             }
             else
             {
-                Console.WriteLine($"Color {hexColor} not found in ColorMap.");
+                logger.Log($"Color {hexColor} not found in ColorMap.");
             }
         }
     }
@@ -253,7 +253,7 @@ public partial class MainForm : Form
                 sb.Append("05");
             }
         }
-        Console.WriteLine($"Button number: {buttonNumber} - {sb}");
+        logger.Log($"Button number: {buttonNumber} - {sb}");
         return sb.ToString();
     }
 

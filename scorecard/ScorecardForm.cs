@@ -22,6 +22,7 @@ using System.Reflection.Emit;
 using System.ComponentModel;
 using System.Web.UI.WebControls;
 using System.Net.Mail;
+using System.Diagnostics;
 public partial class ScorecardForm : Form
 {
     
@@ -137,8 +138,9 @@ public partial class ScorecardForm : Form
                         introAudio = gameVariant.introAudio ?? string.Empty,
                         SmartPlugip = gameVariant.game.SmartPlugip
                     };
-                    if (ConfigurationSettings.AppSettings["isTestMode"] == "1")
+                    if (Debugger.IsAttached)
                     {
+                        
                         gameConfig.IpAddress = "127.0.0.1";
                     }
                     logger.Log("congig fetched");

@@ -8,7 +8,7 @@ namespace WpfApp1
 {
     public partial class MainWindow : Window
     {
-        Logger logger = new AsyncLogger("playerregistration");
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -17,7 +17,7 @@ namespace WpfApp1
             SetBrowserFeatureControl();
             
             webView2.Source = new Uri(ConfigurationManager.AppSettings["registrationurl"]);
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R", ConfigurationManager.AppSettings["server"],  logger);
+            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("R", ConfigurationManager.AppSettings["server"]);
 
             readerWriter.StatusChanged += (s, uid1) =>
             {

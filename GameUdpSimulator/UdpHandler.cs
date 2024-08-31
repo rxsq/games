@@ -57,7 +57,7 @@ public class UdpHandler
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error receiving data: {ex.Message}");
+            logger.Log($"Error receiving data: {ex.Message}");
 
         }
     }
@@ -68,11 +68,11 @@ public class UdpHandler
         {
             byte[] data = HexStringToByteArray(message);
             await udpClientSocket2.SendAsync(data, data.Length, remoteEndPointSocket2);
-          //  Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
+          //  logger.Log($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error sending data: {ex.Message}");
+            logger.Log($"Error sending data: {ex.Message}");
         }
     }
 

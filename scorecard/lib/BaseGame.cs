@@ -118,24 +118,27 @@ public abstract class BaseGame
     private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     public void lightonoff(bool on)
     {
-        var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
-        plug.OutletPowered = !on;
-        plug.OutletPowered = on;
+        if (!Debugger.IsAttached)
+        {
+            var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
+            plug.OutletPowered = !on;
+            plug.OutletPowered = on;
+        }
     }
     public BaseGame(GameConfig config)
     {
         this.config = config;
 
-      //  this.config.MaxPlayers = 3;
+        //  this.config.MaxPlayers = 3;
 
-        lightonoff(true);
-        Console.WriteLine("Game starting in 3... 2... 1...");
         musicPlayer = new MusicPlayer("content/background_music.wav");
         if (!Debugger.IsAttached)
+        {
+            lightonoff(true);
+            Console.WriteLine("Game starting in 3... 2... 1...");
             musicPlayer.Announcement(config.introAudio);
-
-        Thread.Sleep(3000); // Countdown 
-
+            Thread.Sleep(3000); // Countdown 
+        }
 
 
         // else
