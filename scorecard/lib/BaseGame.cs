@@ -132,29 +132,19 @@ public abstract class BaseGame
         //  this.config.MaxPlayers = 3;
 
         musicPlayer = new MusicPlayer("content/background_music.wav");
-        if (!Debugger.IsAttached)
-        {
-            lightonoff(true);
-            Console.WriteLine("Game starting in 3... 2... 1...");
-            musicPlayer.Announcement(config.introAudio);
-            Thread.Sleep(3000); // Countdown 
-        }
-
-
-        // else
-        // musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
-        udpHandlers = new List<UdpHandler>();
-        udpHandlers.Add( new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort,  config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler"));
-        for(int i = 1; i < config.NoOfControllers; i++)
-        {
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i,  config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler{i}"));
-        }
         
-        // initializeDevices();
-
-        //devices = udpHandler.DeviceList;
-
-        gameColors = getColorList();
+        
+            lightonoff(true);
+            Thread.Sleep(3000); // Countdown 
+            udpHandlers = new List<UdpHandler>();
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler"));
+            for (int i = 1; i < config.NoOfControllers; i++)
+            {
+                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler{i}"));
+            }
+            Console.WriteLine("Game starting in 3... 2... 1...");
+            musicPlayer.Announcement(!Debugger.IsAttached?config.introAudio: "content/hit2.wav");
+            gameColors = getColorList();
     }
     //private void initializeDevices()
     //{
@@ -174,6 +164,7 @@ public abstract class BaseGame
         Initialize();
         RunGameInSequence();
 
+
     }
     protected void RunGameInSequence()
     {
@@ -183,8 +174,9 @@ public abstract class BaseGame
         // Start target timer
         iterationTimer = new Timer(IterationLost, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
         OnStart();
+        
 
-       
+
     }
     protected virtual void IterationLost(object state)
     {
@@ -194,25 +186,22 @@ public abstract class BaseGame
         }
         isGameRunning = false;
         LogData($"iteration failed within {IterationTime} second");
-        musicPlayer.Announcement("content/fail.wav");
         iterationTimer.Dispose();
         LifeLine = LifeLine - 1;
         Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
         if (lifeLine <= 0)
         {
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
-            musicPlayer.Announcement("content/gameoverlost.wav");
+            musicPlayer.Announcement("content/fail.wav",false);
             LogData("GAME OVER");
-            Thread.Sleep(3000);
             EndGame();
            
         }
         else
         {
+            musicPlayer.Announcement("content/fail.wav");
             //iterations = iterations + 1;
             RunGameInSequence();
-
-
         }
 
     }
@@ -223,32 +212,23 @@ public abstract class BaseGame
     }
     public void EndGame()
     {
-
-
-        if(iterationTimer != null) 
+        
+        if (iterationTimer != null) 
             iterationTimer.Dispose();
-       // logger.Dispose();
-
-       
-        iterationTimer.Dispose();
-
-
-        SendSameColorToAllDevice(ColorPaletteone.NoColor);
-        Thread.Sleep(100);
-
+        // logger.Dispose();
+        musicPlayer.Dispose();
+        OnEnd();
         BlinkAllAsync(2);
-
+        SendSameColorToAllDevice(config.NoofLedPerdevice==1? ColorPaletteone.Green: ColorPalette.Green);
+          
         foreach (var handler in udpHandlers)
         {
             if (handler != null)
                 handler.Close();
 
         }
-        musicPlayer.Dispose();
-
-        OnEnd();
+        Thread.Sleep(2000);
         
-
         lightonoff(false);
         Status = GameStatus.Completed;
 
@@ -324,7 +304,6 @@ public abstract class BaseGame
                 Status = $"Reached to last Level {config.MaxLevel} ending game";
                 LogData(Status);
                 //Text to speech : Congratulations! 🎉You’ve won the game! You’ve completed all the levels. You’re a champion! 🏆
-              
                 musicPlayer.Announcement("content/GameWin.wav");
                 EndGame();
                 return;
@@ -417,7 +396,7 @@ public abstract class BaseGame
                 tasks.Add(handler.SendColorsToUdpAsync(colors));
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(75);
+            Thread.Sleep(100);
 
             foreach (var handler in udpHandlers)
              {
@@ -425,7 +404,7 @@ public abstract class BaseGame
                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
             Task.WhenAll(tasks);
-            Thread.Sleep(75);
+            Thread.Sleep(100);
         }
     }
     public void BlinkLights(List<int> lightIndex,int repeation, UdpHandler handler, string Color)

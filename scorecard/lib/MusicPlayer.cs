@@ -231,9 +231,10 @@ public class MusicPlayer
             effectsPlayer = null;
         }
     }
-
-    public void Announcement(string filePath)
+   // bool ifAnnouncementPlaying = false;
+    public void Announcement(string filePath, bool playbckMusic)
     {
+        logger.Log($"Announcement: {filePath}");
         if (!File.Exists(filePath))
         {
             logger.Log($"Announcement file not found: {filePath}");
@@ -248,7 +249,7 @@ public class MusicPlayer
             announcementPlayer.Init(announcementFile);
             announcementPlayer.Volume = 1.0f;
             announcementPlayer.Play();
-
+            
             // Wait for the announcement to finish
             while (announcementPlayer.PlaybackState == PlaybackState.Playing)
             {
@@ -257,9 +258,17 @@ public class MusicPlayer
         }
 
         // Resume background music if it was playing
-       // if (backgroundAudioFile != null)
-       // {
+        // if (backgroundAudioFile != null)
+        // {
+        if(playbckMusic )
+        {
             PlayBackgroundMusic(backgroundFilePath, true);
-       // }
+        }
+        logger.Log("Announcement finished");
+        // }
+    }
+    public void Announcement(string filePath)
+    {
+        Announcement(filePath, true );
     }
 }
