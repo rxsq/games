@@ -299,7 +299,7 @@ public abstract class BaseGame
             LogData($"Game Win level: {Level}");
             Level = Level + 1;
             iterations = 1;
-            if (Level > config.MaxLevel + 1)
+            if (Level >= config.MaxLevel+1)
             {
                 Status = $"Reached to last Level {config.MaxLevel} ending game";
                 LogData(Status);

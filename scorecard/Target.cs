@@ -46,7 +46,7 @@ public class Target : BaseSingleDevice
          BlinkAllAsync(1);
          SetTarget();
 
-       
+        
     }
     private void blinkTargetLight()
     {

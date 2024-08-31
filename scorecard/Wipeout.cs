@@ -143,6 +143,7 @@ public class WipeoutGame : BaseMultiDevice
         {
             return;
         }
+        //Thread.Sleep(config.Maxiterations / 2 - config.ReductionTimeEachLevel * Level);
         int waittime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
         Thread.Sleep(waittime);
 
