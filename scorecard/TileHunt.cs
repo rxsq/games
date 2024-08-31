@@ -213,6 +213,7 @@ public class TileHunt : BaseMultiDevice
           //  gameTimer = null;
             return;
         }
+
         killerRowsDict.Clear();
         killerRowsDict.Add(handler, blueLineDevices);
         handler.SendColorsToUdp(cl);
@@ -242,8 +243,7 @@ public class TileHunt : BaseMultiDevice
 
         if (positions.Count > 0)
         {
-            LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
-            LogData($"Touch detected: {string.Join(",", positions)}");
+           
             List<int> l2 = new List<int>();
 
             foreach (var position in positions)
@@ -255,6 +255,8 @@ public class TileHunt : BaseMultiDevice
             }
             if (l2.Count > 0)
             {
+                LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
+                LogData($"Touch detected: {string.Join(",", l2)}");
                 ChnageColorToDevice(ColorPaletteone.NoColor, l2, handler);
                 updateScore(Score + l2.Count / 4);
                 foreach (var item in l2)
