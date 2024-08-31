@@ -137,10 +137,10 @@ public abstract class BaseGame
             lightonoff(true);
             Thread.Sleep(3000); // Countdown 
             udpHandlers = new List<UdpHandler>();
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler"));
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));
             for (int i = 1; i < config.NoOfControllers; i++)
             {
-                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler{i}"));
+                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i+1}"));
             }
             Console.WriteLine("Game starting in 3... 2... 1...");
             musicPlayer.Announcement(!Debugger.IsAttached?config.introAudio: "content/hit2.wav");
@@ -172,7 +172,8 @@ public abstract class BaseGame
         OnIteration();
         isGameRunning = true;
         // Start target timer
-        iterationTimer = new Timer(IterationLost, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
+        if(config.timerPointLoss)
+            iterationTimer = new Timer(IterationLost, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
         OnStart();
         
 
@@ -186,7 +187,8 @@ public abstract class BaseGame
         }
         isGameRunning = false;
         LogData($"iteration failed within {IterationTime} second");
-        iterationTimer.Dispose();
+        if (config.timerPointLoss)
+            iterationTimer.Dispose();
         LifeLine = LifeLine - 1;
         Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
         if (lifeLine <= 0)
@@ -286,8 +288,8 @@ public abstract class BaseGame
     {
         isGameRunning = false;
         LogData("All targets hit");
-        
-        iterationTimer.Dispose();
+        if (config.timerPointLoss)
+            iterationTimer.Dispose();
         iterations = iterations + 1;
        
 
@@ -304,7 +306,7 @@ public abstract class BaseGame
                 Status = $"Reached to last Level {config.MaxLevel} ending game";
                 LogData(Status);
                 //Text to speech : Congratulations! 🎉You’ve won the game! You’ve completed all the levels. You’re a champion! 🏆
-                musicPlayer.Announcement("content/GameWin.wav");
+                musicPlayer.Announcement("content/voicelines/GameWinAlllevelPassed.mp3");
                 EndGame();
                 return;
             }

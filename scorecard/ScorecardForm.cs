@@ -141,7 +141,7 @@ public partial class ScorecardForm : Form
                     if (Debugger.IsAttached)
                     {
                         
-                     //   gameConfig.IpAddress = "127.0.0.1";
+                        gameConfig.IpAddress = "127.0.0.1";
                     }
                     logger.Log("congig fetched");
                     return gameConfig;

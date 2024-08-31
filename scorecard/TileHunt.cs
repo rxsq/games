@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 public class TileHunt : BaseMultiDevice
 {
     private int killerSpeedReduction = 200;
-    private System.Threading.Timer gameTimer;
+   // private System.Threading.Timer gameTimer;
     private bool isReversed = false; // Track the direction of the killer line
 
     public TileHunt(GameConfig config, int killerSpeedReduction) : base(config)
@@ -39,11 +39,11 @@ public class TileHunt : BaseMultiDevice
 
     protected override void OnStart()
     {
-        if (gameTimer == null)
-        {
-            gameTimer = new System.Threading.Timer(drawkillingline, null, 1000, 500000000); // Change target tiles every 10 seconds
-        }
-
+        //if (gameTimer == null)
+        //{
+        //    gameTimer = new System.Threading.Timer(drawkillingline, null, 1000, 500000000); // Change target tiles every 10 seconds
+        //}
+        Task.Run(() => drawkillingline(null));
         foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
@@ -134,12 +134,12 @@ public class TileHunt : BaseMultiDevice
         }
         return true;
     }
-
+    UdpHandler prevhandler = null;
     protected void drawkillingline(object state)
     {
         if (!isGameRunning)
         {
-            gameTimer = null;
+          //  gameTimer = null;
             return;
         }
         UdpHandler prevhandler=null;
@@ -150,12 +150,14 @@ public class TileHunt : BaseMultiDevice
                 UdpHandler handler = udpHandlers[handlerCount];
                 if (prevhandler != null)
                 {
+                    LogData($"handler changed from {prevhandler.name} {handler.name}");
                     prevhandler.SendColorsToUdp(prevhandler.DeviceList);
                 }
 
                 // Move the killer line from top to bottom
                 for (int row = 0; row < handler.Rows; row++)
                 {
+                    LogData($"moving line for {handler.name}  row:{row}");
                     MoveKillerLine(handler, row);
                 }
 
@@ -169,10 +171,12 @@ public class TileHunt : BaseMultiDevice
                 UdpHandler handler = udpHandlers[handlerCount];
                 if (prevhandler != null)
                 {
+                    LogData($"handler changed from {prevhandler.name} {handler.name}");
                     prevhandler.SendColorsToUdp(prevhandler.DeviceList);
                 }
                 for (int row = handler.Rows - 1; row >= 0; row--)
                 {
+                    LogData($"moving line for {handler.name}  row:{row}");
                     MoveKillerLine(handler, row);
                 }
 
@@ -206,12 +210,13 @@ public class TileHunt : BaseMultiDevice
 
         if (!isGameRunning)
         {
-            gameTimer = null;
+          //  gameTimer = null;
             return;
         }
         killerRowsDict.Clear();
-        handler.SendColorsToUdp(cl);
         killerRowsDict.Add(handler, blueLineDevices);
+        handler.SendColorsToUdp(cl);
+       
         LogData($"filling data handler row:{row} handler:{handler.name} active:{string.Join(",", handler.activeDevices)} blueline: {string.Join(",", blueLineDevices)}");
 
         int killerlineClipTime = 1200 - (base.level - 1) * killerSpeedReduction;

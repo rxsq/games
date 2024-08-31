@@ -51,7 +51,7 @@ public class WipeoutGame : BaseMultiDevice
 
     protected override void OnStart()
     {
-        iterationTimer.Dispose();
+        
         gameTimer = new System.Threading.Timer(GameLoop, null, 0, 1000000); // Game loop runs every 200ms
         foreach (var handler in udpHandlers)
         {
@@ -73,13 +73,13 @@ public class WipeoutGame : BaseMultiDevice
 
         if (handler.activeDevices.Exists(x => positions.Contains(x)) && isGameRunning)
         {
-
+            LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
             isGameRunning = false;
             gameTimer.Dispose();
-            handler.activeDevices.Clear();
-            LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
+            handler.activeDevices.Clear();            
             BlinkAllAsync(1);           
             IterationLost("Lost Iteration");
+            
             return;
         }
 

@@ -17,7 +17,7 @@ public class Target : BaseSingleDevice
    
     public Target(GameConfig config, int starIndex) : base(config)
     {
-        this.config.MaxPlayers = 3;
+        //this.config.MaxPlayers = 3;
         this.starIndex = starIndex;
         //if(istest)
         //    this.colors = new List<string> { ColorPaletteone.Pink, ColorPaletteone.Purple, ColorPaletteone.Navy, ColorPaletteone.Yellow, ColorPaletteone.Coral, ColorPaletteone.White, ColorPaletteone.Cyan };
