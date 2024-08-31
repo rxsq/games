@@ -84,7 +84,7 @@ public class Target : BaseSingleDevice
         if (!isGameRunning)
             return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
-        LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
+        //LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
 
         List<int> positions = receivedData.Select((value, index) => new { value, index })
                                           .Where(x => x.value == 0x0A)
@@ -92,11 +92,12 @@ public class Target : BaseSingleDevice
                                           .Where(position => position >= 0)
                                           .ToList();
 
-        LogData($"Touch detected: {string.Join(",", positions)}");
+        
 
         var touchedActiveDevices = handler.activeDevices.FindAll(x => positions.Contains(x));
         if (touchedActiveDevices.Count > 0)
         {
+            LogData($"Touch detected: {string.Join(",", positions)}");
             ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
             handler.activeDevices.RemoveAll(x => touchedActiveDevices.Contains(x));
             updateScore(Score + 1);
