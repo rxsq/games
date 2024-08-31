@@ -192,7 +192,7 @@ public abstract class BaseGame
         if (lifeLine <= 0)
         {
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
-            musicPlayer.Announcement("content/fail.wav",false);
+            musicPlayer.Announcement("content/GameOver.wav", false);
             LogData("GAME OVER");
             EndGame();
            
