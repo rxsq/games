@@ -120,7 +120,7 @@ namespace Lib
             var response = httpClient.GetAsync($"wristbandtran/validate?wristbandCode={uid}");
 
             //  logger.Log(response.Result);
-            string result = response.Result.IsSuccessStatusCode ? "" : "Error:Wristband Not in db!";
+            string result = response.Result.StatusCode ==System.Net.HttpStatusCode.OK ? "" : "Error:Wristband Not in db!";
             return result;
 
         }

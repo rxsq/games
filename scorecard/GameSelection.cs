@@ -48,17 +48,25 @@ namespace scorecard
             readerWriter.StatusChanged += (s, uid1) =>
             {
                 string uid = uid1.Split(':')[0];
-                if (uid.Length > 0)
+                string result = uid1.Split(':')[1];
+                if (uid.Length == 0)
                 {
-                    logger.Log($"card uid detected {uid}");
-                    if (Waitingplayers.FindAll(x => x.wristbandCode == uid).Count > 0)
-                    {
+                    logger.Log($"card uid not detected {uid}"); return;
+                }
+                if (result.Length > 0)
+                {
+                    logger.Log($"card not valid {uid}");
+                    return;
+                }
+                if (Waitingplayers.FindAll(x => x.wristbandCode == uid).Count > 0)
+                {
 
-                        logger.Log($"card already added {uid}");
-                        return;
-                    }
-                    //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
-                    Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
+                    logger.Log($"card already added {uid}");
+                    return;
+                }
+                logger.Log($"card uid detected {uid}");
+                //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
+                Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
                     if (webView2.InvokeRequired)
                     {
                         webView2.Invoke(new Action(() =>
@@ -71,11 +79,7 @@ namespace scorecard
                     }
 
 
-                }
-                else
-                {
-                    logger.Log($"card uid not detected {uid}");
-                }
+               
                 };
 
         }
