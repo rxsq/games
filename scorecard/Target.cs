@@ -31,12 +31,23 @@ public class Target : BaseSingleDevice
         BlinkAllAsync(2);
     }
 
+    Task targetTask;
     protected override void OnStart()
     {
         //base.BlinkLights(new HashSet<int> { starIndex },2, handler);
 
+      
+        if (targetTask == null || targetTask.IsCompleted)
+        {
+            if (targetTask != null && !targetTask.IsCompleted)
+            {
+                logger.Log("targetTask task still running");
+            }
+            logger.Log("Starting targetTask task");
+            targetTask = Task.Run(() => blinkTargetLight());
+        }
         handler.BeginReceive(data => ReceiveCallback(data, handler));
-        Task.Run(() => blinkTargetLight());
+
 
     }
 

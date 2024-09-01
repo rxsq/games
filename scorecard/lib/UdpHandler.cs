@@ -46,7 +46,7 @@ public class UdpHandler
         this.Rows = DeviceList.Count / columns;
         this.columns = columns;
         // this .Rows = rows;
-        receiving = false;
+        receiving = true;
     }
     public List<string> ReceiveMessage(int noofledPerdevice)
     {
@@ -70,16 +70,19 @@ public class UdpHandler
             {
                 return;
             }
-            receiving = true;
-            udpClient2.BeginReceive(ar =>
-            {
-                if (receiving)
+           
+                // receiving = true;
+                udpClient2.BeginReceive(ar =>
                 {
-                    byte[] receivedBytes = udpClient2.EndReceive(ar, ref RemoteEndPoint);
-                    receiveCallback(receivedBytes);
-                }
+                   
+                        byte[] receivedBytes = udpClient2.EndReceive(ar, ref RemoteEndPoint);
+                        if (receiving)
+                        {
+                            receiveCallback(receivedBytes);
+                        }
 
-            }, null);
+                }, null);
+            
         }
         catch (Exception ex)
         {
@@ -92,7 +95,10 @@ public class UdpHandler
     {
         receiving = false;
     }
-
+    public void StartReceive()
+    {
+        receiving = true;
+    }
     public async void SendColorsToUdp(List<string> colorList)
     {
 

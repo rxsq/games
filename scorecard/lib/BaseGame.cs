@@ -118,7 +118,7 @@ public abstract class BaseGame
     private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     public void lightonoff(bool on)
     {
-        if (!Debugger.IsAttached)
+       // if (!Debugger.IsAttached)
         {
             var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
             plug.OutletPowered = !on;
@@ -169,6 +169,7 @@ public abstract class BaseGame
     protected void RunGameInSequence()
     {
         Status = GameStatus.Running;
+        udpHandlers.ForEach(x => x.StartReceive());
         OnIteration();
         isGameRunning = true;
         // Start target timer
@@ -181,11 +182,13 @@ public abstract class BaseGame
     }
     protected virtual void IterationLost(object state)
     {
+        isGameRunning = false;
+        udpHandlers.ForEach(x => x.StopReceive());
         if (!config.timerPointLoss  &&  state==null) {
             IterationWon();
             return;
         }
-        isGameRunning = false;
+        
         LogData($"iteration failed within {IterationTime} second");
         if (config.timerPointLoss)
             iterationTimer.Dispose();
@@ -201,6 +204,7 @@ public abstract class BaseGame
         }
         else
         {
+           
             musicPlayer.Announcement("content/fail.wav");
             //iterations = iterations + 1;
             RunGameInSequence();
@@ -287,6 +291,7 @@ public abstract class BaseGame
     protected void IterationWon()
     {
         isGameRunning = false;
+        udpHandlers.ForEach(x => x.StopReceive());
         LogData("All targets hit");
         if (config.timerPointLoss)
             iterationTimer.Dispose();

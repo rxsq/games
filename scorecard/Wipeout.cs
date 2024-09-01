@@ -70,13 +70,16 @@ public class WipeoutGame : BaseMultiDevice
                                           .Where(position => position >= 0)
                                           .ToList();
 
-
+        LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
         if (handler.activeDevices.Exists(x => positions.Contains(x)) && isGameRunning)
         {
-            LogData($"Touch detected: {string.Join(",", positions)} active devices: {string.Join(",", handler.activeDevices)}");
+            LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
             isGameRunning = false;
             gameTimer.Dispose();
-            handler.activeDevices.Clear();            
+            LogData("starting clearing active devices");
+            udpHandlers.ForEach(x => x.activeDevices.Clear());
+            LogData("End clearing active devices");
+            // handler.activeDevices.Clear();            
             BlinkAllAsync(1);           
             IterationLost("Lost Iteration");
             

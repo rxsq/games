@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 public class TileHunt : BaseMultiDevice
 {
     private int killerSpeedReduction = 200;
-   // private System.Threading.Timer gameTimer;
+    // private System.Threading.Timer gameTimer;
     private bool isReversed = false; // Track the direction of the killer line
 
     public TileHunt(GameConfig config, int killerSpeedReduction) : base(config)
@@ -31,19 +31,29 @@ public class TileHunt : BaseMultiDevice
     protected override void Initialize()
     {
 
-       
+
         AnimateColor(false);
         AnimateColor(true);
         BlinkAllAsync(4);
     }
-
+    Task killerLineTask;
     protected override void OnStart()
     {
         //if (gameTimer == null)
         //{
         //    gameTimer = new System.Threading.Timer(drawkillingline, null, 1000, 500000000); // Change target tiles every 10 seconds
         //}
-        Task.Run(() => drawkillingline(null));
+        if (killerLineTask == null || killerLineTask.IsCompleted)
+        {
+            if(killerLineTask != null && !killerLineTask.IsCompleted)
+            {
+                logger.Log("killer line task still running");
+            }
+            logger.Log("Starting killer line task");
+            killerLineTask = Task.Run(() => drawkillingline(null));
+        }
+      
+
         foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
@@ -147,18 +157,26 @@ public class TileHunt : BaseMultiDevice
         {
             for (int handlerCount = 0; handlerCount < udpHandlers.Count; handlerCount++)
             {
+               
                 UdpHandler handler = udpHandlers[handlerCount];
+                LogData($"calling line loop {handler.name}");
                 if (prevhandler != null)
                 {
                     LogData($"handler changed from {prevhandler.name} {handler.name}");
                     prevhandler.SendColorsToUdp(prevhandler.DeviceList);
+
                 }
 
                 // Move the killer line from top to bottom
                 for (int row = 0; row < handler.Rows; row++)
                 {
+                   
                     LogData($"moving line for {handler.name}  row:{row}");
                     MoveKillerLine(handler, row);
+                    if (!isGameRunning)
+                    {
+                        return;
+                    }
                 }
 
                 prevhandler = handler;
@@ -176,6 +194,10 @@ public class TileHunt : BaseMultiDevice
                 }
                 for (int row = handler.Rows - 1; row >= 0; row--)
                 {
+                    if (!isGameRunning)
+                    {
+                        return;
+                    }
                     LogData($"moving line for {handler.name}  row:{row}");
                     MoveKillerLine(handler, row);
                 }
