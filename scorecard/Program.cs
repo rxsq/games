@@ -39,9 +39,10 @@ class Program
                 gameConfig.IpAddress = "127.0.0.1";
                 gameConfig.isTestMode = true;
                 gameConfig.SmartPlugip = "127.0.0.1";
+                gameConfig.NoofLedPerdevice = 1;
 
             }
-
+           
             if (gameConfig == null)
             {
                 MessageBox.Show("Failed to start the game due to configuration issues.");

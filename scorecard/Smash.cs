@@ -25,8 +25,13 @@ public class Smash : BaseSingleDevice
        targetCount = (int)Math.Round(config.MaxPlayers * 1.5);
        base.BlinkAllAsync(2);
     }
+    protected override async void StartAnimition()
+    {
+        LoopAll();
+        base.StartAnimition();
 
-   
+    }
+
     protected override void OnIteration()
     {
         gamecolor = gameColors[random.Next(gameColors.Count - 1)];

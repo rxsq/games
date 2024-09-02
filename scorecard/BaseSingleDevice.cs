@@ -18,6 +18,7 @@ namespace scorecard
         protected int rows = 0;
         public BaseSingleDevice(GameConfig config) : base(config)
         {
+           
             handler = udpHandlers[0];
            
         }       

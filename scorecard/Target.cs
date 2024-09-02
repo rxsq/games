@@ -22,6 +22,12 @@ public class Target : BaseSingleDevice
         //if(istest)
         //    this.colors = new List<string> { ColorPaletteone.Pink, ColorPaletteone.Purple, ColorPaletteone.Navy, ColorPaletteone.Yellow, ColorPaletteone.Coral, ColorPaletteone.White, ColorPaletteone.Cyan };
     }
+    protected override async void StartAnimition()
+    {
+        LoopAll();
+        base.StartAnimition();
+        
+    }
     protected override void Initialize()
     {
         var handler = udpHandlers[0];

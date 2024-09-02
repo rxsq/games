@@ -25,7 +25,7 @@ namespace scorecard.lib
         public bool timerPointLoss = true;
         public string SmartPlugip {  get; set; }
 
-        public bool isTestMode { get; set; } = true;
+        public bool isTestMode { get; set; } = false;
 
         public string gameEngineIp { get; set; } = "127.0.0.1";
 

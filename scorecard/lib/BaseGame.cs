@@ -121,6 +121,7 @@ public abstract class BaseGame
         this.config = co;
         statusPublisher = new GameStatusPublisher(config.gameEngineIp); // Replace with your IP and port
         statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime);
+        gameColors = getColorList();
         musicPlayer = new MusicPlayer("content/background_music.wav");
         
         
@@ -133,8 +134,9 @@ public abstract class BaseGame
                 udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i+1}"));
             }
             Console.WriteLine("Game starting in 3... 2... 1...");
+            Task.Run(() => StartAnimition());
             musicPlayer.Announcement(config.isTestMode?config.introAudio: "content/hit2.wav");
-            gameColors = getColorList();
+           
     }
   
 
@@ -159,6 +161,10 @@ public abstract class BaseGame
         
 
 
+    }
+    protected virtual async void StartAnimition()
+    {
+        
     }
     protected virtual void IterationLost(object state)
     {
