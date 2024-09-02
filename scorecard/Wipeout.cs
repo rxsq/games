@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 public class WipeoutGame : BaseMultiDevice
 {
@@ -48,16 +49,19 @@ public class WipeoutGame : BaseMultiDevice
         totalHalfTiles = config.columns * centerY;
         isReversed = false;
     }
+    private CancellationTokenSource _cancellationTokenSource;
 
     protected override void OnStart()
     {
-        
-        gameTimer = new System.Threading.Timer(GameLoop, null, 0, 1000000); // Game loop runs every 200ms
+        _cancellationTokenSource = new CancellationTokenSource();
+        Task.Run(() => GameLoop(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
+
         foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
     }
+
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
@@ -75,7 +79,7 @@ public class WipeoutGame : BaseMultiDevice
         {
             LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
             isGameRunning = false;
-            gameTimer.Dispose();
+            CancelTargetThread();
             LogData("starting clearing active devices");
             udpHandlers.ForEach(x => x.activeDevices.Clear());
             LogData("End clearing active devices");
@@ -93,65 +97,73 @@ public class WipeoutGame : BaseMultiDevice
         handler.BeginReceive(data => ReceiveCallback(data, handler));
     }
 
-    private void GameLoop(object state)
+    private async Task GameLoop(CancellationToken cancellationToken)
     {
-
-        if (!isGameRunning)
+        while (!cancellationToken.IsCancellationRequested && isGameRunning)
         {
-            return;
-        }
-        LogData($"currentAngle:{currentAngle} angelstep {angleStep}");
-        //if (currentAngle == 360 && currentAngle >= 360 - angleStep)
-        if ((currentAngle >= 360) || (currentAngle <= 0))
-        {
+            LogData($"currentAngle:{currentAngle} angleStep {angleStep}");
 
-            updateScore(Score + 1);
-            revolutions += 1;
-            //   currentAngle = currentAngle >= 370? currentAngle - 360: currentAngle + 360;
-            angleStep = -1 * angleStep;
-            if (currentAngle <= 0)
+            if ((currentAngle >= 360) || (currentAngle <= 0))
             {
-                angleStep = angleStep <= 0 ? -1 * angleStep : angleStep;
+                updateScore(Score + 1);
+                revolutions += 1;
+                angleStep = -angleStep;
             }
-            else
+
+            if (revolutions == config.Maxiterations)
             {
-                angleStep = angleStep <= 0 ? angleStep : -1 * angleStep;
+                isGameRunning = false;
+                IterationWon();
+                break;
             }
-            LogData($"rovolution done detected:{currentAngle} angelstep {angleStep} Score {Score}");
+
+            obstaclePositions.Clear();
+            currentAngle += angleStep;
+            MoveObstacles();
+
+            
+            foreach (var handler in udpHandlers)
+            {
+                for (int i = 0; i < handler.DeviceList.Count; i++)
+                {
+                    handler.DeviceList[i] = ColorPaletteone.Green;
+                }
+            }
+            foreach (var handler in udpHandlers)
+            {
+                handler.activeDevices.Clear();
+            }
+            if (!isGameRunning)
+            {
+                break;
+            }
+            logger.Log($"cleared Active devices:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
+            foreach (int pos in obstaclePositions)
+            {
+                int actualHandlerPos = base.deviceMapping[pos].deviceNo;
+                base.deviceMapping[pos].udpHandler.DeviceList[actualHandlerPos] = ColorPaletteone.Red;
+                base.deviceMapping[pos].udpHandler.activeDevices.Add(actualHandlerPos);
+
+            }
+            logger.Log($"Active devices filling handler:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
+
+            SendColorToUdpAsync();
+            int waitTime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
+            try
+            {
+                await Task.Delay(waitTime, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // Task was canceled
+                break;
+            }
         }
 
-
-
-        if (revolutions == config.Maxiterations)
-        {
-            isGameRunning = false;
-            gameTimer.Dispose();
-            revolutions = 0;
-            IterationWon();
-            return;
-        }
-
-
-        obstaclePositions.Clear();
-        foreach (var handler in udpHandlers)
-        {
-            handler.activeDevices.Clear();
-        }
-        currentAngle += angleStep; // Adjust angle based on direction
-        MoveObstacles();
-        UpdateGrid();
-        SendColorToUdpAsync();
-
-        if (!isGameRunning)
-        {
-            return;
-        }
-        //Thread.Sleep(config.Maxiterations / 2 - config.ReductionTimeEachLevel * Level);
-        int waittime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
-        Thread.Sleep(waittime);
-
-        GameLoop(null);
+        // Cleanup after game loop ends
+        OnEnd();
     }
+
 
     private void MoveObstacles()
     {
@@ -220,23 +232,17 @@ public class WipeoutGame : BaseMultiDevice
 
     private void UpdateGrid()
     {
-        foreach (var handler in udpHandlers)
-        {
-            for (int i = 0; i < handler.DeviceList.Count; i++)
-            {
-                handler.DeviceList[i] = ColorPaletteone.Green;
-            }
-        }
+       
+    }
+    protected  void CancelTargetThread()
+    {
+        _cancellationTokenSource?.Cancel(); // Cancel the running task
+        _cancellationTokenSource?.Dispose(); // Dispose of the token source
+        _cancellationTokenSource = null;
 
-        foreach (int pos in obstaclePositions)
-        {
-            int actualHandlerPos = base.deviceMapping[pos].deviceNo;
-            base.deviceMapping[pos].udpHandler.DeviceList[actualHandlerPos] = ColorPaletteone.Red;
-            base.deviceMapping[pos].udpHandler.activeDevices.Add(actualHandlerPos);
-        }
     }
     protected override void OnEnd()
     {
-       gameTimer.Dispose();
+             base.OnEnd();
     }
 }
