@@ -1,27 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Web.WebView2.Core;
-using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 using System.Threading;
 using Timer = System.Threading.Timer;
 using scorecard.lib;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Drawing;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
-using System.Diagnostics.Eventing.Reader;
-using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Configuration;
 using System.Reflection;
 using log4net;
-using log4net.Config;
 public abstract class BaseGame
 {
+    private GameStatusPublisher statusPublisher;
     TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
     protected List<UdpHandler> udpHandlers;
     //protected Dictionary<UdpHandler, List<string>> handlerDevices;
@@ -47,7 +36,7 @@ public abstract class BaseGame
         set
         {
             status = value;
-
+            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status,IterationTime);
             OnStatusChanged(status);
 
         }
@@ -58,7 +47,7 @@ public abstract class BaseGame
         set
         {
             level = value;
-
+            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime);
             OnLevelChanged(level);
 
         }
@@ -69,6 +58,7 @@ public abstract class BaseGame
         set
         {
             score = value;
+            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime);
             OnScoreChanged(score);
             //labelScore.Text = $"Score: {score}";
             LogData($"Score: {score}");
@@ -79,7 +69,7 @@ public abstract class BaseGame
         get { return lifeLine; }
         set
         {
-            lifeLine = value;
+            lifeLine = value; statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime);
             OnLifelineChanged(value);
             //  LogData($"GameLost lifeLine: {lifeLine}");
         }
@@ -118,19 +108,19 @@ public abstract class BaseGame
     private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     public void lightonoff(bool on)
     {
-       // if (!Debugger.IsAttached)
+        if (!config.isTestMode)
         {
             var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
             plug.OutletPowered = !on;
             plug.OutletPowered = on;
         }
     }
-    public BaseGame(GameConfig config)
+    public BaseGame(GameConfig co)
     {
-        this.config = config;
-
-        //  this.config.MaxPlayers = 3;
-
+        logger.Log("basegame constructor");
+        this.config = co;
+        statusPublisher = new GameStatusPublisher(config.gameEngineIp); // Replace with your IP and port
+        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime);
         musicPlayer = new MusicPlayer("content/background_music.wav");
         
         
@@ -143,21 +133,11 @@ public abstract class BaseGame
                 udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i+1}"));
             }
             Console.WriteLine("Game starting in 3... 2... 1...");
-            musicPlayer.Announcement(!Debugger.IsAttached?config.introAudio: "content/hit2.wav");
+            musicPlayer.Announcement(config.isTestMode?config.introAudio: "content/hit2.wav");
             gameColors = getColorList();
     }
-    //private void initializeDevices()
-    //{
-    //     handlerDevices = new Dictionary<UdpHandler, List<string>>();
-    //    activeIndices = new Dictionary<UdpHandler, HashSet<int>>();
+  
 
-    //    foreach (var handler in udpHandlers)
-    //    {
-    //        handlerDevices[handler] = handler.DeviceList;
-    //        activeIndices[handler] = new HashSet<int>();
-
-    //    }
-    //}
     public void StartGame()
     {
        
@@ -236,7 +216,9 @@ public abstract class BaseGame
         Thread.Sleep(2000);
         
         lightonoff(false);
+
         Status = GameStatus.Completed;
+        
 
     }
     protected virtual void Initialize() { }

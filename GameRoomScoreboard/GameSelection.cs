@@ -1,23 +1,11 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Configuration;
-using System.Threading;
 using scorecard.lib;
-using System.Net.Http;
-using System.Security.Cryptography;
-using RestSharp;
-using System.Text.Json;
 using System.Diagnostics;
-using Lib;
+using System.Text;
+using System.Net.Http;
+using System.Text.Json;
 namespace scorecard
 {
     public partial class GameSelection : Form
@@ -25,12 +13,12 @@ namespace scorecard
         private ScorecardForm scorecardForm;
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
-       // Logger logger = new AsyncLogger("scorecard");
-
+        // Logger logger = new AsyncLogger("scorecard");
+        ScoreboardListener udpHandler = new ScoreboardListener();
         public GameSelection()
         {
            
-        InitializeComponent();
+             InitializeComponent();
             StartCheckInTimer();
             if (!Debugger.IsAttached)
             {
@@ -82,6 +70,59 @@ namespace scorecard
 
                
                 };
+            udpHandler.BeginReceive(data => ReceiveCallback(data));
+
+        }
+
+        private void ReceiveCallback(byte[] receivedBytes)
+        {
+            string receivedData = Encoding.UTF8.GetString(receivedBytes);
+
+            var gameMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<GameMessage>(receivedData);
+            scorecardForm.UpdateScoreBoard( gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
+            foreach (var p in players)
+            {
+                p.LevelPlayed = gameMessage.Level;
+                p.Points = gameMessage.Score;
+                if (gameMessage.Status == GameStatus.Completed)
+                {
+                    p.playerEndTime = DateTime.Now;
+
+                }
+
+            }
+            HandleSattusChange(gameMessage.Status);
+            udpHandler.BeginReceive(data => ReceiveCallback(data));
+            //  CurrentGame_StatusChanged(null, gameMessage.Status);
+        }
+        private void UpdateWristBandStatus(List<Player> players)
+        {
+            foreach (var item in players)
+            {
+                item.playerEndTime = DateTime.Now;
+            }
+            var request = new
+            {
+                players = players
+            };
+
+            // Serialize the object to JSON
+            string jsonRequest = JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented = true });
+            logger.Log(jsonRequest);
+
+            var httpClient = new HttpClient { BaseAddress = new Uri(ConfigurationSettings.AppSettings["server"]) };
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = httpClient.PostAsync("playerScore/addPlayerScores", content);
+                logger.Log(response.Result.IsSuccessStatusCode ? "" : "Error inserting data into Database!");
+            }
+            catch (Exception ex)
+            {
+                logger.Log("An error occurred: " + ex.Message);
+                // "Error communicating with API";
+            }
 
         }
         private System.Windows.Forms.Timer checkInTimer;
@@ -122,6 +163,7 @@ namespace scorecard
                 webView2.CoreWebView2.Reload();
             }
         }
+      
         private void InitializeScorecardForm()
         {
             // Find the secondary screen
@@ -164,26 +206,60 @@ namespace scorecard
             logger.Log($"receive message from front end message{message}");
             if (message.StartsWith("start"))
             {
-                
-                string game = message.Split(':')[1];
-               
+                string game = message.Split(':')[1];               
                 int noofplayers = int.Parse(message.Split(':')[2]);
-                scorecardForm.StartGame(game, Waitingplayers);
-                scorecardForm.currentGame.StatusChanged += CurrentGame_StatusChanged;
-                  
+                
+                if (ConfigurationSettings.AppSettings["gamingEnginePath"].Length>0)
+                {
+                    Task.Run(() => StartGame(new string[] { game, noofplayers.ToString() }, ConfigurationSettings.AppSettings["gamingEnginePath"]));
+                    Thread.Sleep(1000);
+                }
+                udpHandler.SendStartGameMessage(message);
             }
         }
-
-        private void CurrentGame_StatusChanged(object sender, string status)
+        static void StartGame(string[] args,string  exePath)
         {
+            // Path to the executable
+            //string exePath = @"C:\Path\To\YourExecutable.exe";
+
+            // Arguments to pass to the executable
+            string arguments = $"\"{args[0]}\" {args[1]} {ConfigurationSettings.AppSettings["isTestMode"]}";
+
+            // Create a new process start information
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = exePath,     // The path of the executable
+                Arguments = arguments,  // The arguments to pass
+                UseShellExecute = false, // Set to true if you need to use the shell to start the process
+                RedirectStandardOutput = true, // To capture the output
+                RedirectStandardError = true,  // To capture errors
+                CreateNoWindow = true, // Set to true if you don't want a new window to be created
+                
+        };
+            startInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
+            // Start the process
+            using (Process process = Process.Start(startInfo))
+            {
+                // Optionally, capture the output
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+               logger.LogError("Output: " + output);
+                logger.LogError("Error: " + error);
+            }
+        }
+        private void HandleSattusChange(string status)
+        {
+           
             if (scorecardForm != null)
             {
                 util.uiupdate($"window.updateStaus('{status}')", webView2);
                 logger.Log($"gameselection-receive status change message in select form status:{status}");
                 if (status == GameStatus.Completed)
                 {
-                    
 
+                    UpdateWristBandStatus(players);
                     players.Clear();
                  //   Waitingplayers.Clear(); // Clear the waiting list
                     RefreshWebView(); // Refresh WebView2
@@ -208,15 +284,35 @@ namespace scorecard
         }
 
 
-
-
-        private void OnCardDetected(object sender, EventArgs e)
+        private string GetGameDescription(string gameType)
         {
-            // Dispatcher.Invoke(() =>
-            //{
-            //  webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{this.uid}')");
-
-            //});
+            switch (gameType)
+            {
+                case "Target":
+                    return "In the Target Game, hit the highlighted targets as quickly as possible. Each successful hit scores points.";
+                case "Smash":
+                    return "In the Smash Game, smash the targets that light up. The faster you smash, the higher your score.";
+                case "Chaser":
+                    return "In the Chaser Game, chase and hit the moving targets. Stay quick and keep up to score points.";
+                case "FloorGame":
+                    return "Welcome to the LED Floor Game! Here's how to play: Avoid the blue line as it moves across the grid. Step on the green tiles to score points. Each level gets faster, so stay sharp! Touch the blue line and it's game over. Survive all iterations to win! Good luck, and have fun!";
+                case "PatternBuilder":
+                    return "Players must recreate a pattern based off memory as quickly as possible. Each correct pattern earns a point.";
+                case "wipeout":
+                    return "Welcome to the LED Wipeout Game! Here's how to play: Your goal is to avoid the rotating obstacles and survive as long as possible. Obstacles will move around the center of the grid. Each full rotation without a collision increases your score. Be careful, the speed and direction of rotation can change, so stay alert! If you touch an obstacle, the game ends. Survive through all iterations to win the game. Good luck, and get ready for the challenge!";
+                default:
+                    return "";
+            }
         }
+
+
+    }
+    class GameMessage
+    {
+        public int Score;
+        public int LifeLine;
+        public int Level;
+        public string Status;
+        public int IterationTime;
     }
 }

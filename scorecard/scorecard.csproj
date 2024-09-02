@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D172D603-0E23-47AF-8368-07A209823A8C}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>scorecard</RootNamespace>
     <AssemblyName>scorecard</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
@@ -165,16 +165,10 @@
     <Compile Include="BaseSingleDevice.cs" />
     <Compile Include="Chaser.cs" />
     <Compile Include="content\snakes.cs" />
+    <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\PlayerScore.cs" />
-    <Compile Include="lib\util.cs" />
     <Compile Include="model\Player.cs" />
     <Compile Include="TileHunt.cs" />
-    <Compile Include="GameSelection.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="GameSelection.Designer.cs">
-      <DependentUpon>GameSelection.cs</DependentUpon>
-    </Compile>
     <Compile Include="lib\Animations.cs" />
     <Compile Include="lib\BaseGame.cs" />
     <Compile Include="FloorGame.cs" />
@@ -187,12 +181,6 @@
     <Compile Include="PatternBuilder.cs" />
     <Compile Include="Smash.cs" />
     <Compile Include="Target.cs" />
-    <Compile Include="ScorecardForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ScorecardForm.Designer.cs">
-      <DependentUpon>ScorecardForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="lib\ColorPalette.cs" />
     <Compile Include="lib\MusicPlayer.cs" />
     <Compile Include="lib\UdpHandler.cs" />
@@ -276,12 +264,6 @@
     <Content Include="logs\TextFile1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="GameSelection.resx">
-      <DependentUpon>GameSelection.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ScorecardForm.resx">
-      <DependentUpon>ScorecardForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
