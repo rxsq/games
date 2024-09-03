@@ -14,6 +14,7 @@ namespace scorecard.lib
         public static string Paused = "Paused";
         public static string Completed = "Completed";
         public static string Failed = "Failed";
+        public static string ReachSafeZone = "ReachSafeZone";
     }
 
 }

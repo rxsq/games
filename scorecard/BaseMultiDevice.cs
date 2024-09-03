@@ -70,6 +70,10 @@ namespace scorecard
             }
         }
 
+        protected override async void StartAnimition()
+        {
+            AnimateGrowth(ColorPaletteone.Pink);
+        }
         protected void AnimateGrowth(string color)
         {
 
@@ -78,7 +82,7 @@ namespace scorecard
                 var handler = udpHandlers[0];
                 int totalLights = handler.DeviceList.Count * udpHandlers.Count;
                 List<int> unchanged = new List<int>(Enumerable.Range(0, handler.DeviceList.Count * udpHandlers.Count));
-                for(double i = 0.00; i < totalLights; i++)
+                for(double i = 0.00; i < totalLights && isGameRunning; i++)
                 {
                     int random = new Random().Next(0, unchanged.Count);
                     int handlerIndex = unchanged[random] / handler.DeviceList.Count;
@@ -86,6 +90,7 @@ namespace scorecard
                     Console.WriteLine($"index {handlerIndex} position {position} random {random}");
                    udpHandlers[handlerIndex].DeviceList[unchanged[random] - handler.DeviceList.Count * handlerIndex] = color;
                     unchanged.RemoveAt(random);
+                    
                     udpHandlers[handlerIndex].SendColorsToUdp(udpHandlers[handlerIndex].DeviceList);
                     Thread.Sleep(Convert.ToInt32(38.00 - i/6));
                 }

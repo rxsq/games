@@ -75,6 +75,9 @@ class Program
                 case "Wipeout":
                     currentGame = new WipeoutGame(gameConfig);
                     break;
+                case "TileSiege":
+                    currentGame = new TileSiege(gameConfig, 10);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;

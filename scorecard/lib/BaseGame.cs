@@ -280,7 +280,7 @@ public abstract class BaseGame
     {
         isGameRunning = false;
         udpHandlers.ForEach(x => x.StopReceive());
-        LogData("All targets hit");
+        LogData($"All targets hit iterations:{iterations} passed");
         if (config.timerPointLoss)
             iterationTimer.Dispose();
         iterations = iterations + 1;
