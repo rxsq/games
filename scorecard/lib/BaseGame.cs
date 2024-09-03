@@ -36,7 +36,7 @@ public abstract class BaseGame
         set
         {
             status = value;
-            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status,IterationTime);
+            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status,IterationTime,config.GameName );
             OnStatusChanged(status);
 
         }
@@ -47,7 +47,7 @@ public abstract class BaseGame
         set
         {
             level = value;
-            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime);
+            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime, config.GameName);
             OnLevelChanged(level);
 
         }
@@ -58,7 +58,7 @@ public abstract class BaseGame
         set
         {
             score = value;
-            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime);
+            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime, config.GameName);
             OnScoreChanged(score);
             //labelScore.Text = $"Score: {score}";
             LogData($"Score: {score}");
@@ -69,7 +69,7 @@ public abstract class BaseGame
         get { return lifeLine; }
         set
         {
-            lifeLine = value; statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime);
+            lifeLine = value; statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName);
             OnLifelineChanged(value);
             //  LogData($"GameLost lifeLine: {lifeLine}");
         }
@@ -120,7 +120,7 @@ public abstract class BaseGame
         logger.Log("basegame constructor");
         this.config = co;
         statusPublisher = new GameStatusPublisher(config.gameEngineIp); // Replace with your IP and port
-        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime);
+        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName);
         gameColors = getColorList();
         musicPlayer = new MusicPlayer("content/background_music.wav");
         
@@ -135,7 +135,7 @@ public abstract class BaseGame
             }
             Console.WriteLine("Game starting in 3... 2... 1...");
             Task.Run(() => StartAnimition());
-            musicPlayer.Announcement(config.isTestMode?config.introAudio: "content/hit2.wav");
+            musicPlayer.Announcement(config.isTestMode? "content/hit2.wav": config.introAudio);
            
     }
   

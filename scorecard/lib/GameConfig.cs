@@ -31,5 +31,7 @@ namespace scorecard.lib
 
         public int MaxLifeLines { get; set; } = 5;
 
+        public string GameName { get; set; } = "GameName";
+
     }
 }

@@ -42,7 +42,7 @@ class Program
                 gameConfig.NoofLedPerdevice = 1;
 
             }
-           
+           gameConfig.GameName = gameType;
             if (gameConfig == null)
             {
                 MessageBox.Show("Failed to start the game due to configuration issues.");

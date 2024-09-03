@@ -21,7 +21,7 @@ public class GameStatusPublisher
         Task.Run(() => ListenForAcknowledgment());
     }
 
-    public void PublishStatus(int score, int lifeLine, int level, string status,int terationTime)
+    public void PublishStatus(int score, int lifeLine, int level, string status,int terationTime, string game1)
     {
         var message = new
         {
@@ -29,7 +29,8 @@ public class GameStatusPublisher
             LifeLine = lifeLine,
             Level = level,
             Status = status,
-            IterationTime = terationTime
+            IterationTime = terationTime,
+            game = game1
         };
 
         string jsonMessage = JsonConvert.SerializeObject(message);

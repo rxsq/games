@@ -37,7 +37,7 @@ public class TileSiege : BaseMultiDevice
         //    logger.Log("Starting killer line task");
         //    killerLineTask = Task.Run(() => drawkillingline(null));
         //}
-        Task.Run(() => PlayCountdown((IterationTime/1000)-1));
+       // Task.Run(() => PlayCountdown((IterationTime/1000)-1));
         foreach (var handler in udpHandlers)
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
@@ -55,8 +55,8 @@ public class TileSiege : BaseMultiDevice
     protected override void OnIteration()
     {
         ifSafeZoneTrgToStart = false;
-        SendSameColorToAllDevice(ColorPaletteone.NoColor, true);
-
+        SendSameColorToAllDevice(ColorPaletteone.Blue, true);
+        logger.Log("Iteration started");
         CreateSafeZones();
         CreateTargetTiles();
 
@@ -112,7 +112,7 @@ public class TileSiege : BaseMultiDevice
             {
                 int randomTile = random.Next(0, handler.DeviceList.Count-1);
 
-                while (handler.activeDevices.Contains(randomTile) || IsSafeZoneTile(randomTile))
+                while (handler.activeDevices.Contains(randomTile) || IsSafeZoneTile(randomTile,handler))
                 {
                     randomTile = random.Next(0, handler.DeviceList.Count - 1);
                 }
@@ -130,9 +130,10 @@ public class TileSiege : BaseMultiDevice
 
     }
 
-    private bool IsSafeZoneTile(int pos)
+    private bool IsSafeZoneTile(int pos, UdpHandler handler)
     {
-        return obstaclePositions.Contains(pos);
+        return handler.activeDevicesGroup.ContainsKey(pos);
+        //return obstaclePositions.Contains(pos);
     }
 
     private bool IsValidSafeZonePosition(int pos)
