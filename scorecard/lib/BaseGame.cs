@@ -36,7 +36,7 @@ public abstract class BaseGame
         set
         {
             status = value;
-            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status,IterationTime,config.GameName );
+            statusPublisher.PublishStatus(score, lifeLine, Level, status,IterationTime,config.GameName );
             OnStatusChanged(status);
 
         }
@@ -47,7 +47,7 @@ public abstract class BaseGame
         set
         {
             level = value;
-            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime, config.GameName);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName);
             OnLevelChanged(level);
 
         }
@@ -58,7 +58,7 @@ public abstract class BaseGame
         set
         {
             score = value;
-            statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, status, IterationTime, config.GameName);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName);
             OnScoreChanged(score);
             //labelScore.Text = $"Score: {score}";
             LogData($"Score: {score}");
