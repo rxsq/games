@@ -66,6 +66,7 @@ public class TileSiege : BaseMultiDevice
     #region setting targets
     private void CreateSafeZones()
     {
+        obstaclePositions.Clear();
         int totalSafeZones = 0;
 
         while (totalSafeZones < config.MaxPlayers)
