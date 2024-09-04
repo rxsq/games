@@ -115,7 +115,7 @@ public class WipeoutGame : BaseMultiDevice
                 
                 angleStep = -angleStep;
                 if (currentAngle - angleStep > 360)
-                    currentAngle = currentAngle - angleStep;
+                    currentAngle = currentAngle - 5;
             }
 
             if (revolutions == config.Maxiterations)
