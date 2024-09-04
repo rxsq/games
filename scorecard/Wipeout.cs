@@ -23,10 +23,14 @@ public class WipeoutGame : BaseMultiDevice
     private int revolutions;
     private int totalHalfTiles;
     private bool isReversed; // Track the direction of movement
+    private double secondsPerRound;
+    private int maxRoundsPerLevel;
 
-    public WipeoutGame(GameConfig config) : base(config)
+
+    public WipeoutGame(GameConfig config, double secondsPerRound) : base(config)
     {
         config.timerPointLoss = false;
+        this.secondsPerRound = secondsPerRound;
         Initialize();
     }
 
@@ -48,9 +52,18 @@ public class WipeoutGame : BaseMultiDevice
         revolutions = 0;
         totalHalfTiles = config.columns * centerY;
         isReversed = false;
-    }
+}
     private CancellationTokenSource _cancellationTokenSource;
 
+    protected override void OnIteration()
+    {
+        if(iterationTimer != null)
+        {
+            iterationTimer.Dispose();
+        }
+
+        maxRoundsPerLevel = (int)(IterationTime / secondsPerRound);
+    }
     protected override void OnStart()
     {
         _cancellationTokenSource = new CancellationTokenSource();
@@ -118,11 +131,11 @@ public class WipeoutGame : BaseMultiDevice
                     currentAngle = currentAngle - 5;
             }
 
-            if (revolutions == config.Maxiterations)
+            if (revolutions == maxRoundsPerLevel)
             {
                 isGameRunning = false;
                 IterationWon();
-                break;
+                return;
             }
 
             obstaclePositions.Clear();
@@ -146,7 +159,7 @@ public class WipeoutGame : BaseMultiDevice
             {
                 handler.activeDevices.Clear();
             }
-            int waitTime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
+            int waitTime = Convert.ToInt32(secondsPerRound / 36);
             logger.Log($"cleared Active devices:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
             StringBuilder sb = new StringBuilder();
             foreach (int pos in obstaclePositions)

@@ -73,7 +73,7 @@ class Program
                     currentGame = new Snakes(gameConfig, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                     break;
                 case "Wipeout":
-                    currentGame = new WipeoutGame(gameConfig);
+                    currentGame = new WipeoutGame(gameConfig, 9);
                     break;
                 case "TileSiege":
                     currentGame = new TileSiege(gameConfig, 10);
