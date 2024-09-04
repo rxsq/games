@@ -74,15 +74,20 @@ public class WipeoutGame : BaseMultiDevice
                                           .Where(position => position >= 0)
                                           .ToList();
 
-        LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
-        if (handler.activeDevices.Exists(x => positions.Contains(x)) && isGameRunning)
+      //  LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+        if (!isGameRunning)
+            return;
+        if (handler.activeDevices.Exists(x => positions.Contains(x)))
         {
             LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
             isGameRunning = false;
-            CancelTargetThread();
             LogData("starting clearing active devices");
             udpHandlers.ForEach(x => x.activeDevices.Clear());
-            LogData("End clearing active devices");
+           // LogData("End clearing active devices");
+            CancelTargetThread();        
+           
+            LogData($"after clearing: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+
             // handler.activeDevices.Clear();            
             BlinkAllAsync(1);           
             IterationLost("Lost Iteration");
@@ -107,7 +112,10 @@ public class WipeoutGame : BaseMultiDevice
             {
                 updateScore(Score + 1);
                 revolutions += 1;
+                
                 angleStep = -angleStep;
+                if (currentAngle - angleStep > 360)
+                    currentAngle = currentAngle - angleStep;
             }
 
             if (revolutions == config.Maxiterations)
@@ -129,15 +137,18 @@ public class WipeoutGame : BaseMultiDevice
                     handler.DeviceList[i] = ColorPaletteone.Green;
                 }
             }
+           
+            if (!isGameRunning)
+            {
+                return;
+            }
             foreach (var handler in udpHandlers)
             {
                 handler.activeDevices.Clear();
             }
-            if (!isGameRunning)
-            {
-                break;
-            }
+            int waitTime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
             logger.Log($"cleared Active devices:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
+            StringBuilder sb = new StringBuilder();
             foreach (int pos in obstaclePositions)
             {
                 int actualHandlerPos = base.deviceMapping[pos].deviceNo;
@@ -145,10 +156,15 @@ public class WipeoutGame : BaseMultiDevice
                 base.deviceMapping[pos].udpHandler.activeDevices.Add(actualHandlerPos);
 
             }
-            logger.Log($"Active devices filling handler:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
+            foreach(var handler in udpHandlers)
+            {
+                sb.Append(handler.name).Append(":").Append(string.Join(",", handler.activeDevices)).Append(";");
+            }
 
+           // logger.Log($"Active devices filling handler:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
+            logger.Log($"Active devices filling handler {sb.ToString()} wait time:{waitTime}");
             SendColorToUdpAsync();
-            int waitTime = Convert.ToInt32((IterationTime) / Math.Pow(40.00, 1 + Convert.ToDouble(level) / 12.5));
+           
             try
             {
                 await Task.Delay(waitTime, cancellationToken);
@@ -156,7 +172,7 @@ public class WipeoutGame : BaseMultiDevice
             catch (TaskCanceledException)
             {
                 // Task was canceled
-                break;
+                return;
             }
         }
 

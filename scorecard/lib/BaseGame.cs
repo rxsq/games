@@ -36,7 +36,7 @@ public abstract class BaseGame
         set
         {
             status = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status,IterationTime,config.GameName );
+            statusPublisher.PublishStatus(score, lifeLine, Level, status,IterationTime,config.GameName ,iterations);
             OnStatusChanged(status);
 
         }
@@ -47,7 +47,7 @@ public abstract class BaseGame
         set
         {
             level = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
             OnLevelChanged(level);
 
         }
@@ -58,7 +58,7 @@ public abstract class BaseGame
         set
         {
             score = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
             OnScoreChanged(score);
             //labelScore.Text = $"Score: {score}";
             LogData($"Score: {score}");
@@ -69,7 +69,7 @@ public abstract class BaseGame
         get { return lifeLine; }
         set
         {
-            lifeLine = value; statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName);
+            lifeLine = value; statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
             OnLifelineChanged(value);
             //  LogData($"GameLost lifeLine: {lifeLine}");
         }
@@ -120,7 +120,7 @@ public abstract class BaseGame
         logger.Log("basegame constructor");
         this.config = co;
         statusPublisher = new GameStatusPublisher(config.gameEngineIp); // Replace with your IP and port
-        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName);
+        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName, iterations);
         gameColors = getColorList();
         musicPlayer = new MusicPlayer("content/background_music.wav");
         
@@ -166,6 +166,7 @@ public abstract class BaseGame
     {
         
     }
+    //private CancellationTokenSource _cancellationTokenIterationTimer;
     protected virtual void IterationLost(object state)
     {
         isGameRunning = false;
@@ -343,13 +344,13 @@ public abstract class BaseGame
     {
         try
         {
-            Console.WriteLine($"before change: {string.Join(",", handler.DeviceList)}");
+          //  Console.WriteLine($"before change: {string.Join(",", handler.DeviceList)}");
             foreach (int x in deviceNos)
             {
                 handler.DeviceList[x] = color;
             }
             handler.SendColorsToUdp(handler.DeviceList);
-            Console.WriteLine($"after change: {string.Join(",", handler.DeviceList)}");
+            //Console.WriteLine($"after change: {string.Join(",", handler.DeviceList)}");
         }
         catch (Exception ex)
         {

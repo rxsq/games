@@ -57,6 +57,11 @@ public class TileSiege : BaseMultiDevice
         ifSafeZoneTrgToStart = false;
         SendSameColorToAllDevice(ColorPaletteone.Blue, true);
         logger.Log("Iteration started");
+        obstaclePositions.Clear();
+        foreach (var handler in udpHandlers)
+        {
+            handler.activeDevicesGroup.Clear();
+        }
         CreateSafeZones();
         CreateTargetTiles();
 
@@ -66,7 +71,7 @@ public class TileSiege : BaseMultiDevice
     #region setting targets
     private void CreateSafeZones()
     {
-        obstaclePositions.Clear();
+        
         int totalSafeZones = 0;
 
         while (totalSafeZones < config.MaxPlayers)
@@ -80,7 +85,7 @@ public class TileSiege : BaseMultiDevice
 
             var group = GetSafeZoneGroup(origMain);
             obstaclePositions.AddRange(group);
-
+            logger.Log($"Safe Zone created at positions: {string.Join(",", group)}");
             List<int> ActualGroup = new List<int>();
 
             foreach (var item in group)
@@ -88,14 +93,17 @@ public class TileSiege : BaseMultiDevice
                 if (base.deviceMapping.ContainsKey(item))
                     ActualGroup.Add(base.deviceMapping[item].deviceNo);
             }
+            LogData($"Safe Zone created at aCTUAL gROUP: {string.Join(",", ActualGroup)}");
             foreach (var item in group)
             {
                 int actualHandlerPos = base.deviceMapping[item].deviceNo;
-                base.deviceMapping[item].udpHandler.DeviceList[actualHandlerPos] = ColorPaletteone.Green;
-                base.deviceMapping[item].udpHandler.activeDevicesGroup.Add(actualHandlerPos, ActualGroup);
+                UdpHandler handler = base.deviceMapping[item].udpHandler;
+                handler.DeviceList[actualHandlerPos] = ColorPaletteone.Green;
+                handler.activeDevicesGroup.Add(actualHandlerPos, ActualGroup);
                 base.deviceMapping[item].isActive = true;
             }
             LogData($"Safe Zone created at positions: {string.Join(",", obstaclePositions)}");
+            LogData($"Safe Zone {totalSafeZones} created at actual positions: {string.Join(",", obstaclePositions)}");
             totalSafeZones++;
         }
     }
@@ -104,6 +112,7 @@ public class TileSiege : BaseMultiDevice
     {
        
         int targetTilesPerPlayerlocal = (int)config.MaxPlayers * this.targetTilesPerPlayer/ udpHandlers.Count;
+        logger.Log($"STARTING CreateTargetTiles targetTilesPerPlayerlocal: {targetTilesPerPlayerlocal}");
         foreach (var handler in udpHandlers)
         {
             handler.activeDevices.Clear();
@@ -215,11 +224,32 @@ public class TileSiege : BaseMultiDevice
                     LogData($"Touch detected: {string.Join(",", l2)}");
                     ChnageColorToDevice(ColorPaletteone.NoColor, l2, handler);
                     updateScore(Score + l2.Count / 4);
-                    foreach (var item in l2)
+                StringBuilder sb = new StringBuilder();
+                foreach (var item in udpHandlers)
+                {
+                    sb.Append(item.name);
+                    foreach(var item1 in item.activeDevicesGroup)
+                    {
+                        sb.Append(item1.Key).Append(",");
+                    }
+                    
+                }
+                logger.Log("before clearing touched activeDevicesGroup:" + sb.ToString()  );
+                     foreach (var item in l2)
                     {
                         handler.activeDevicesGroup.Remove(item);
+                    
                     }
-                    LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup)}");
+                   sb.Clear();
+                    foreach (var item in udpHandlers)
+                    {
+                    sb.Append(item.name);
+                    foreach (var item1 in item.activeDevicesGroup)
+                    {
+                        sb.Append(item1.Key).Append(",");
+                    }
+                }
+                    logger.Log("after clearing touched activeDevicesGroup:" + sb.ToString());
                 }
 
             }
@@ -250,7 +280,7 @@ public class TileSiege : BaseMultiDevice
                 if (udpHandlers.All(x => x.activeDevices.Count == 0))
                 {
                     // All targets are cleared; players must now reach the safe zone
-                    Status = GameStatus.ReachSafeZone;
+                  //  Status = GameStatus.ReachSafeZone;
                     LogData("All targets cleared. Players must reach the safe zone!");
                     ifSafeZoneTrgToStart = true;
                     //base.IterationWon();
@@ -258,9 +288,14 @@ public class TileSiege : BaseMultiDevice
                 }
                 #endregion
             }
-
+            
+       
         if (udpHandlers.Where(x => x.activeDevicesGroup.Count > 0).Count() == 0)
-             IterationWon();        
+        {
+            
+            IterationWon();
+
+        }
         else
             handler.BeginReceive(data => ReceiveCallback(data, handler));
     }

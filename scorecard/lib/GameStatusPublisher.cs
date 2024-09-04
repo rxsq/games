@@ -21,7 +21,7 @@ public class GameStatusPublisher
         Task.Run(() => ListenForAcknowledgment());
     }
 
-    public void PublishStatus(int score, int lifeLine, int level, string status,int terationTime, string game1)
+    public async void PublishStatus(int score, int lifeLine, int level, string status,int terationTime, string game1, int iteration)
     {
         var message = new
         {
@@ -35,8 +35,8 @@ public class GameStatusPublisher
 
         string jsonMessage = JsonConvert.SerializeObject(message);
         byte[] data = Encoding.UTF8.GetBytes(jsonMessage);
-        udpClient.Send(data, data.Length, remoteEndPoint);
-        logger.Log("Status published: " + jsonMessage);
+        Task.Run(() => udpClient.Send(data, data.Length, remoteEndPoint));
+         logger.Log("Status published: " + jsonMessage);
     }
 
     private void ListenForAcknowledgment()

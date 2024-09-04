@@ -285,7 +285,7 @@ public class TileHunt : BaseMultiDevice
                 {
                     handler.activeDevicesGroup.Remove(item);
                 }
-                LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup)}");
+                LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup.Values)}");
             }
             else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)))
             {
@@ -301,6 +301,7 @@ public class TileHunt : BaseMultiDevice
         LogData($"{handler.name} processing received data");
         if (udpHandlers.Where(x => x.activeDevicesGroup.Count > 0).Count() == 0)
         {
+            LogData("Iteration won");
             IterationWon();
         }
         else
