@@ -50,8 +50,21 @@ class ElevenLabsTTS
 
     public static async Task CreateVoiceFiles(string[] args)
     {
-        string[] numbers = { "Twenty-nine", "Twenty-eight", "Twenty-seven", "Twenty-six", "Twenty-five", "Twenty-four", "Twenty-three", "Twenty-two", "Twenty-one", "Twenty", "Nineteen", "Eighteen", "Seventeen", "Sixteen", "Fifteen", "Fourteen", "Thirteen", "Twelve", "Eleven", "Ten", "Nine", "Eight", "Seven", "Six", "Five", "Four", "Three", "Two", "One" };
-
+        //string[] voiceFiles = { "Twenty-nine", "Twenty-eight", "Twenty-seven", "Twenty-six", "Twenty-five", "Twenty-four", "Twenty-three", "Twenty-two", "Twenty-one", "Twenty", "Nineteen", "Eighteen", "Seventeen", "Sixteen", "Fifteen", "Fourteen", "Thirteen", "Twelve", "Eleven", "Ten", "Nine", "Eight", "Seven", "Six", "Five", "Four", "Three", "Two", "One" };
+        string[] voiceFiles = {};
+        string fileTitle = "";
+        for(int i = 1; i < 6; i++)
+        {
+            voiceFiles.Append($"Life lost! {i.ToString()} lives left");
+            fileTitle = "lives_left";
+            await CreateVoiceFiles(voiceFiles);
+        }
+        for(int i = 1; i < 10; i++)
+        {
+            voiceFiles.Append($"Level {i.ToString()}");
+            fileTitle = "level";
+            await CreateVoiceFiles(voiceFiles);
+        }
         double initialStability = 0.8;
         double finalStability = 0.3;
         double initialSimilarityBoost = 0.7;
@@ -59,11 +72,11 @@ class ElevenLabsTTS
         double initialStyle = 0.1;
         double finalStyle = 1.0;
 
-        int totalNumbers = numbers.Length;
+        int totalNumbers = voiceFiles.Length;
         for (int i = 0; i < totalNumbers; i++)
         {
-            string textToConvert = numbers[i];
-            string outputFile = $"{textToConvert.Replace(" ", "_")}.mp3";
+            string textToConvert = voiceFiles[i];
+            string outputFile = $"{fileTitle}_{textToConvert.Replace(" ", "_")}.mp3";
 
             double stability = initialStability - (i * (initialStability - finalStability) / (totalNumbers - 1));
             double similarityBoost = initialSimilarityBoost + (i * (finalSimilarityBoost - initialSimilarityBoost) / (totalNumbers - 1));
