@@ -44,12 +44,11 @@ public class WipeoutGame : BaseMultiDevice
             grid[i] = ColorPaletteone.NoColor;
         }
         obstaclePositions = new List<int>();
-        centerX = config.columns / 2;
+        centerX =  config.columns / 2;
         centerY = rows / 2;
         radius = (rows / 2) + 1;
         angleStep = 10; // Adjust the angle step for smoother movement
         currentAngle = 1;
-        revolutions = 0;
         totalHalfTiles = config.columns * centerY;
         isReversed = false;
 }
@@ -57,12 +56,14 @@ public class WipeoutGame : BaseMultiDevice
 
     protected override void OnIteration()
     {
-        if(iterationTimer != null)
+        revolutions = 0;
+     
+        if (iterationTimer != null)
         {
             iterationTimer.Dispose();
         }
 
-        maxRoundsPerLevel = (int)(IterationTime / secondsPerRound);
+        maxRoundsPerLevel = (int)(IterationTime /(secondsPerRound*1000));
     }
     protected override void OnStart()
     {
@@ -123,14 +124,19 @@ public class WipeoutGame : BaseMultiDevice
 
             if ((currentAngle >= 360) || (currentAngle <= 0))
             {
-                updateScore(Score + 1);
                 revolutions += 1;
                 
                 angleStep = -angleStep;
                 if (currentAngle - angleStep > 360)
                     currentAngle = currentAngle - 5;
+                updateScore(Score + 1);
             }
 
+
+            obstaclePositions.Clear();
+            currentAngle += angleStep;
+            MoveObstacles();
+            LogData($"Revolutions: {revolutions} maxRoundsPerLevel: {maxRoundsPerLevel}");
             if (revolutions == maxRoundsPerLevel)
             {
                 isGameRunning = false;
@@ -138,11 +144,7 @@ public class WipeoutGame : BaseMultiDevice
                 return;
             }
 
-            obstaclePositions.Clear();
-            currentAngle += angleStep;
-            MoveObstacles();
 
-            
             foreach (var handler in udpHandlers)
             {
                 for (int i = 0; i < handler.DeviceList.Count; i++)
@@ -159,7 +161,7 @@ public class WipeoutGame : BaseMultiDevice
             {
                 handler.activeDevices.Clear();
             }
-            int waitTime = Convert.ToInt32(secondsPerRound / 36);
+            int waitTime = Convert.ToInt32((secondsPerRound *1000) / 36);
             logger.Log($"cleared Active devices:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
             StringBuilder sb = new StringBuilder();
             foreach (int pos in obstaclePositions)
@@ -175,7 +177,7 @@ public class WipeoutGame : BaseMultiDevice
             }
 
            // logger.Log($"Active devices filling handler:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
-            logger.Log($"Active devices filling handler {sb.ToString()} wait time:{waitTime}");
+            logger.Log($"Active devices filling handler {sb.ToString()} wait time inms:{waitTime}");
             SendColorToUdpAsync();
            
             try
