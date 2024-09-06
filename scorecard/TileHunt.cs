@@ -17,6 +17,9 @@ public class TileHunt : BaseMultiDevice
     private int killerSpeedReduction = 200;
     // private System.Threading.Timer gameTimer;
     private bool isReversed = false; // Track the direction of the killer line
+    private bool isPlayerImmune = false; // Flag to track player immunity
+    private Timer immunityTimer;         // Timer to manage immunity duration
+    private double globalImmunityDurationInSeconds = 1.0; // Duration for which the player is immune
 
     public TileHunt(GameConfig config, int killerSpeedReduction) : base(config)
     {
@@ -250,6 +253,66 @@ public class TileHunt : BaseMultiDevice
         Thread.Sleep(killerlineClipTime);
     }
 
+    //private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
+    //{
+    //    if (!isGameRunning)
+    //        return;
+
+    //    string receivedData = Encoding.UTF8.GetString(receivedBytes);
+    //    var positions = receivedData
+    //        .Select((value, index) => new { value, index })
+    //        .Where(x => x.value == 0x0A)
+    //        .Select(x => x.index - 2)
+    //        .Where(position => position >= 0)
+    //        .ToList();
+
+    //    if (positions.Count > 0)
+    //    {
+
+    //        List<int> l2 = new List<int>();
+
+    //        foreach (var position in positions)
+    //        {
+    //            if (handler.activeDevicesGroup.ContainsKey(position))
+    //            {
+    //                l2.AddRange(handler.activeDevicesGroup[position]);
+    //            }
+    //        }
+    //        if (l2.Count > 0)
+    //        {
+    //            LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
+    //            LogData($"Touch detected: {string.Join(",", l2)}");
+    //            ChnageColorToDevice(ColorPaletteone.NoColor, l2, handler);
+    //            updateScore(Score + l2.Count / 4);
+    //            foreach (var item in l2)
+    //            {
+    //                handler.activeDevicesGroup.Remove(item);
+    //            }
+    //            LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup.Values)}");
+    //        }
+    //        else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)))
+    //        {
+    //            isGameRunning = false;
+    //            LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
+    //            killerRowsDict[handler].Clear();
+    //            base.Score--;
+    //            IterationLost(null);
+    //            return;
+    //        }
+    //    }
+
+    //    LogData($"{handler.name} processing received data");
+    //    if (udpHandlers.Where(x => x.activeDevicesGroup.Count > 0).Count() == 0)
+    //    {
+    //        LogData("Iteration won");
+    //        IterationWon();
+    //    }
+    //    else
+    //    {
+    //        handler.BeginReceive(data => ReceiveCallback(data, handler));
+    //    }
+    //}
+
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
         if (!isGameRunning)
@@ -265,7 +328,6 @@ public class TileHunt : BaseMultiDevice
 
         if (positions.Count > 0)
         {
-           
             List<int> l2 = new List<int>();
 
             foreach (var position in positions)
@@ -275,6 +337,8 @@ public class TileHunt : BaseMultiDevice
                     l2.AddRange(handler.activeDevicesGroup[position]);
                 }
             }
+
+            // Handle player touches on active devices (targets)
             if (l2.Count > 0)
             {
                 LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
@@ -287,13 +351,26 @@ public class TileHunt : BaseMultiDevice
                 }
                 LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup.Values)}");
             }
+            // Handle touches on the killer blue line
             else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)))
             {
+                // Check if the player is immune
+                if (isPlayerImmune)
+                {
+                    LogData("Player touched blue line, but is immune.");
+                    return; // Ignore the touch if the player is immune
+                }
+
+                // The player loses a life if they touch the blue line
                 isGameRunning = false;
                 LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
                 killerRowsDict[handler].Clear();
-                base.Score--;
+                base.Score--; // Decrement the score
                 IterationLost(null);
+
+                // Start the immunity timer to prevent further life loss within the next second
+                StartImmunityTimer();
+
                 return;
             }
         }
@@ -308,5 +385,16 @@ public class TileHunt : BaseMultiDevice
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
+    }
+
+    private void StartImmunityTimer()
+    {
+        isPlayerImmune = true; // Set the player as immune
+        immunityTimer = new Timer((state) =>
+        {
+            isPlayerImmune = false; // Reset the immunity after the duration
+            immunityTimer.Dispose(); // Dispose of the timer once finished
+            LogData("Player immunity period ended.");
+        }, null, (int)(globalImmunityDurationInSeconds * 1000), Timeout.Infinite);
     }
 }
