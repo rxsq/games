@@ -12,6 +12,13 @@ public class WipeoutGame : BaseMultiDevice
 {
     private List<string> grid;
     private List<int> obstaclePositions;
+    private Dictionary<int, DateTime> obstacleCooldowns = new Dictionary<int, DateTime>();
+    private double immunityDurationInSeconds = 1.0; // Set the cooldown time (e.g., 1 second)
+    private DateTime lastOutTime = DateTime.MinValue;
+    private double globalOutCooldownInSeconds = 1.0; // Player can be out only once per second
+    private bool isPlayerImmune = false; // This flag indicates whether the player is immune
+    private Timer immunityTimer;         // Timer to handle the immunity period
+    private double globalImmunityDurationInSeconds = 1.0; // Duration for immunity after losing life
     private System.Threading.Timer gameTimer;
 
     private int centerX;
@@ -77,10 +84,50 @@ public class WipeoutGame : BaseMultiDevice
     }
 
 
+    //private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
+    //{
+    //    if (!isGameRunning)
+    //        return;
+    //    string receivedData = Encoding.UTF8.GetString(receivedBytes);
+    //    List<int> positions = receivedData.Select((value, index) => new { value, index })
+    //                                      .Where(x => x.value == 0x0A)
+    //                                      .Select(x => x.index - 2)
+    //                                      .Where(position => position >= 0)
+    //                                      .ToList();
+
+    //  //  LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+    //    if (!isGameRunning)
+    //        return;
+    //    if (handler.activeDevices.Exists(x => positions.Contains(x)))
+    //    {
+    //        LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+    //        isGameRunning = false;
+    //        LogData("starting clearing active devices");
+    //        udpHandlers.ForEach(x => x.activeDevices.Clear());
+    //       // LogData("End clearing active devices");
+    //        CancelTargetThread();        
+
+    //        LogData($"after clearing: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+
+    //        // handler.activeDevices.Clear();            
+    //        BlinkAllAsync(1);           
+    //        IterationLost("Lost Iteration");
+
+    //        return;
+    //    }
+
+
+    //    if (!isGameRunning)
+    //        return;
+
+    //    handler.BeginReceive(data => ReceiveCallback(data, handler));
+    //}
+
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
         if (!isGameRunning)
             return;
+
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         List<int> positions = receivedData.Select((value, index) => new { value, index })
                                           .Where(x => x.value == 0x0A)
@@ -88,32 +135,63 @@ public class WipeoutGame : BaseMultiDevice
                                           .Where(position => position >= 0)
                                           .ToList();
 
-      //  LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
         if (!isGameRunning)
             return;
-        if (handler.activeDevices.Exists(x => positions.Contains(x)))
+
+        foreach (int position in positions)
         {
-            LogData($"Touch detected: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
-            isGameRunning = false;
-            LogData("starting clearing active devices");
-            udpHandlers.ForEach(x => x.activeDevices.Clear());
-           // LogData("End clearing active devices");
-            CancelTargetThread();        
-           
-            LogData($"after clearing: {string.Join(",", positions)} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+            if (handler.activeDevices.Contains(position))
+            {
+                // Skip if the player is immune
+                if (isPlayerImmune)
+                {
+                    LogData($"Touch detected at position {position}, but player is immune.");
+                    continue;
+                }
 
-            // handler.activeDevices.Clear();            
-            BlinkAllAsync(1);           
-            IterationLost("Lost Iteration");
-            
-            return;
+                // Check if the tile is in the cooldown period
+                if (obstacleCooldowns.ContainsKey(position) &&
+                    (DateTime.Now - obstacleCooldowns[position]).TotalSeconds < immunityDurationInSeconds)
+                {
+                    // Tile is still in cooldown, skip this touch
+                    continue;
+                }
+
+                // Mark the tile as touched and put it into cooldown
+                obstacleCooldowns[position] = DateTime.Now;
+
+                LogData($"Touch detected: {position} handler: {handler.name} active devices: {string.Join(",", handler.activeDevices)}");
+
+                // Handle losing iteration/life due to the touch
+                isGameRunning = false;
+                LogData("Player lost a life. Starting clearing active devices.");
+                udpHandlers.ForEach(x => x.activeDevices.Clear());
+                CancelTargetThread();
+                BlinkAllAsync(1);
+                IterationLost("Lost Iteration");
+
+                // Start the immunity timer to prevent further life loss within the next second
+                StartImmunityTimer();
+
+                return;
+            }
         }
-
 
         if (!isGameRunning)
             return;
 
         handler.BeginReceive(data => ReceiveCallback(data, handler));
+    }
+
+    private void StartImmunityTimer()
+    {
+        isPlayerImmune = true;
+        immunityTimer = new Timer((state) =>
+        {
+            isPlayerImmune = false; // Reset immunity after the duration
+            LogData("Immunity period ended.");
+            immunityTimer.Dispose(); // Dispose of the timer once finished
+        }, null, (int)(globalImmunityDurationInSeconds * 1000), Timeout.Infinite);
     }
 
     private async Task GameLoop(CancellationToken cancellationToken)
