@@ -17,9 +17,9 @@ public class TileHunt : BaseMultiDevice
     private int killerSpeedReduction = 200;
     // private System.Threading.Timer gameTimer;
     private bool isReversed = false; // Track the direction of the killer line
-    private bool isPlayerImmune = false; // Flag to track player immunity
-    private Timer immunityTimer;         // Timer to manage immunity duration
-    private double globalImmunityDurationInSeconds = 1.0; // Duration for which the player is immune
+    private bool isPlayerImmuneToBlueLine = false; // Flag for immunity to the blue line
+    private Timer immunityTimer;                   // Timer to manage immunity duration
+    private double globalImmunityDurationInSeconds = 1.0; // Duration for which the player is immune to the blue line
 
     public TileHunt(GameConfig config, int killerSpeedReduction) : base(config)
     {
@@ -330,6 +330,7 @@ public class TileHunt : BaseMultiDevice
         {
             List<int> l2 = new List<int>();
 
+            // Handle player touches on active devices (green target tiles)
             foreach (var position in positions)
             {
                 if (handler.activeDevicesGroup.ContainsKey(position))
@@ -338,13 +339,13 @@ public class TileHunt : BaseMultiDevice
                 }
             }
 
-            // Handle player touches on active devices (targets)
             if (l2.Count > 0)
             {
+                // Player touched the green target tiles
                 LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
                 LogData($"Touch detected: {string.Join(",", l2)}");
                 ChnageColorToDevice(ColorPaletteone.NoColor, l2, handler);
-                updateScore(Score + l2.Count / 4);
+                updateScore(Score + l2.Count / 4); // Update score for touching green tiles
                 foreach (var item in l2)
                 {
                     handler.activeDevicesGroup.Remove(item);
@@ -354,8 +355,8 @@ public class TileHunt : BaseMultiDevice
             // Handle touches on the killer blue line
             else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)))
             {
-                // Check if the player is immune
-                if (isPlayerImmune)
+                // Check if the player is immune to the blue line
+                if (isPlayerImmuneToBlueLine)
                 {
                     LogData("Player touched blue line, but is immune.");
                     return; // Ignore the touch if the player is immune
@@ -369,7 +370,7 @@ public class TileHunt : BaseMultiDevice
                 IterationLost(null);
 
                 // Start the immunity timer to prevent further life loss within the next second
-                StartImmunityTimer();
+                StartBlueLineImmunityTimer();
 
                 return;
             }
@@ -387,14 +388,14 @@ public class TileHunt : BaseMultiDevice
         }
     }
 
-    private void StartImmunityTimer()
+    private void StartBlueLineImmunityTimer()
     {
-        isPlayerImmune = true; // Set the player as immune
+        isPlayerImmuneToBlueLine = true; // Set the player as immune to the blue line
         immunityTimer = new Timer((state) =>
         {
-            isPlayerImmune = false; // Reset the immunity after the duration
+            isPlayerImmuneToBlueLine = false; // Reset immunity after the duration
             immunityTimer.Dispose(); // Dispose of the timer once finished
-            LogData("Player immunity period ended.");
+            LogData("Player immunity to blue line ended.");
         }, null, (int)(globalImmunityDurationInSeconds * 1000), Timeout.Infinite);
     }
 }

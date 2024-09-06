@@ -51,16 +51,33 @@ public class UdpHandler
     public List<string> ReceiveMessage(int noofledPerdevice)
     {
         byte[] t = udpClient2.Receive(ref RemoteEndPoint);
-        int o;
-        int noofdevices = Math.DivRem((t.Length - 2), noofledPerdevice, out o);
-
-        var l = new List<string>(noofdevices);
-        for (int i = 0; i < noofdevices; i++)
+        try
         {
-            l.Add(noofledPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3);
-            //  deviceMap.Add(i, new Device { color = noofledPerdevice==1?ColorPaletteone.NoColor: ColorPalette.noColor3, isActive = false, sequence = i });
+            int o;
+            int noofdevices = Math.DivRem((t.Length - 2), noofledPerdevice, out o);
+
+            var l = new List<string>(noofdevices);
+           logger.Log($"no of devices found:{noofdevices} :{name}");
+            for (int i = 0; i < noofdevices; i++)
+            {
+                l.Add(noofledPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3);
+                //  deviceMap.Add(i, new Device { color = noofledPerdevice==1?ColorPaletteone.NoColor: ColorPalette.noColor3, isActive = false, sequence = i });
+            }
         }
-        return l;
+    catch (SocketException ex)
+    {
+        if (ex.SocketErrorCode == SocketError.TimedOut)
+        {
+            // Handle the timeout scenario (e.g., log the timeout or notify the user)
+            logger.LogError("Can not get signal from devices. Please check controller power. Timeout occurred while waiting for data.");
+        }
+        else
+        {
+            // Handle other potential socket errors
+            throw;
+        }
+    }
+      return new List<string>();
     }
     public void BeginReceive(Action<byte[]> receiveCallback)
     {
