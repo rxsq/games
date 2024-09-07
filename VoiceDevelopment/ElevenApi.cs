@@ -51,23 +51,30 @@ class ElevenLabsTTS
     public static async Task CreateVoiceFiles(string[] args)
     {
         //string[] voiceFiles = { "Twenty-nine", "Twenty-eight", "Twenty-seven", "Twenty-six", "Twenty-five", "Twenty-four", "Twenty-three", "Twenty-two", "Twenty-one", "Twenty", "Nineteen", "Eighteen", "Seventeen", "Sixteen", "Fifteen", "Fourteen", "Thirteen", "Twelve", "Eleven", "Ten", "Nine", "Eight", "Seven", "Six", "Five", "Four", "Three", "Two", "One" };
-        string[] voiceFiles = {};
+        //string[] voiceFiles = new string[9];
         string fileTitle = "";
-        for(int i = 1; i < 6; i++)
-        {
-            voiceFiles.Append($"Life lost! {i.ToString()} lives left");
-            fileTitle = "lives_left";
-            await CreateVoiceFiles(voiceFiles);
-        }
-        for(int i = 1; i < 10; i++)
-        {
-            voiceFiles.Append($"Level {i.ToString()}");
-            fileTitle = "level";
-            await CreateVoiceFiles(voiceFiles);
-        }
+        //voiceFiles[0] = "Oh dear, just 1 life left";
+        //for (int i = 2; i < 6; i++)
+        //{
+        //    voiceFiles[i - 1] = $"You've lost a life, {i.ToString()} lives left";
+        //}
+        //fileTitle = "lives_left";
+        string[] voiceFiles = { "Level 1. Begin", "Congrats, you've made it to level 2.", "Level 3. Keep going!", "Level 4. You're doing great!", "Well done, You've reached level 5", "Splendid, level 6", "Level 7. You're on a roll!", "Level 8. Keep it up!", "Level 9. You're almost there!", "Level 10. You've made it!" };
+        //voiceFiles[0] = "Level 1. Begin";
+        //voiceFiles[1] = "Congrats, you've made it to level 2.";
+        //voiceFiles[2] = "Level 3. Keep going!";
+        //voiceFiles[3] = "Level 4. You're doing great!";
+        //voiceFiles[4] = "Well done, You've reached level 5";
+        //voiceFiles[5] = "Splendid, level 6";
+        //voiceFiles[6] = "Level 7. You're on a roll!";
+        //voiceFiles[7] = "Level 8. Keep it up!";
+        //voiceFiles[8] = "Level 9. You're almost there!";
+        //voiceFiles[9] = "Level 10. You've made it!";
+        fileTitle = "level";
+
         double initialStability = 0.8;
         double finalStability = 0.3;
-        double initialSimilarityBoost = 0.7;
+        double initialSimilarityBoost = 0.7; 
         double finalSimilarityBoost = 0.9;
         double initialStyle = 0.1;
         double finalStyle = 1.0;
