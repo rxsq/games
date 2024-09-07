@@ -224,7 +224,7 @@ namespace scorecard
 
             // Arguments to pass to the executable
             string arguments = $"\"{args[0]}\" {args[1]} {ConfigurationSettings.AppSettings["isTestMode"]}";
-
+            logger.Log($"Starting game with arguments:program {arguments}");
             // Create a new process start information
             ProcessStartInfo startInfo = new ProcessStartInfo
             {

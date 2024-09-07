@@ -63,6 +63,7 @@ public class UdpHandler
                 l.Add(noofledPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3);
                 //  deviceMap.Add(i, new Device { color = noofledPerdevice==1?ColorPaletteone.NoColor: ColorPalette.noColor3, isActive = false, sequence = i });
             }
+            return l;
         }
     catch (SocketException ex)
     {

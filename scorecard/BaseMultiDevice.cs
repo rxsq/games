@@ -35,6 +35,8 @@ namespace scorecard
                 rows += handler.Rows;
             }
             surroundingMap = SurroundingMap.CreateSurroundingTilesDictionary(config.columns,rows,3 );
+            logger.Log($"surrounding map created {surroundingMap.Count}");
+            logger.Log($"device mapping created {deviceMapping.Count}");
         }
 
         

@@ -98,7 +98,7 @@ class Program
         }
         catch (Exception ex)
         {
-            logger.LogError($"Failed to start the game: {ex.Message}");
+            logger.LogError($"Failed to start the game: {ex.Message}  \n{ex.StackTrace}" );
         }
     }
     private static GameConfig FetchGameConfig(string gameType)
@@ -144,7 +144,7 @@ class Program
             }
             catch (Exception ex)
             {
-                logger.Log($"Failed to fetch game configuration: {ex.Message}");
+                logger.Log($"Failed to fetch game configuration: {ex.StackTrace}");
                 return null;
             }
         }
