@@ -63,28 +63,74 @@ namespace POS
             logger.Log($"Selection reset to: {text}");
         }
 
+        //private void ReaderWriter_StatusChanged(object sender, string resultp)
+        //{
+        //    string uid = resultp.Split(':')[0];
+        //    string resultreader = resultp.Split(':')[1];
+
+        //    logger.Log($"Wristband scanned: {uid}");
+        //    if (_selectedCount == 0 && _selectedTime == 0)
+        //    {
+        //        MessageBox.Show("Please select no of games");
+
+        //        setStatus("Please select number of games! ");
+        //        return;
+        //    }
+        //    if (uid.Length == 0)
+        //    {
+        //        setStatus(resultreader);
+        //        MessageBox.Show($"{resultreader}");
+        //        return;
+
+        //    }
+        //    // setStatus($"Wristband {uid} scanned, updating database...");
+
+
+        //    logger.Log($"Attempting to insert record with count: {_selectedCount}, time: {(_selectedCount > 0 ? 120.0 : _selectedTime)}");
+
+        //    string result = _readerWriter.InsertRecord(uid, _selectedCount, _selectedCount > 0 ? 120.0 : _selectedTime);
+
+        //    if (string.IsNullOrEmpty(result))
+        //    {
+        //        setStatus("Wristband is good to go");
+        //        _selectedCount = 0;
+        //        resetSelection(string.Empty);
+        //        logger.Log("Wristband successfully processed.");
+
+        //    }
+        //    else
+        //    {
+        //        if(result== "Wristband still has time and count.")
+        //        {
+
+        //        }
+        //        logger.Log($"Insert record failed with result: {result}");
+        //        setStatus(result);
+        //    }
+
+        //}
+
         private void ReaderWriter_StatusChanged(object sender, string resultp)
         {
             string uid = resultp.Split(':')[0];
             string resultreader = resultp.Split(':')[1];
 
             logger.Log($"Wristband scanned: {uid}");
+
             if (_selectedCount == 0 && _selectedTime == 0)
             {
                 MessageBox.Show("Please select no of games");
 
-                setStatus("Select Time or number of games then try. Please retry");
+                setStatus("Please select number of games!");
                 return;
             }
-            if (uid.Length == 0)
+
+            if (string.IsNullOrEmpty(uid))
             {
                 setStatus(resultreader);
-                MessageBox.Show($"{resultreader}");
+                MessageBox.Show(resultreader);
                 return;
-
             }
-            // setStatus($"Wristband {uid} scanned, updating database...");
-
 
             logger.Log($"Attempting to insert record with count: {_selectedCount}, time: {(_selectedCount > 0 ? 120.0 : _selectedTime)}");
 
@@ -96,15 +142,35 @@ namespace POS
                 _selectedCount = 0;
                 resetSelection(string.Empty);
                 logger.Log("Wristband successfully processed.");
-
             }
             else
             {
+                if (result == "Wristband still has time and count.")
+                {
+                    // Show a dialog with Reset and OK buttons
+                    DialogResult dialogResult = MessageBox.Show("Wristband still has time and count. Do you want to reset it and reinitiallize?", "Wristband Status", MessageBoxButtons.YesNo);
 
-                logger.Log($"Insert record failed with result: {result}");
-                setStatus(result);
+                    if (dialogResult == DialogResult.Yes) // Reset button pressed
+                    {
+                        _readerWriter.resetStatus(uid, "R");
+                        logger.Log("Wristband status reset and initialized.");
+                        result = _readerWriter.InsertRecord(uid, _selectedCount, _selectedCount > 0 ? 120.0 : _selectedTime);
+                        string st = string.IsNullOrEmpty(result) ? result : "Wristband status reset and initialized.";
+                        setStatus(st);
+                        logger.Log(st);
+                    }
+                    else if (dialogResult == DialogResult.No) // OK button pressed
+                    {
+                        // Just close the dialog, no action needed
+                        logger.Log("User chose to keep current wristband status.");
+                    }
+                }
+                else
+                {
+                    logger.Log($"Insert record failed with result: {result}");
+                    setStatus(result);
+                }
             }
-
         }
     }
 }

@@ -94,7 +94,24 @@ namespace Lib
             monitor.Start(readerName);
            
         }
-  
+
+        public string resetStatus(string uid, string status)
+        {
+            string b = $"{{\"uid\":\"{uid}\",\"currentstatus\":\"R\",\"src\":\"{System.Environment.MachineName}\",\"count\":{0} }}";
+            var content = new StringContent(b, Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = httpClient.PutAsync($"wristbandtran", content);
+                return response.Result.IsSuccessStatusCode ? "" : "Error updating data into Database!";
+            }
+            catch (Exception ex)
+            {
+                logger.Log("An error occurred: " + ex.Message);
+                return "Error communicating with API";
+            }
+
+        }
 
         public string updateStatus(string uid, string status, int playerid)
         {
