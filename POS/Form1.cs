@@ -145,15 +145,15 @@ namespace POS
             }
             else
             {
-                if (result == "Wristband still has time and count.")
+                if (result == "Error: BadRequest - Wristband still has time and count.")
                 {
                     // Show a dialog with Reset and OK buttons
                     DialogResult dialogResult = MessageBox.Show("Wristband still has time and count. Do you want to reset it and reinitiallize?", "Wristband Status", MessageBoxButtons.YesNo);
 
                     if (dialogResult == DialogResult.Yes) // Reset button pressed
                     {
-                        _readerWriter.resetStatus(uid, "R");
-                        logger.Log("Wristband status reset and initialized.");
+                        result = _readerWriter.resetStatus(uid, "R");
+                        logger.Log($"Wristband status reset result: {result}");
                         result = _readerWriter.InsertRecord(uid, _selectedCount, _selectedCount > 0 ? 120.0 : _selectedTime);
                         string st = string.IsNullOrEmpty(result) ? result : "Wristband status reset and initialized.";
                         setStatus(st);
