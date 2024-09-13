@@ -328,6 +328,9 @@
     <Content Include="content\voicelines\GameOver.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\voicelines\HexaPatternMatchIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\voicelines\level_1.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
