@@ -163,33 +163,34 @@
   <ItemGroup>
     <Compile Include="BaseMultiDevice.cs" />
     <Compile Include="BaseSingleDevice.cs" />
-    <Compile Include="Chaser.cs" />
+    <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
-    <Compile Include="HexaPatternMatch.cs" />
+    <Compile Include="games\HexaQuest\HexaPatternMatch.cs" />
+    <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />
     <Compile Include="lib\PlayerScore.cs" />
     <Compile Include="model\Player.cs" />
-    <Compile Include="TileHunt.cs" />
+    <Compile Include="games\TileHunt\TileHunt.cs" />
     <Compile Include="lib\Animations.cs" />
     <Compile Include="lib\BaseGame.cs" />
-    <Compile Include="FloorGame.cs" />
+    <Compile Include="games\TileHunt\FloorGame.cs" />
     <Compile Include="lib\GameConfig.cs" />
     <Compile Include="lib\GameStatus.cs" />
     <Compile Include="lib\relay.cs" />
     <Compile Include="lib\SurroundingMap.cs" />
     <Compile Include="Mapping.cs" />
     <Compile Include="model\Game.cs" />
-    <Compile Include="PatternBuilder.cs" />
-    <Compile Include="Smash.cs" />
-    <Compile Include="Target.cs" />
+    <Compile Include="games\TileHunt\PatternBuilder.cs" />
+    <Compile Include="games\HexaQuest\Smash.cs" />
+    <Compile Include="games\HexaQuest\Target.cs" />
     <Compile Include="lib\ColorPalette.cs" />
     <Compile Include="lib\MusicPlayer.cs" />
     <Compile Include="lib\UdpHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TileSiege.cs" />
-    <Compile Include="Wipeout.cs" />
+    <Compile Include="games\TileHunt\TileSiege.cs" />
+    <Compile Include="games\TileHunt\Wipeout.cs" />
     <Content Include="content\background_music.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
