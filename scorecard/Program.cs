@@ -78,6 +78,46 @@ class Program
                 case "TileSiege":
                     currentGame = new TileSiege(gameConfig, 10);
                     break;
+                /*
+                Hexa Pattern Match - Game Instructions:
+
+                Objective:
+                - The goal of the game is to correctly hit all the target tiles (highlighted in yellow) before making too many wrong attempts.
+                - Players should avoid hitting non-target tiles to avoid penalties.
+
+                Game Flow:
+                1. The game starts by blinking all the tiles to signal the beginning of a new level.
+                2. In each iteration, a set of target tiles will be highlighted in yellow.
+                3. These target tiles will remain visible for a short period of time before turning blue again.
+                4. Players must hit the target tiles (even after they are hidden) by touching them in the correct positions.
+                5. The number of target tiles will increase as the player progresses through levels.
+
+                Scoring:
+                - Players score points by hitting the correct target tiles.
+                - Each correct hit will turn the tile green and remove it from the active targets.
+                - Each wrong hit will turn the tile red and count as a "wrong attempt."
+                - Players have a maximum of 3 wrong attempts per iteration.
+
+                Gameplay Rules:
+                1. Players must hit all the correct target tiles to complete the iteration.
+                2. Players can hit target tiles even when they are hidden (after the display phase).
+                3. If all target tiles are hit, the iteration is won and the game moves to the next iteration or level.
+                4. If the player hits a wrong tile 3 times during an iteration, the iteration is lost, and the player loses a life.
+                5. If the player loses all lives, the game is over.
+
+                Level Progression:
+                - The game consists of multiple levels, each with several iterations.
+                - As the player progresses to higher levels, the number of target tiles increases, and the display time for target tiles decreases.
+                - The game gets progressively harder as levels increase.
+
+                Winning and Losing:
+                - A player wins an iteration by correctly hitting all target tiles.
+                - A player wins the game by completing all levels without losing all lives.
+                - The game is lost if the player loses all lives by hitting wrong tiles in too many iterations.
+
+                Good luck, and may your pattern recognition and reaction speed guide you to victory!
+                */
+
                 case "HexaPatternMatch":
                     currentGame = new HexaPatternMatch(gameConfig);
                     break;

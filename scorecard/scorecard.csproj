@@ -165,6 +165,7 @@
     <Compile Include="BaseSingleDevice.cs" />
     <Compile Include="Chaser.cs" />
     <Compile Include="content\snakes.cs" />
+    <Compile Include="HexaPatternMatch.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />
     <Compile Include="lib\PlayerScore.cs" />
