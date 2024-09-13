@@ -90,7 +90,7 @@ public class HexaPatternMatch : BaseSingleDevice
 
         logger.Log($"Displaying targets in yellow for {displayTime} milliseconds at level {Level}");
 
-        await Task.Delay(displayTime); // Display target tiles for the calculated time
+        Task.Delay(displayTime); // Display target tiles for the calculated time
 
         // Hide target tiles and set them back to blue
         SendColorToDevices(ColorPalette.Blue, false);
@@ -99,44 +99,9 @@ public class HexaPatternMatch : BaseSingleDevice
         logger.Log("Hiding targets and allowing iteration progression");
     }
 
-    // Display targets and hide them after a set time
-    private async Task DisplayAndHideTargets()
-    {
-        // Decrease the display time as the level increases (e.g., 2 seconds base, -200ms per level)
-        int displayTime = Math.Max(500, 2000 - (Level - 1) * 200); // Ensure the display time doesn't go below 500ms
+   
 
-        logger.Log($"Displaying targets in yellow for {displayTime} milliseconds at level {Level}");
-
-        await Task.Delay(displayTime); // Display target tiles for the calculated time
-
-        // Hide target tiles and set them back to blue
-        SendColorToDevices(ColorPalette.Blue, false);
-        //  HideTargets();
-        // displayTimeEnded = true; // Mark the display phase as ended
-        logger.Log("Hiding targets and allowing iteration progression");
-    }
-
-    // Hide target tiles by turning them blue
-    //private void HideTargets()
-    //{
-    //    foreach (var index in targetTiles)
-    //    {
-    //        handler.DeviceList[index] = ColorPalette.Blue; // Set hidden targets back to blue
-    //    }
-    //    handler.SendColorsToUdp(handler.DeviceList); // Update tiles
-    //}
-
-    // Ensure all non-target tiles are blue
-    //private void SetAllTilesToBlue()
-    //{
-    //    for (int i = 0; i < handler.DeviceList.Count(); i++)
-    //    {
-    //        handler.DeviceList[i] = ColorPalette.Blue; // Set all tiles to blue
-    //    }
-    //    handler.SendColorsToUdp(handler.DeviceList);
-    //    logger.Log("All tiles set to blue");
-    //}
-
+  
     // Callback to handle touch inputs
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
