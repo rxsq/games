@@ -44,7 +44,7 @@ public class HexaPatternMatch : BaseSingleDevice
                            //  displayTimeEnded = false; // Reset display time flag for the new iteration
         CalculateTargetCountForCurrentLevel(); // Dynamically calculate the number of targets based on the current level
         ActivateRandomLights(); // Activate target lights
-        patternTask = Task.Run(() => DisplayAndHideTargets()); // Display targets and hide after a delay
+       // patternTask = Task.Run(() => DisplayAndHideTargets()); // Display targets and hide after a delay
     }
 
     // Dynamically calculate the number of targets based on the current level
@@ -85,6 +85,18 @@ public class HexaPatternMatch : BaseSingleDevice
         // Send the updated colors to the device
         handler.SendColorsToUdp(handler.DeviceList);
         LogData($"Target tiles activated: {string.Join(",", targetTiles)}");
+        // Decrease the display time as the level increases (e.g., 2 seconds base, -200ms per level)
+        int displayTime = Math.Max(500, 2000 - (Level - 1) * 200); // Ensure the display time doesn't go below 500ms
+
+        logger.Log($"Displaying targets in yellow for {displayTime} milliseconds at level {Level}");
+
+        await Task.Delay(displayTime); // Display target tiles for the calculated time
+
+        // Hide target tiles and set them back to blue
+        SendColorToDevices(ColorPalette.Blue, false);
+        //  HideTargets();
+        // displayTimeEnded = true; // Mark the display phase as ended
+        logger.Log("Hiding targets and allowing iteration progression");
     }
 
     // Display targets and hide them after a set time
