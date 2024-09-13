@@ -192,7 +192,7 @@ public abstract class BaseGame
         else
         {
            
-            musicPlayer.Announcement("content/fail.wav");
+            musicPlayer.Announcement($"content/voicelines/lives_left_{LifeLine}.mp3");
             //iterations = iterations + 1;
             RunGameInSequence();
         }
@@ -309,7 +309,7 @@ public abstract class BaseGame
              //   musicPlayer.StopBackgroundMusic();
                 //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
                 LogData(Status);
-                musicPlayer.Announcement("content/levelwin.wav");
+                musicPlayer.Announcement($"content/voicelines/level_{Level}.mp3");
 //                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
             }
             //labelScore.Text = $"Score: {score}";
