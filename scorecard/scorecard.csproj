@@ -385,6 +385,9 @@
     <Content Include="content\voicelines\praise3.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\voicelines\PushGameIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\voicelines\SmashIntro.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
