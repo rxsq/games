@@ -4,6 +4,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>"HexaPatternMatch" 1 1</StartArguments>
+    <StartArguments>"PushGame" 1 1</StartArguments>
   </PropertyGroup>
 </Project>

@@ -39,7 +39,7 @@ class Program
                 gameConfig.IpAddress = "127.0.0.1";
                 gameConfig.isTestMode = true;
                 gameConfig.SmartPlugip = "127.0.0.1";
-                gameConfig.NoofLedPerdevice = 3;
+                gameConfig.NoofLedPerdevice = 1;
 
             }
            gameConfig.GameName = gameType;
@@ -120,6 +120,9 @@ class Program
 
                 case "HexaPatternMatch":
                     currentGame = new HexaPatternMatch(gameConfig);
+                    break;
+                case "PushGame":
+                    currentGame = new PushGame(gameConfig);
                     break;
                 default:
                     MessageBox.Show("Unknown game type.");
