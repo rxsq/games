@@ -18,6 +18,7 @@ public class PushGame : BaseSingleDevice
     private Dictionary<int, string> playTileColors; // Track the colors for the play tiles
     private int totalTiles;
     private int columns;
+    private int targetPerPlayer = 3;
 
     public PushGame(GameConfig gameConfig) : base(gameConfig)
     {
@@ -89,6 +90,7 @@ public class PushGame : BaseSingleDevice
         if (CombinationMatch())
         {
             logger.Log("Pattern match, display time ended, iteration won.");
+            updateScore(Score + config.MaxPlayers * targetPerPlayer + Level * LifeLine);
             IterationWon(); // Mark the iteration as won when all targets are hit
         }
 
@@ -241,7 +243,7 @@ public class PushGame : BaseSingleDevice
         int colorLength = availableColors.Length;
 
         // Ensure that the number of changed positions is less than or equal to MaxPlayers * 3
-        while (changePos.Count < config.MaxPlayers * 3)
+        while (changePos.Count < config.MaxPlayers * targetPerPlayer)
         {
             int randomPos = random.Next(playTileLength);
 
