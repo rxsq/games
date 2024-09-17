@@ -166,6 +166,7 @@
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
     <Compile Include="games\HexaQuest\HexaPatternMatch.cs" />
+    <Compile Include="games\Push\Invader.cs" />
     <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />

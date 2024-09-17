@@ -124,6 +124,9 @@ class Program
                 case "PushGame":
                     currentGame = new PushGame(gameConfig);
                     break;
+                case "Invader":
+                    currentGame = new Invader(gameConfig);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;
