@@ -200,7 +200,7 @@ public class Invader : BaseSingleDevice
         if (bulletsRemaining <= 0)
         {
             logger.Log("All bullets secured. Iteration won!");
-            bulletSpeedSlowdown = Math.Max(100, bulletSpeedSlowdown - 200);  // Decrease bullet slowdown time (speed up)
+            bulletSpeedSlowdown = Math.Max(150, bulletSpeedSlowdown - 200);  // Decrease bullet slowdown time (speed up)
             updateScore(Score + 100*lifeLine);
             IterationWon();
             return;
