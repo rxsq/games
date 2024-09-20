@@ -402,6 +402,9 @@
     <Content Include="content\voicelines\TileSiegeIntro.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\voicelines\WackAMoleIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\voicelines\WipeoutIntro.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -10,7 +10,9 @@ using System.Xml.Serialization;
 
 class WackAMole : BaseSingleDevice
 {
-    private string moleColor = ColorPaletteone.Yellow;
+    private string initialMoleColor = ColorPaletteone.Yellow;
+    private string midGameMoleColor = ColorPaletteone.Silver;
+    private string endGameMoleColor = ColorPaletteone.White;
     private string hitColor = ColorPaletteone.Red;
     private string backgroundColor = ColorPaletteone.Blue;
     private List<int> molePositions;  // Tiles where moles are launched
@@ -20,6 +22,7 @@ class WackAMole : BaseSingleDevice
     private int totalTiles;
     private int molesPerPlayer = 15;  // Each player will have 15 bullets per level
     private int molesRemaining;
+    private int molesperLevel;
     private CancellationTokenSource cancellationTokenSource;
     public WackAMole(GameConfig config) : base(config)
     {
@@ -27,6 +30,7 @@ class WackAMole : BaseSingleDevice
         moleSpeedSlowdown = 2000;
         columns = config.columns;
         totalTiles = handler.DeviceList.Count;
+        molesperLevel = config.MaxPlayers * molesPerPlayer;
     }
 
     protected override void Initialize()
@@ -51,7 +55,7 @@ class WackAMole : BaseSingleDevice
     {
         molePositions.Clear();
         SendColorToDevices(backgroundColor, true); // Set all tiles to a base color at the start
-        molesRemaining = config.MaxPlayers * molesPerPlayer;
+        molesRemaining = molesperLevel;
         cancellationTokenSource = new CancellationTokenSource();
         Task.Run(() => GenerateMoles(cancellationTokenSource.Token));
     }
@@ -136,7 +140,9 @@ class WackAMole : BaseSingleDevice
             molePos = random.Next(totalTiles);
         }
         molePositions.Add(molePos);
-        handler.DeviceList[molePos] = moleColor;
+        if (molesRemaining > (molesperLevel * 2) / 3) handler.DeviceList[molePos] = initialMoleColor;
+        else if (molesRemaining > molesperLevel / 3) handler.DeviceList[molePos] = midGameMoleColor;
+        else handler.DeviceList[molePos] = endGameMoleColor;
     }
 
     protected void CancelTargetThread()
