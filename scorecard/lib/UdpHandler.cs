@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 public class UdpHandler
 {
     private UdpClient udpClient;
-    private UdpClient udpClient2;
+    public UdpClient udpClient2;
     private string destinationIpAddress;
     private int destinationPort;
     private int sourcePort;
@@ -84,30 +84,36 @@ public class UdpHandler
     {
         try
         {
-            if (udpClient2 == null)
+            if (udpClient2 == null || !receiving)
             {
                 return;
             }
-           
-                // receiving = true;
-                udpClient2.BeginReceive(ar =>
+
+            udpClient2.BeginReceive(ar =>
+            {
+                try
                 {
-                   
+                    if (udpClient2.Client != null && udpClient2.Client.IsBound)
+                    {
                         byte[] receivedBytes = udpClient2.EndReceive(ar, ref RemoteEndPoint);
                         if (receiving)
                         {
                             receiveCallback(receivedBytes);
                         }
-
-                }, null);
-            
+                    }
+                }
+                catch (Exception)
+                {
+                    LogData("UDP Client has been disposed.");
+                }
+            }, null);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            LogData(ex.StackTrace);
-
+            LogData("UDP Client has been disposed."); 
         }
     }
+
 
     public void StopReceive()
     {

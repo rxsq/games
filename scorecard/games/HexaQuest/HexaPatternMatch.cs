@@ -14,15 +14,22 @@ public class HexaPatternMatch : BaseSingleDevice
     private int targetCount;
     private string gameColor;
     private Task patternTask;
-    private List<int> targetTiles = new List<int>(); // Holds target tiles
-    private HashSet<int> hitTiles = new HashSet<int>(); // Track hit tiles
-    private int wrongAttempts = 0; // Counter for wrong attempts
+    private List<int> targetTiles; // Holds target tiles
+    private HashSet<int> hitTiles; // Track hit tiles
+    private HashSet<int> hitTilesList;
+    private int wrongAttempts; // Counter for wrong attempts
     private const int maxWrongAttempts = 3; // Max number of wrong hits allowed
-    private bool displayTimeEnded = false; // Track if display time has ended
+    private bool displayTimeEnded; // Track if display time has ended
     private const int maxTargetCount = 25; // Maximum number of targets for higher levels
+    private bool receive;
 
     public HexaPatternMatch(GameConfig config) : base(config)
     {
+        targetTiles = new List<int>(); // Holds target tiles
+        hitTiles = new HashSet<int>(); // Track hit tiles
+        hitTilesList = new HashSet<int>();
+        wrongAttempts = 0; // Counter for wrong attempts
+        displayTimeEnded = false; // Track if display time has ended
     }
 
     protected override void Initialize()
@@ -43,8 +50,14 @@ public class HexaPatternMatch : BaseSingleDevice
         wrongAttempts = 0; // Reset wrong attempts at the start of each iteration
         displayTimeEnded = false; // Reset display time flag for the new iteration
         hitTiles.Clear(); // Clear previously hit tiles
+        hitTilesList.Clear();
+        receive = true;
         CalculateTargetCountForCurrentLevel(); // Dynamically calculate the number of targets based on the current level
         ActivateRandomLights(); // Activate target lights and set a timer for hiding
+        while (receive && handler.udpClient2!=null)
+        {
+            handler.BeginReceive(data => ReceiveCallback(data, handler));
+        }
     }
 
     // Dynamically calculate the number of targets based on the current level
@@ -62,7 +75,7 @@ public class HexaPatternMatch : BaseSingleDevice
     // Start receiving data when the game starts
     protected override void OnStart()
     {
-        handler.BeginReceive(data => ReceiveCallback(data, handler));
+        //handler.BeginReceive(data => ReceiveCallback(data, handler));
     }
 
     // Activate random lights as targets and hide them after a delay
@@ -90,6 +103,7 @@ public class HexaPatternMatch : BaseSingleDevice
             {
                 handler.DeviceList[index] = ColorPalette.yellow; // Set target tile to yellow
                 targetTiles.Add(index); // Add this tile to the target list
+                hitTilesList.Add(index);
                 handler.activeDevices.Add(index); // Make this tile clickable
             }
 
@@ -138,7 +152,7 @@ public class HexaPatternMatch : BaseSingleDevice
     // Callback to handle touch inputs
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
-        if (!isGameRunning) // Ensure the game is running
+        if (!isGameRunning & !receive & !displayTimeEnded) // Ensure the game is running
             return;
 
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
@@ -151,6 +165,7 @@ public class HexaPatternMatch : BaseSingleDevice
 
         // Process correct hits
         var touchedActiveDevices = handler.activeDevices.FindAll(x => positions.Contains(x));
+
         if (touchedActiveDevices.Count > 0)
         {
             ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Green : ColorPalette.Green, touchedActiveDevices, handler);
@@ -160,6 +175,9 @@ public class HexaPatternMatch : BaseSingleDevice
             updateScore(Score + 1);
             LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", handler.activeDevices)}");
         }
+
+        positions.RemoveAll(x => hitTilesList.Contains(x));
+        hitTilesList.UnionWith(positions);
 
         // Process wrong hits
         if (positions.Count > 0)
@@ -171,6 +189,7 @@ public class HexaPatternMatch : BaseSingleDevice
             // Check if max wrong attempts are reached
             if (wrongAttempts >= maxWrongAttempts)
             {
+                receive = false;
                 logger.Log("Max wrong attempts reached, iteration lost.");
                 IterationLost(null); // End iteration due to too many wrong hits
                 return;
@@ -183,12 +202,13 @@ public class HexaPatternMatch : BaseSingleDevice
         if (handler.activeDevices.Count == 0 && displayTimeEnded)
         {
             logger.Log("All target tiles hit, display time ended, iteration won.");
+            receive = false;
             IterationWon(); // Mark the iteration as won when all targets are hit
         }
-        else
-        {
-            // Continue receiving inputs if not all target tiles are hit
-            handler.BeginReceive(data => ReceiveCallback(data, handler));
-        }
+        //else
+        //{
+        //    // Continue receiving inputs if not all target tiles are hit
+        //    handler.BeginReceive(data => ReceiveCallback(data, handler));
+        //}
     }
 }

@@ -177,7 +177,7 @@ public abstract class BaseGame
         }
         
         LogData($"iteration failed within {IterationTime} second");
-        if (config.timerPointLoss)
+        if (config.timerPointLoss && iterationTimer!=null)
             iterationTimer.Dispose();
         LifeLine = LifeLine - 1;
         Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
@@ -282,7 +282,7 @@ public abstract class BaseGame
         isGameRunning = false;
         udpHandlers.ForEach(x => x.StopReceive());
         LogData($"All targets hit iterations:{iterations} passed");
-        if (config.timerPointLoss)
+        if (config.timerPointLoss && iterationTimer!=null)
             iterationTimer.Dispose();
         iterations = iterations + 1;
        
