@@ -108,12 +108,15 @@ public abstract class BaseGame
     private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     public void lightonoff(bool on)
     {
-        if (!config.isTestMode)
+        try
         {
-            var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
-            plug.OutletPowered = !on;
-            plug.OutletPowered = on;
-        }
+            if (!config.isTestMode)
+            {
+                var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
+                plug.OutletPowered = !on;
+                plug.OutletPowered = on;
+            }
+        } catch { }
     }
     public BaseGame(GameConfig co)
     {
@@ -128,10 +131,14 @@ public abstract class BaseGame
             lightonoff(true);
             Thread.Sleep(3000); // Countdown 
             udpHandlers = new List<UdpHandler>();
-            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));
-            for (int i = 1; i < config.NoOfControllers; i++)
+            if (config.IpAddress != "169.254.255.255")
             {
-                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i+1}"));
+           
+                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));
+                for (int i = 1; i < config.NoOfControllers; i++)
+                {
+                    udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i + 1}"));
+                }
             }
             Console.WriteLine("Game starting in 3... 2... 1...");
             Task.Run(() => StartAnimition());
@@ -380,14 +387,15 @@ public abstract class BaseGame
         Task.WhenAll(tasks);
     }
 
-    protected void  BlinkAllAsync(int nooftimes)
+    
+    protected void BlinkAllAsync(int nooftimes)
     {
         for (int i = 0; i < nooftimes; i++)
         {
             var tasks = new List<Task>();
             foreach (var handler in udpHandlers)
             {
-                
+
                 var colors = handler.DeviceList.Select(x => config.NoofLedPerdevice == 1 ? ColorPaletteone.Yellow : ColorPalette.yellow).ToList();
                 tasks.Add(handler.SendColorsToUdpAsync(colors));
             }
@@ -395,9 +403,9 @@ public abstract class BaseGame
             Thread.Sleep(100);
 
             foreach (var handler in udpHandlers)
-             {
+            {
                 tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
-               // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
+                // var colors = handler.SendColorsToUdpAsync(handlerDevices[handler]);
             }
             Task.WhenAll(tasks);
             Thread.Sleep(100);

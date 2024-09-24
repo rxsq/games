@@ -86,11 +86,15 @@ class Program
                     currentGame = new PushGame(gameConfig);
                     break;
                 case "Invader":
-                    currentGame = new Invader(gameConfig);
+                    currentGame = new Invador(gameConfig);
                     break;
                 case "WackAMole":
                     currentGame = new WackAMole(gameConfig);
                     break;
+                case "Climb":
+                    currentGame = new Climb(gameConfig);
+                    break;
+
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;
@@ -116,6 +120,18 @@ class Program
     }
     private static GameConfig FetchGameConfig(string gameType)
     {
+        if (gameType == "Climb")
+        {
+            GameConfig gameConfig1 = new GameConfig();
+            gameConfig1.IpAddress = "169.254.255.255";
+            gameConfig1.LocalPort = 4626;
+            gameConfig1.SocketBReceiverPort = 7800;
+            gameConfig1.NoOfControllers = 1;
+            gameConfig1.NoofLedPerdevice = 1;
+            gameConfig1.columns = 4;
+            gameConfig1.MaxPlayers = 3;
+            return gameConfig1;
+        }
         using (var httpClient = new HttpClient())
         {
             try

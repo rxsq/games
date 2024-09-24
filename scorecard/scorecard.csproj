@@ -163,15 +163,19 @@
   <ItemGroup>
     <Compile Include="BaseMultiDevice.cs" />
     <Compile Include="BaseSingleDevice.cs" />
+    <Compile Include="games\Climb\Climb.cs" />
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
     <Compile Include="games\HexaQuest\HexaPatternMatch.cs" />
     <Compile Include="games\Push\Invader.cs" />
     <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="games\Push\WackAMole.cs" />
+    <Compile Include="lib\BaseUdpHandler.cs" />
+    <Compile Include="lib\FlygerController.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />
     <Compile Include="lib\PlayerScore.cs" />
+    <Compile Include="lib\UdpHandlerWeTop.cs" />
     <Compile Include="model\Player.cs" />
     <Compile Include="games\TileHunt\TileHunt.cs" />
     <Compile Include="lib\Animations.cs" />

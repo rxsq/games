@@ -26,7 +26,7 @@ namespace scorecard
             {
                 for(int i = 0; i < handler.DeviceList.Count; i++)
                 {
-                    deviceMapping.Add(k, new Mapping(handler, false, Resequencer(i, handler)));
+                    deviceMapping.Add(k, new Mapping((UdpHandler)handler, false, Resequencer(i, (UdpHandler)handler)));
                         k += 1;  
                 }
             }

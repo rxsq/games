@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Invader : BaseSingleDevice
+public class Invador : BaseSingleDevice
 {
     private string bulletColor = ColorPaletteone.Silver;
     private string homeColor = ColorPaletteone.Green;
@@ -24,7 +24,7 @@ public class Invader : BaseSingleDevice
     private int bulletsRemaining;
     private CancellationTokenSource cancellationTokenSource;
 
-    public Invader(GameConfig config) : base(config)
+    public Invador(GameConfig config) : base(config)
     {
         bulletPositions = new List<int>();
         homeTiles = new List<int>();
