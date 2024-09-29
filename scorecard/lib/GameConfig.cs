@@ -33,5 +33,6 @@ namespace scorecard.lib
 
         public string GameName { get; set; } = "GameName";
 
+        public string GameType { get; set; } = "team";
     }
 }

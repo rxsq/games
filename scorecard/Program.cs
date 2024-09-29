@@ -42,7 +42,7 @@ class Program
                 gameConfig.NoofLedPerdevice = 1;
 
             }
-           gameConfig.GameName = gameType;
+            gameConfig.GameName = gameType;
             if (gameConfig == null)
             {
                 MessageBox.Show("Failed to start the game due to configuration issues.");
@@ -78,7 +78,6 @@ class Program
                 case "TileSiege":
                     currentGame = new TileSiege(gameConfig, 10);
                     break;
-
                 case "HexaPatternMatch":
                     currentGame = new HexaPatternMatch(gameConfig);
                     break;
@@ -130,6 +129,7 @@ class Program
             gameConfig1.NoofLedPerdevice = 1;
             gameConfig1.columns = 4;
             gameConfig1.MaxPlayers = 3;
+            gameConfig1.GameType = "team";
             return gameConfig1;
         }
         using (var httpClient = new HttpClient())
@@ -162,7 +162,8 @@ class Program
                         NoofLedPerdevice = gameVariant.game.NoofLedPerdevice,
                         columns = gameVariant.game.columns,
                         introAudio = gameVariant.introAudio ?? string.Empty,
-                        SmartPlugip = gameVariant.game.SmartPlugip
+                        SmartPlugip = gameVariant.game.SmartPlugip,
+                        GameType = gameVariant.GameType
                     };
                   
                     logger.Log("congig fetched");

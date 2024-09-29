@@ -42,6 +42,7 @@ namespace scorecard.model
         public DateTime updatedAt { get; set; }
         public Game game { get; set; }
         public string introAudio { get; set; }
+        public string GameType { get; set; }
     }
 
 }

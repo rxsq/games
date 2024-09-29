@@ -167,10 +167,13 @@
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
     <Compile Include="games\HexaQuest\HexaPatternMatch.cs" />
+    <Compile Include="games\HexaQuest\TargetCompititive.cs" />
     <Compile Include="games\Push\Invader.cs" />
     <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="games\Push\WackAMole.cs" />
+    <Compile Include="lib\BaseCompititiveGame.cs" />
     <Compile Include="lib\BaseUdpHandler.cs" />
+    <Compile Include="lib\CompititiveGameStatusPublisher.cs" />
     <Compile Include="lib\FlygerController.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />

@@ -451,14 +451,12 @@ public abstract class BaseGame
     protected int PositionToIndex(int row, int column)
     {
         int index = 0;
-        int handler;
         if (row <= (udpHandlers[0].Rows - 1))
         {
             index = row * udpHandlers[0].columns + column;
         }
         else if (row > (udpHandlers[0].Rows - 1))
         {
-            handler = 0;
             index = row - udpHandlers[0].DeviceList.Count;
 
         }
