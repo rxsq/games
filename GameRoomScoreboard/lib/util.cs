@@ -11,11 +11,11 @@ namespace scorecard.lib
         public static async void uiupdate(string msg, Microsoft.Web.WebView2.WinForms.WebView2 webView2)
         {
             string script = @"
-        try {
-            " +msg +@";
-        } catch (error) {
-            console.error('Error executing script:', error);
-        }";
+            try {
+                " +msg +@";
+            } catch (error) {
+                console.error('Error executing script:', error);
+            }";
 
             if (webView2.InvokeRequired)
             {

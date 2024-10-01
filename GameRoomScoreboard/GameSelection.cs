@@ -18,7 +18,7 @@ namespace scorecard
         public GameSelection()
         {
            
-             InitializeComponent();
+            InitializeComponent();
             StartCheckInTimer();
             if (!Debugger.IsAttached)
             {
@@ -56,20 +56,17 @@ namespace scorecard
                 logger.Log($"card uid detected {uid}");
                 //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
                 Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
-                    if (webView2.InvokeRequired)
-                    {
-                        webView2.Invoke(new Action(() =>
-                            webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')")
-                        ));
-                    }
-                    else
-                    {
-                        webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
-                    }
-
-
-               
-                };
+                if (webView2.InvokeRequired)
+                {
+                    webView2.Invoke(new Action(() =>
+                        webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')")
+                    ));
+                }
+                else
+                {
+                    webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
+                } 
+            };
             udpHandler.BeginReceive(data => ReceiveCallback(data));
 
         }
@@ -208,6 +205,9 @@ namespace scorecard
             {
                 string game = message.Split(':')[1];               
                 int noofplayers = int.Parse(message.Split(':')[2]);
+                string gameType = message.Split(":")[3];
+
+                scorecardForm.updateScreen("gameType");
                 
                 if (ConfigurationSettings.AppSettings["gamingEnginePath"].Length>0)
                 {
@@ -235,7 +235,7 @@ namespace scorecard
                 RedirectStandardError = true,  // To capture errors
                 CreateNoWindow = true, // Set to true if you don't want a new window to be created
                 
-        };
+            };
             startInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
             // Start the process
             using (Process process = Process.Start(startInfo))

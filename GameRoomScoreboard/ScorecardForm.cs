@@ -6,6 +6,8 @@ using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
 using System.Configuration;
 using System.ComponentModel;
+using Newtonsoft.Json.Linq;
+using System;
 
 public partial class ScorecardForm : Form
 {
@@ -76,8 +78,22 @@ public partial class ScorecardForm : Form
         UiUpdate("updateLevel", level);
         UiUpdate("updateLives", lives);
         UiUpdate("updateScore", score);
+    }
+    public void UpdateScoreBoard(int timer, int level, int lives, int[] scores)
+    {
+        UiUpdate("updateTimer", timer);
+        UiUpdate("updateLevel", level);
+        UiUpdate("updateLives", lives);
+        UpdateScores(scores);
+    }
+    public void UpdateScores(int[] scores)
+    {
+        util.uiupdate($"window.updateScores({scores})", webView2);
+    }
 
-
+    public void updateScreen(string gameType)
+    {
+        util.uiupdate($"window.updateGameType({gameType})", webView2);
     }
 
     private void UiUpdate(string func, int value)
