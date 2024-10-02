@@ -10,38 +10,32 @@ using System.Reflection;
 using log4net;
 public abstract class BaseGame
 {
-    private GameStatusPublisher statusPublisher;
+    protected GameStatusPublisher statusPublisher;
     TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
     protected List<UdpHandler> udpHandlers;
-    //protected Dictionary<UdpHandler, List<string>> handlerDevices;
     protected Dictionary<UdpHandler, HashSet<int>> activeIndices;
     protected Random random = new Random();
-    public TimeSpan Duration { get; protected set; }
-    public double Progress { get; protected set; }
-
     protected MusicPlayer musicPlayer;
     protected int lifeLine = 5;
     protected Timer iterationTimer;
-   
-     protected int iterations = 0;
-    private int score;
+    protected int iterations = 0;
+    protected int score;
     protected GameConfig config;
-    private string status { get; set; }
+    protected string status { get; set; }
     protected int level = 1;
     protected List<string> gameColors = new List<string>();
     protected bool isGameRunning = false;
-    public string Status
+    public virtual string Status
     {
         get { return status; }
         set
         {
             status = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status,IterationTime,config.GameName ,iterations);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
             OnStatusChanged(status);
-
         }
     }
-    public int Level
+    public virtual int Level
     {
         get { return level; }
         set
@@ -52,7 +46,7 @@ public abstract class BaseGame
 
         }
     }
-    public int Score
+    public virtual int Score
     {
         get { return score; }
         set
@@ -64,7 +58,7 @@ public abstract class BaseGame
             LogData($"Score: {score}");
         }
     }
-    public int LifeLine
+    public virtual int LifeLine
     {
         get { return lifeLine; }
         set
@@ -81,7 +75,7 @@ public abstract class BaseGame
     public event EventHandler<string> StatusChanged;
     protected virtual void OnStatusChanged(string newStatus)
     {
-       LogData($"status changed to:{newStatus}");
+        LogData($"status changed to:{newStatus}");
         StatusChanged?.Invoke(this, newStatus);
     }
     protected virtual void OnLevelChanged(int newLevel)
@@ -101,10 +95,7 @@ public abstract class BaseGame
         LifeLineChanged?.Invoke(this, newLifeline);
     }
 
-    protected int noOfPlayers = 5;
     public string targetColor;
-    //  public int numberOfDevices = 12; // 4x3 grid
-    //protected Logger logger = new AsyncLogger("game");
     private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
     public void lightonoff(bool on)
     {
@@ -116,40 +107,41 @@ public abstract class BaseGame
                 plug.OutletPowered = !on;
                 plug.OutletPowered = on;
             }
-        } catch { }
+        }
+        catch { }
     }
     public BaseGame(GameConfig co)
     {
         logger.Log("basegame constructor");
         this.config = co;
-        statusPublisher = new GameStatusPublisher(config.gameEngineIp); // Replace with your IP and port
+        statusPublisher = new GameStatusPublisher(config.gameEngineIp);
         statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName, iterations);
         gameColors = getColorList();
         musicPlayer = new MusicPlayer("content/background_music.wav");
-        
-        
-            lightonoff(true);
-            Thread.Sleep(3000); // Countdown 
-            udpHandlers = new List<UdpHandler>();
-            if (config.IpAddress != "169.254.255.255")
+
+
+        lightonoff(true);
+        Thread.Sleep(3000); // Countdown 
+        udpHandlers = new List<UdpHandler>();
+        if (config.IpAddress != "169.254.255.255")
+        {
+
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));
+            for (int i = 1; i < config.NoOfControllers; i++)
             {
-           
-                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));
-                for (int i = 1; i < config.NoOfControllers; i++)
-                {
-                    udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i + 1}"));
-                }
+                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i + 1}"));
             }
-            Console.WriteLine("Game starting in 3... 2... 1...");
-            Task.Run(() => StartAnimition());
-            musicPlayer.Announcement(config.isTestMode? "content/hit2.wav": config.introAudio);
-           
+        }
+        Console.WriteLine("Game starting in 3... 2... 1...");
+        Task.Run(() => StartAnimition());
+        musicPlayer.Announcement(config.isTestMode ? "content/hit2.wav" : config.introAudio);
+
     }
-  
+
 
     public void StartGame()
     {
-       
+
         Initialize();
         RunGameInSequence();
 
@@ -162,27 +154,28 @@ public abstract class BaseGame
         OnIteration();
         isGameRunning = true;
         // Start target timer
-        if(config.timerPointLoss)
+        if (config.timerPointLoss)
             iterationTimer = new Timer(IterationLost, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
         OnStart();
-        
+
 
 
     }
     protected virtual async void StartAnimition()
     {
-        
+
     }
     //private CancellationTokenSource _cancellationTokenIterationTimer;
     protected virtual void IterationLost(object state)
     {
         isGameRunning = false;
         udpHandlers.ForEach(x => x.StopReceive());
-        if (!config.timerPointLoss  &&  state==null) {
+        if (!config.timerPointLoss && state == null)
+        {
             IterationWon();
             return;
         }
-        
+
         LogData($"iteration failed within {IterationTime} second");
         if (config.timerPointLoss)
             iterationTimer.Dispose();
@@ -194,33 +187,33 @@ public abstract class BaseGame
             musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
             LogData("GAME OVER");
             EndGame();
-           
+
         }
         else
         {
-           
+
             musicPlayer.Announcement($"content/voicelines/lives_left_{LifeLine}.mp3");
             //iterations = iterations + 1;
             RunGameInSequence();
         }
 
     }
-  
+
     protected virtual void OnIteration()
     {
-        
+
     }
     public void EndGame()
     {
-        
-        if (iterationTimer != null) 
+
+        if (iterationTimer != null)
             iterationTimer.Dispose();
         // logger.Dispose();
         musicPlayer.Dispose();
         OnEnd();
         BlinkAllAsync(2);
-        SendSameColorToAllDevice(config.NoofLedPerdevice==1? ColorPaletteone.Green: ColorPalette.Green);
-          
+        SendSameColorToAllDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Green : ColorPalette.Green);
+
         foreach (var handler in udpHandlers)
         {
             if (handler != null)
@@ -228,11 +221,11 @@ public abstract class BaseGame
 
         }
         Thread.Sleep(2000);
-        
+
         lightonoff(false);
 
         Status = GameStatus.Completed;
-        
+
 
     }
     protected virtual void Initialize() { }
@@ -242,16 +235,16 @@ public abstract class BaseGame
     public void LogData(string message)
     {
         logger.Log($"scorecard: {message}");
-        
+
     }
     protected void SendDataToDevice(string color, int deviceNo)
     {
-        
-            foreach (var handler in udpHandlers)
-            {
-                handler.DeviceList[deviceNo] = color;
-                handler.SendColorsToUdp(handler.DeviceList);
-            }
+
+        foreach (var handler in udpHandlers)
+        {
+            handler.DeviceList[deviceNo] = color;
+            handler.SendColorsToUdp(handler.DeviceList);
+        }
     }
     protected void SendSameColorToAllDevice(string color)
     {
@@ -292,12 +285,12 @@ public abstract class BaseGame
         if (config.timerPointLoss)
             iterationTimer.Dispose();
         iterations = iterations + 1;
-       
+
 
 
         if (iterations >= config.Maxiterations)
         {
-            
+
             Status = $"{GameStatus.Running}: Moved to Next Level {Level}";
             LogData($"Game Win level: {Level}");
             Level = Level + 1;
@@ -313,25 +306,25 @@ public abstract class BaseGame
             }
             else
             {
-             //   musicPlayer.StopBackgroundMusic();
+                //   musicPlayer.StopBackgroundMusic();
                 //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
                 LogData(Status);
                 musicPlayer.Announcement($"content/voicelines/level_{Level}.mp3");
-//                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
+                //                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
             }
             //labelScore.Text = $"Score: {score}";
 
         }
         else { BlinkAllAsync(1); }
         Status = $"{GameStatus.Running}: Moved to Next iterations {iterations}";
-      //  if (IterationTime > 0)
-       // {
-            RunGameInSequence();
-            LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
-       // }
-       // else { Status = $"All iterations completed IterationTime:{IterationTime}";
-       //     LogData($"{Status}: {iterations} Iteration time: {IterationTime} ");
-       // }
+        //  if (IterationTime > 0)
+        // {
+        RunGameInSequence();
+        LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
+        // }
+        // else { Status = $"All iterations completed IterationTime:{IterationTime}";
+        //     LogData($"{Status}: {iterations} Iteration time: {IterationTime} ");
+        // }
 
     }
     protected void updateScore(int score)
@@ -351,7 +344,7 @@ public abstract class BaseGame
     {
         try
         {
-          //  Console.WriteLine($"before change: {string.Join(",", handler.DeviceList)}");
+            //  Console.WriteLine($"before change: {string.Join(",", handler.DeviceList)}");
             foreach (int x in deviceNos)
             {
                 handler.DeviceList[x] = color;
@@ -362,14 +355,14 @@ public abstract class BaseGame
         catch (Exception ex)
         {
             Console.WriteLine(ex.StackTrace);
-           // ChnageColorToDevice(color, deviceNo, handler);
+            // ChnageColorToDevice(color, deviceNo, handler);
         }
     }
 
     protected void SendColorToDevices(string color, bool isDeviceToBeUpdate)
     {
-       
-            var tasks = new List<Task>();
+
+        var tasks = new List<Task>();
         foreach (var handler in udpHandlers)
         {
             if (isDeviceToBeUpdate)
@@ -387,7 +380,7 @@ public abstract class BaseGame
         Task.WhenAll(tasks);
     }
 
-    
+
     protected void BlinkAllAsync(int nooftimes)
     {
         for (int i = 0; i < nooftimes; i++)
@@ -411,18 +404,18 @@ public abstract class BaseGame
             Thread.Sleep(100);
         }
     }
-    public void BlinkLights(List<int> lightIndex,int repeation, UdpHandler handler, string Color)
+    public void BlinkLights(List<int> lightIndex, int repeation, UdpHandler handler, string Color)
     {
-            for (int j = 0; j < repeation; j++)
-            {
-                handler.SendColorsToUdp(handler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
-                Thread.Sleep(100);
-                handler.SendColorsToUdp(handler.DeviceList);
-            }
+        for (int j = 0; j < repeation; j++)
+        {
+            handler.SendColorsToUdp(handler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
+            Thread.Sleep(100);
+            handler.SendColorsToUdp(handler.DeviceList);
+        }
     }
     protected void LoopAll()
     {
-        LoopAll((config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3),1);
+        LoopAll((config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3), 1);
     }
     protected void LoopAll(string basecolor, int frequency)
     {
@@ -451,12 +444,14 @@ public abstract class BaseGame
     protected int PositionToIndex(int row, int column)
     {
         int index = 0;
+        int handler;
         if (row <= (udpHandlers[0].Rows - 1))
         {
             index = row * udpHandlers[0].columns + column;
         }
         else if (row > (udpHandlers[0].Rows - 1))
         {
+            handler = 0;
             index = row - udpHandlers[0].DeviceList.Count;
 
         }
@@ -483,8 +478,8 @@ public abstract class BaseGame
 
         // Get all public static string fields from ColorPalette
         _FieldInfo[] fields;
-        if(config.NoofLedPerdevice==3)
-           fields = typeof(ColorPalette).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+        if (config.NoofLedPerdevice == 3)
+            fields = typeof(ColorPalette).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
         else
             fields = typeof(ColorPaletteone).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
 

@@ -28,11 +28,11 @@ class Program
 
     }
     
-    public static void StartGame(string gameType, string numberofplayers, string IsTestMode)
+    public static void StartGame(string gameVariant, string numberofplayers, string IsTestMode)
     {
         try
         {
-            var gameConfig = FetchGameConfig(gameType);
+            var gameConfig = FetchGameConfig(gameVariant);
             gameConfig.isTestMode = (IsTestMode == "1");
             if (IsTestMode == "1")
             {
@@ -42,7 +42,7 @@ class Program
                 gameConfig.NoofLedPerdevice = 1;
 
             }
-            gameConfig.GameName = gameType;
+            gameConfig.GameName = gameVariant;
             if (gameConfig == null)
             {
                 MessageBox.Show("Failed to start the game due to configuration issues.");
@@ -52,7 +52,7 @@ class Program
             BaseGame currentGame;
             gameConfig.MaxPlayers = int.Parse(numberofplayers);
 
-            switch (gameType.Replace(" ", ""))
+            switch (gameVariant.Replace(" ", ""))
             {
                 case "Target":
                     currentGame = new Target(gameConfig, 18);
@@ -93,12 +93,14 @@ class Program
                 case "Climb":
                     currentGame = new Climb(gameConfig);
                     break;
-
+                case "TargetMultiplayer":
+                    currentGame = new TargetMultiplayer(gameConfig, new int[]{0,1,2,3,4});
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;
             }
-            logger.Log($"Starting game {gameType} {numberofplayers} {IsTestMode}");
+            logger.Log($"Starting game {gameVariant} {numberofplayers} {IsTestMode}");
             currentGame?.StartGame();
             currentGame.StatusChanged += (sender, args) =>
             {
