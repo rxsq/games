@@ -135,7 +135,6 @@ public abstract class BaseGame
         Console.WriteLine("Game starting in 3... 2... 1...");
         Task.Run(() => StartAnimition());
         musicPlayer.Announcement(config.isTestMode ? "content/hit2.wav" : config.introAudio);
-
     }
 
 

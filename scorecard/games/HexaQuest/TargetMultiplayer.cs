@@ -10,24 +10,21 @@ using System.Threading.Tasks;
 
 public class TargetMultiplayer : BaseMultiplayerGame
 {
-    private int[] starIndex;
     private int numberOfPlayers;
     private Dictionary<int, List<int>> targetMap;
+    string[] starColorSet;
 
-    public TargetMultiplayer(GameConfig config, int[] starIndex) : base(config)
+    public TargetMultiplayer(GameConfig config) : base(config)
     {
-        logger.Log(string.Join(", ", starIndex));
-
-        // Initialize starIndex properly
-        this.starIndex = new int[starIndex.Length];
-        starIndex.CopyTo(this.starIndex, 0);
+        if(config.NoofLedPerdevice == 1) starColorSet = new string[] { ColorPaletteone.Red, ColorPaletteone.Green, ColorPaletteone.Blue, ColorPaletteone.White, ColorPaletteone.Yellow };
+        else starColorSet = new string[] { ColorPalette.Red, ColorPalette.Green, ColorPalette.Blue, ColorPalette.White, ColorPalette.yellow };
 
         this.numberOfPlayers = config.MaxPlayers;
         targetMap = new Dictionary<int, List<int>>();
     }
     protected override async void StartAnimition()
     {
-        LoopAll();
+        //LoopAll();
         base.StartAnimition();
 
     }
@@ -62,7 +59,7 @@ public class TargetMultiplayer : BaseMultiplayerGame
         if (!isGameRunning)
             return;
 
-        BlinkLights(handler.activeDevices, 1, handler, config.NoofLedPerdevice == 1 ? ColorPaletteone.Blue : ColorPalette.Blue);
+        BlinkLights(handler.activeDevices, 1, handler, config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3);
         if (isGameRunning)
         {
             Thread.Sleep(2000);
@@ -72,18 +69,21 @@ public class TargetMultiplayer : BaseMultiplayerGame
     private string[] GetStarColor()
     {
         string[] starColor = new string[numberOfPlayers];
-        for(int i = 0; i < numberOfPlayers; i++)
+        for(int i = 0;i<numberOfPlayers; i++)
         {
-            int index;
-            string color;
-            do
-            {
-                index = random.Next(gameColors.Count - 1);
-                color = gameColors[index];
-            } while(starColor.Contains(color));
-            starColor[i] = color;
-            handler.DeviceList[starIndex[i]] = color;
+            starColor[i] = starColorSet[i];
         }
+        //for(int i = 0; i < numberOfPlayers; i++)
+        //{
+        //    int index;
+        //    string color;
+        //    do
+        //    {
+        //        index = random.Next(gameColors.Count - 1);
+        //        color = gameColors[index];
+        //    } while(starColor.Contains(color));
+        //    starColor[i] = color;
+        //}
         return starColor;
     }
 
@@ -102,7 +102,7 @@ public class TargetMultiplayer : BaseMultiplayerGame
                 do
                 {
                     index = random.Next(0, handler.DeviceList.Count());
-                } while (handler.activeDevices.Contains(index) || starIndex.Contains(index) || index == 30);
+                } while (handler.activeDevices.Contains(index) || index == 30);
 
                 handler.DeviceList[index] = starColor[i];
                 handler.activeDevices.Add(index);
@@ -110,21 +110,18 @@ public class TargetMultiplayer : BaseMultiplayerGame
             }
             targetMap[i] = targets;
         }
-        //make sure star is colord
 
 
         for (int i = 0; i < handler.DeviceList.Count(); i++)
         {
-            if (!handler.activeDevices.Contains(i) && !starIndex.Contains(i))
+            if (!handler.activeDevices.Contains(i))
             {
-
                 Console.WriteLine(i.ToString());
                 string newColor;
                 do
                 {
-                    //newColor = ColorPalette.Blue;
                     newColor = gameColors[random.Next(gameColors.Count - 1)];
-                } while (starColor.Contains(newColor));
+                } while (starColor.Contains(newColor) || newColor==ColorPalette.noColor3 || newColor==ColorPaletteone.NoColor);
 
                 handler.DeviceList[i] = newColor;
             }

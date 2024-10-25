@@ -94,7 +94,7 @@ class Program
                     currentGame = new Climb(gameConfig);
                     break;
                 case "TargetMultiplayer":
-                    currentGame = new TargetMultiplayer(gameConfig, new int[]{0,1,2,3,4});
+                    currentGame = new TargetMultiplayer(gameConfig);
                     break;
                 default:
                     MessageBox.Show("Unknown game type.");
