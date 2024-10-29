@@ -68,4 +68,44 @@ public abstract class BaseMultiplayerGame:BaseGame
         if (3 <= random && random < 6) { musicPlayer.PlayEffect("content/hit2.wav"); }
         if (6 <= random) { musicPlayer.PlayEffect("content/hit2.wav"); }
     }
+
+    override protected void IterationWon()
+    {
+        isGameRunning = false;
+        udpHandlers.ForEach(x => x.StopReceive());
+        LogData($"All targets hit iterations:{iterations} passed");
+        if (config.timerPointLoss)
+            iterationTimer.Dispose();
+        iterations = iterations + 1;
+
+
+
+        if (iterations >= config.Maxiterations)
+        {
+
+            Status = $"{GameStatus.Running}: Moved to Next Level {Level}";
+            LogData($"Game Win level: {Level}");
+            Level = Level + 1;
+            iterations = 1;
+            if (Level >= config.MaxLevel)
+            {
+                Status = $"Reached to last Level {config.MaxLevel} ending game";
+                LogData(Status);
+                musicPlayer.Announcement("content/GameWinAlllevelPassed.mp3");
+                EndGame();
+                return;
+            }
+            else
+            {
+                //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
+                LogData(Status);
+                musicPlayer.Announcement($"content/voicelines/level_{Level}.mp3");
+            }
+
+        }
+        else { BlinkAllAsync(1); }
+        Status = $"{GameStatus.Running}: Moved to Next iterations {iterations}";
+        RunGameInSequence();
+        LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
+    }
 }

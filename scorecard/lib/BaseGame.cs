@@ -276,7 +276,7 @@ public abstract class BaseGame
         }
 
     }
-    protected void IterationWon()
+    protected virtual void IterationWon()
     {
         isGameRunning = false;
         udpHandlers.ForEach(x => x.StopReceive());
