@@ -95,9 +95,9 @@ namespace Lib
            
         }
 
-        public string resetStatus(string uid, string status)
+        public string InvalidateStatus(string uid)
         {
-            string b = $"{{\"uid\":\"{uid}\",\"currentstatus\":\"R\",\"src\":\"{System.Environment.MachineName}\",\"count\":{0} }}";
+            string b = $"{{\"uid\":\"{uid}\", \"status\":\"V\",\"currentstatus\":\"R\",\"src\":\"{System.Environment.MachineName}\" }}";
             var content = new StringContent(b, Encoding.UTF8, "application/json");
 
             try

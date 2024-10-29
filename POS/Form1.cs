@@ -138,6 +138,7 @@ namespace POS
 
             if (string.IsNullOrEmpty(result))
             {
+                _readerWriter.updateStatus(uid, "R", 10);
                 setStatus("Wristband is good to go");
                 _selectedCount = 0;
                 resetSelection(string.Empty);
@@ -152,12 +153,14 @@ namespace POS
 
                     if (dialogResult == DialogResult.Yes) // Reset button pressed
                     {
-                        result = _readerWriter.resetStatus(uid, "R");
+                        result = _readerWriter.InvalidateStatus(uid);
                         logger.Log($"Wristband status reset result: {result}");
                         result = _readerWriter.InsertRecord(uid, _selectedCount, _selectedCount > 0 ? 120.0 : _selectedTime);
-                        string st = string.IsNullOrEmpty(result) ? result : "Wristband status reset and initialized.";
-                        setStatus(st);
-                        logger.Log(st);
+                        _readerWriter.updateStatus(uid, "R", 10);
+                        setStatus("Wristband is good to go");
+                        _selectedCount = 0;
+                        resetSelection(string.Empty);
+                        logger.Log("Wristband successfully processed.");
                     }
                     else if (dialogResult == DialogResult.No) // OK button pressed
                     {
