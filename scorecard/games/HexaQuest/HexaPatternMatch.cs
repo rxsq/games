@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using System.Timers;
 
 public class HexaPatternMatch : BaseSingleDevice
 {
@@ -15,11 +16,14 @@ public class HexaPatternMatch : BaseSingleDevice
     private string gameColor;
     private Task patternTask;
     private List<int> targetTiles = new List<int>(); // Holds target tiles
+    private HashSet<int> hitTargets = new HashSet<int>(); // Track hit targets
     private HashSet<int> hitTiles = new HashSet<int>(); // Track hit tiles
     private int wrongAttempts = 0; // Counter for wrong attempts
     private const int maxWrongAttempts = 3; // Max number of wrong hits allowed
     private bool displayTimeEnded = false; // Track if display time has ended
     private const int maxTargetCount = 25; // Maximum number of targets for higher levels
+    private Timer intervalTimer; // Timer to show lights at intervals
+    private const int intervalTime = 3000;
 
     public HexaPatternMatch(GameConfig config) : base(config)
     {
@@ -42,9 +46,12 @@ public class HexaPatternMatch : BaseSingleDevice
         SendColorToDevices(ColorPalette.Blue, false); // Set all tiles to blue at the start
         wrongAttempts = 0; // Reset wrong attempts at the start of each iteration
         displayTimeEnded = false; // Reset display time flag for the new iteration
+        hitTargets.Clear(); // Clear previously hit tiles
         hitTiles.Clear(); // Clear previously hit tiles
         CalculateTargetCountForCurrentLevel(); // Dynamically calculate the number of targets based on the current level
         ActivateRandomLights(); // Activate target lights and set a timer for hiding
+        intervalTimer = new Timer(intervalTime);
+        intervalTimer.Elapsed += (sender, e) => DisplayRemainingTargets(); // Show lights at regular intervals
     }
 
     // Dynamically calculate the number of targets based on the current level
@@ -125,7 +132,7 @@ public class HexaPatternMatch : BaseSingleDevice
     {
         foreach (var index in targetTiles)
         {
-            if (!hitTiles.Contains(index)) // Only hide tiles that were not hit
+            if (!hitTargets.Contains(index)) // Only hide tiles that were not hit
             {
                 handler.DeviceList[index] = ColorPalette.Blue; // Set hidden targets back to blue
             }
@@ -133,6 +140,22 @@ public class HexaPatternMatch : BaseSingleDevice
         handler.SendColorsToUdp(handler.DeviceList); // Update tiles
         displayTimeEnded = true; // Mark the display phase as ended
         logger.Log("Hiding targets and allowing iteration progression");
+    }
+
+    private void DisplayRemainingTargets()
+    {
+        foreach (var index in targetTiles)
+        {
+            if (!hitTargets.Contains(index)) // Only hide tiles that were not hit
+            {
+                handler.DeviceList[index] = ColorPalette.yellow; // Set hidden targets back to yellow
+            }
+        }
+        // Send the updated colors for all devices
+        handler.SendColorsToUdp(handler.DeviceList);
+
+        // Set a timer to hide targets after the display time ends
+        Task.Delay(CalculateDisplayTimeForLevel()).ContinueWith(_ => HideTargets());
     }
 
     // Callback to handle touch inputs
@@ -156,14 +179,17 @@ public class HexaPatternMatch : BaseSingleDevice
             ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Green : ColorPalette.Green, touchedActiveDevices, handler);
             handler.activeDevices.RemoveAll(x => touchedActiveDevices.Contains(x));
             positions.RemoveAll(x => touchedActiveDevices.Contains(x));
+            hitTargets.UnionWith(touchedActiveDevices); // Track hit tiles
             hitTiles.UnionWith(touchedActiveDevices); // Track hit tiles
             updateScore(Score + 1);
             LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", handler.activeDevices)}");
         }
 
+        positions.RemoveAll(x => hitTargets.Contains(x) || hitTiles.Contains(x));
         // Process wrong hits
         if (positions.Count > 0)
         {
+            hitTiles.UnionWith(positions);
             ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Red : ColorPalette.Red, positions, handler);
             wrongAttempts++; // Increment wrong attempts
             logger.Log($"Wrong tile hit! Wrong attempts: {wrongAttempts}");
