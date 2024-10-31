@@ -4,6 +4,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>"Climb" 1 0</StartArguments>
+    <StartArguments>"HexaPatternMatch" 1 1</StartArguments>
   </PropertyGroup>
 </Project>

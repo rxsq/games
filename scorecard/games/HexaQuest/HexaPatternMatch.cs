@@ -23,7 +23,7 @@ public class HexaPatternMatch : BaseSingleDevice
     private bool displayTimeEnded = false; // Track if display time has ended
     private const int maxTargetCount = 25; // Maximum number of targets for higher levels
     private Timer intervalTimer; // Timer to show lights at intervals
-    private const int intervalTime = 3000;
+    private const int intervalTime = 5000;
 
     public HexaPatternMatch(GameConfig config) : base(config)
     {
@@ -50,8 +50,11 @@ public class HexaPatternMatch : BaseSingleDevice
         hitTiles.Clear(); // Clear previously hit tiles
         CalculateTargetCountForCurrentLevel(); // Dynamically calculate the number of targets based on the current level
         ActivateRandomLights(); // Activate target lights and set a timer for hiding
+        DisplayRemainingTargets();
+        // Initialize and start the interval timer to regularly display targets
         intervalTimer = new Timer(intervalTime);
-        intervalTimer.Elapsed += (sender, e) => DisplayRemainingTargets(); // Show lights at regular intervals
+        intervalTimer.Elapsed += (sender, e) => DisplayRemainingTargets();
+        intervalTimer.Start();
     }
 
     // Dynamically calculate the number of targets based on the current level
@@ -95,7 +98,6 @@ public class HexaPatternMatch : BaseSingleDevice
             // Only set this tile as a target if it is not already in the targetTiles list
             if (!targetTiles.Contains(index))
             {
-                handler.DeviceList[index] = ColorPalette.yellow; // Set target tile to yellow
                 targetTiles.Add(index); // Add this tile to the target list
                 handler.activeDevices.Add(index); // Make this tile clickable
             }
@@ -109,13 +111,6 @@ public class HexaPatternMatch : BaseSingleDevice
             logger.Log($"ERROR: Unable to activate the correct number of target tiles. Activated {targetTiles.Count}/{targetCount}.");
         }
 
-        // Send the updated colors for all devices
-        handler.SendColorsToUdp(handler.DeviceList);
-
-        LogData($"Target tiles activated: {string.Join(",", targetTiles)}");
-
-        // Set a timer to hide targets after the display time ends
-        Task.Delay(CalculateDisplayTimeForLevel()).ContinueWith(_ => HideTargets());
     }
 
     // Calculate how long the targets will be displayed
@@ -138,6 +133,7 @@ public class HexaPatternMatch : BaseSingleDevice
             }
         }
         handler.SendColorsToUdp(handler.DeviceList); // Update tiles
+        LogData($"Target tiles activated: {string.Join(",", targetTiles)}");
         displayTimeEnded = true; // Mark the display phase as ended
         logger.Log("Hiding targets and allowing iteration progression");
     }
@@ -156,6 +152,14 @@ public class HexaPatternMatch : BaseSingleDevice
 
         // Set a timer to hide targets after the display time ends
         Task.Delay(CalculateDisplayTimeForLevel()).ContinueWith(_ => HideTargets());
+    }
+
+    // Stop the interval timer at the end of the iteration
+    private void OnEndIteration()
+    {
+        logger.Log("Stopping the timer!");
+        intervalTimer?.Stop();
+        intervalTimer?.Dispose();
     }
 
     // Callback to handle touch inputs
@@ -198,6 +202,7 @@ public class HexaPatternMatch : BaseSingleDevice
             if (wrongAttempts >= maxWrongAttempts)
             {
                 logger.Log("Max wrong attempts reached, iteration lost.");
+                OnEndIteration();
                 IterationLost(null); // End iteration due to too many wrong hits
                 return;
             }
@@ -209,6 +214,7 @@ public class HexaPatternMatch : BaseSingleDevice
         if (handler.activeDevices.Count == 0 && displayTimeEnded)
         {
             logger.Log("All target tiles hit, display time ended, iteration won.");
+            OnEndIteration();
             IterationWon(); // Mark the iteration as won when all targets are hit
         }
         else

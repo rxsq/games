@@ -71,8 +71,8 @@ class ElevenLabsTTS
         ////voiceFiles[8] = "Level 9. You're almost there!";
         ////voiceFiles[9] = "Level 10. You've made it!";
         //fileTitle = "level";
-        string fileTitle = "HexaPatternMatchIntro";
-        string textToConvert = "Welcome to Hexa Pattern Match! Memorize the glowing yellow tiles and tap them before time runs out. Each level gets trickier with more tiles to remember. Stay sharp and beat the challenge! 3... 2... 1... GO!";
+        string fileTitle = "TargetMultiplayerIntro";
+        string textToConvert = "Welcome to Target Multiplayer! Compete head-to-head as you aim for targets that match the color on the screen. With each level, targets appear faster, challenging your reflexes to keep up. Stay sharp and be quick—hit the wrong tile, and it’s your opponent who’ll gain the point! Keep your eyes on the color, get ready to throw the balls at the target, and let the game begin! 3... 2... 1... GO!";
 
         double initialStability = 0.8;
         double finalStability = 0.3;

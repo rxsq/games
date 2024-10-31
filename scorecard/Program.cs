@@ -39,7 +39,7 @@ class Program
                 gameConfig.IpAddress = "127.0.0.1";
                 gameConfig.isTestMode = true;
                 gameConfig.SmartPlugip = "127.0.0.1";
-                gameConfig.NoofLedPerdevice = 1;
+                gameConfig.NoofLedPerdevice = 3;
 
             }
             gameConfig.GameName = gameVariant;

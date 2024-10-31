@@ -171,7 +171,9 @@
     <Compile Include="games\Push\Invader.cs" />
     <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="games\Push\WackAMole.cs" />
+    <Compile Include="games\TileHunt\StepQuest.cs" />
     <Compile Include="lib\BaseMultiplayerGame.cs" />
+    <Compile Include="lib\BaseMultiplayerMultiDeviceGame.cs" />
     <Compile Include="lib\BaseUdpHandler.cs" />
     <Compile Include="lib\FlygerController.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
