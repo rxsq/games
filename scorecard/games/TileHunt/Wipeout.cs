@@ -162,7 +162,7 @@ public class WipeoutGame : BaseMultiDevice
 
             
             LogData($"Revolutions: {revolutions} maxRoundsPerLevel: {maxRoundsPerLevel}");
-            if (revolutions == maxRoundsPerLevel)
+            if (((revolutions == maxRoundsPerLevel) && (Level<4)) || ((revolutions == maxRoundsPerLevel+1) && (Level >= 4)))
             {
                 isGameRunning = false;
                 IterationWon();
