@@ -19,7 +19,9 @@ public class WipeoutGame : BaseMultiDevice
     private int radius;
 
     private int angleStep;
+    private int angleStep2;
     private double currentAngle;
+    private double currentAngle2;
     private int revolutions;
     private int totalHalfTiles;
     private bool isReversed; // Track the direction of movement
@@ -49,8 +51,10 @@ public class WipeoutGame : BaseMultiDevice
         centerX =  config.columns / 2;
         centerY = rows / 2;
         radius = (rows / 2) + 1;
-        angleStep = 10; // Adjust the angle step for smoother movement
+        angleStep = 10;
+        angleStep2 = -10; 
         currentAngle = 1;
+        currentAngle2 = 360;
         totalHalfTiles = config.columns * centerY;
         isReversed = false;
     }
@@ -124,7 +128,7 @@ public class WipeoutGame : BaseMultiDevice
     {
         while (!cancellationToken.IsCancellationRequested && isGameRunning)
         {
-            //LogData($"currentAngle:{currentAngle} angleStep {angleStep}");
+            obstaclePositions.Clear();
 
             if ((currentAngle >= 360) || (currentAngle <= 0))
             {
@@ -137,9 +141,26 @@ public class WipeoutGame : BaseMultiDevice
             }
 
 
-            obstaclePositions.Clear();
+            
             currentAngle += angleStep;
+
             MoveObstacles();
+
+            if (Level > 2)
+            {
+                if ((currentAngle2 >= 360) || (currentAngle2 <= 0))
+                {
+                    angleStep2 = -angleStep2;
+                    if (currentAngle2 - angleStep2 > 360)
+                        currentAngle2 = currentAngle2 - 5;
+                }
+
+                currentAngle2 += angleStep2;
+
+                MoveObstacles2();
+            }
+
+            
             LogData($"Revolutions: {revolutions} maxRoundsPerLevel: {maxRoundsPerLevel}");
             if (revolutions == maxRoundsPerLevel)
             {
@@ -258,6 +279,64 @@ public class WipeoutGame : BaseMultiDevice
         // Console.WriteLine($"x:{x1} x2:{x2}  currentAngle {currentAngle} {string.Join(",", obstaclePositions)}");
     }
 
+    private void MoveObstacles2()
+    {
+        double radianAngle = currentAngle2 * Math.PI / 180;
+
+        int x1 = centerX;
+        int y1 = centerY;
+        int x2 = (int)(centerX + radius * Math.Cos(radianAngle));
+        int y2 = (int)(centerY + radius * Math.Sin(radianAngle));
+
+        bool steep = Math.Abs(y2 - y1) > Math.Abs(x2 - x1);
+        if (steep)
+        {
+            Swap(ref x1, ref y1);
+            Swap(ref x2, ref y2);
+        }
+
+        if (x1 > x2)
+        {
+            Swap(ref x1, ref x2);
+            Swap(ref y1, ref y2);
+        }
+
+        int dx = x2 - x1;
+        int dy = Math.Abs(y2 - y1);
+        int error = dx / 2;
+        int ystep = (y1 < y2) ? 1 : -1;
+        int y = y1;
+
+        for (int x = x1; x <= x2; x++)
+        {
+            int posToAdd = -500;
+            if (steep && x < rows && x >= 0 && y < config.columns && y >= 0)
+            {
+                posToAdd = x * config.columns + y;
+            }
+            else if (x < config.columns && x >= 0 && y < rows && y >= 0)
+            {
+                posToAdd = y * config.columns + x;
+            }
+
+            if (currentAngle2 > 300 && currentAngle2 < 330 && posToAdd > totalHalfTiles)
+            {
+                Console.WriteLine($"x:{x} y:{y} posToAdd {posToAdd} currentAngle {currentAngle2}");
+            }
+            else if (posToAdd != -500)
+            {
+                obstaclePositions.Add(posToAdd);
+            }
+            error -= dy;
+            if (error < 0)
+            {
+                y += ystep;
+                error += dx;
+            }
+        }
+        // Console.WriteLine($"x:{x1} x2:{x2}  currentAngle {currentAngle} {string.Join(",", obstaclePositions)}");
+    }
+
     private void Swap(ref int a, ref int b)
     {
         int temp = a;
@@ -279,5 +358,95 @@ public class WipeoutGame : BaseMultiDevice
     protected override void OnEnd()
     {
              base.OnEnd();
+    }
+}
+
+public class Obstacle
+{
+    private int centerX;
+    private int centerY;
+    private int radius;
+    private double currentAngle;
+    private int angleStep;
+    public List<int> Positions { get; private set; } // Stores the tile positions occupied by this obstacle
+
+    public Obstacle(int centerX, int centerY, int radius, int initialAngleStep)
+    {
+        this.centerX = centerX;
+        this.centerY = centerY;
+        this.radius = radius;
+        this.currentAngle = 0;
+        this.angleStep = initialAngleStep;
+        this.Positions = new List<int>();
+    }
+
+    // Updates the obstacle’s position based on the angle and radius
+    public void Move()
+    {
+        Positions.Clear();
+        double radianAngle = currentAngle * Math.PI / 180;
+
+        int x1 = centerX;
+        int y1 = centerY;
+        int x2 = (int)(centerX + radius * Math.Cos(radianAngle));
+        int y2 = (int)(centerY + radius * Math.Sin(radianAngle));
+
+        bool steep = Math.Abs(y2 - y1) > Math.Abs(x2 - x1);
+        if (steep)
+        {
+            Swap(ref x1, ref y1);
+            Swap(ref x2, ref y2);
+        }
+
+        if (x1 > x2)
+        {
+            Swap(ref x1, ref x2);
+            Swap(ref y1, ref y2);
+        }
+
+        int dx = x2 - x1;
+        int dy = Math.Abs(y2 - y1);
+        int error = dx / 2;
+        int ystep = (y1 < y2) ? 1 : -1;
+        int y = y1;
+
+        for (int x = x1; x <= x2; x++)
+        {
+            int posToAdd = -1;
+            if (steep)
+            {
+                posToAdd = x * 14 + y; // Assuming 14 columns, adjust as necessary
+            }
+            else
+            {
+                posToAdd = y * 14 + x;
+            }
+
+            if (posToAdd != -1)
+            {
+                Positions.Add(posToAdd);
+            }
+
+            error -= dy;
+            if (error < 0)
+            {
+                y += ystep;
+                error += dx;
+            }
+        }
+
+        // Update the angle for the next move
+        currentAngle += angleStep;
+        if (currentAngle >= 360 || currentAngle <= 0)
+        {
+            angleStep = -angleStep;
+        }
+    }
+
+    private void Swap(ref int a, ref int b)
+    {
+        int temp = a;
+        a = b;
+        b = temp;
     }
 }
