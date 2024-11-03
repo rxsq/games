@@ -15,8 +15,11 @@ using System.Threading.Tasks;
 public class TileHunt : BaseMultiDevice
 {
     private int killerSpeedReduction = 200;
-    // private System.Threading.Timer gameTimer;
     private bool isReversed = false; // Track the direction of the killer line
+    Task killerLineTask;
+    private Dictionary<UdpHandler, List<int>> killerRowsDict = new Dictionary<UdpHandler, List<int>>();
+    private List<int> obstaclePositions = new List<int>();
+    private CoolDown coolDown = new CoolDown();
 
     public TileHunt(GameConfig config, int killerSpeedReduction) : base(config)
     {
@@ -30,19 +33,13 @@ public class TileHunt : BaseMultiDevice
 
     protected override void Initialize()
     {
-
-
         AnimateColor(false);
         AnimateColor(true);
         BlinkAllAsync(4);
     }
-    Task killerLineTask;
+
     protected override void OnStart()
     {
-        //if (gameTimer == null)
-        //{
-        //    gameTimer = new System.Threading.Timer(drawkillingline, null, 1000, 500000000); // Change target tiles every 10 seconds
-        //}
         if (killerLineTask == null || killerLineTask.IsCompleted)
         {
             if (killerLineTask != null && !killerLineTask.IsCompleted)
@@ -60,11 +57,9 @@ public class TileHunt : BaseMultiDevice
         }
     }
 
-    private Dictionary<UdpHandler, List<int>> killerRowsDict = new Dictionary<UdpHandler, List<int>>();
-    private List<int> obstaclePositions = new List<int>();
-
     protected override void OnIteration()
     {
+        coolDown.SetFlagTrue(1000);
         SendSameColorToAllDevice(ColorPaletteone.Red, true);
         targetColor = ColorPaletteone.Green;
         int totalTargets = 0;
@@ -144,7 +139,7 @@ public class TileHunt : BaseMultiDevice
         }
         return true;
     }
-    UdpHandler prevhandler = null;
+    
     protected void drawkillingline(object state)
     {
         if (!isGameRunning)
@@ -287,12 +282,13 @@ public class TileHunt : BaseMultiDevice
                 }
                 LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup.Values)}");
             }
-            else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)))
+            else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)) && coolDown.Flag==false)
             {
                 isGameRunning = false;
                 LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
                 killerRowsDict[handler].Clear();
                 base.Score--;
+                coolDown.SetFlagTrue(1000);
                 IterationLost(null);
                 return;
             }
@@ -308,5 +304,24 @@ public class TileHunt : BaseMultiDevice
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
+    }
+}
+
+public class CoolDown
+{
+    private bool _flag;
+
+    public bool Flag => _flag;
+
+    // Method to set the flag to true for a specified duration (in milliseconds)
+    public async Task SetFlagTrue(int durationInMilliseconds)
+    {
+        _flag = true;
+        Console.WriteLine("Cool Down Set for " + durationInMilliseconds.ToString() + " ms");
+
+        await Task.Delay(durationInMilliseconds);
+
+        _flag = false;
+        Console.WriteLine("CoolDown completed");
     }
 }
