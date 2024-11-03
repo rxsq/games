@@ -59,7 +59,7 @@ public class TileHunt : BaseMultiDevice
 
     protected override void OnIteration()
     {
-        coolDown.SetFlagTrue(1000);
+        coolDown.SetFlagTrue(500);
         SendSameColorToAllDevice(ColorPaletteone.Red, true);
         targetColor = ColorPaletteone.Green;
         int totalTargets = 0;
@@ -288,7 +288,6 @@ public class TileHunt : BaseMultiDevice
                 LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
                 killerRowsDict[handler].Clear();
                 base.Score--;
-                coolDown.SetFlagTrue(1000);
                 IterationLost(null);
                 return;
             }
@@ -304,24 +303,5 @@ public class TileHunt : BaseMultiDevice
         {
             handler.BeginReceive(data => ReceiveCallback(data, handler));
         }
-    }
-}
-
-public class CoolDown
-{
-    private bool _flag;
-
-    public bool Flag => _flag;
-
-    // Method to set the flag to true for a specified duration (in milliseconds)
-    public async Task SetFlagTrue(int durationInMilliseconds)
-    {
-        _flag = true;
-        Console.WriteLine("Cool Down Set for " + durationInMilliseconds.ToString() + " ms");
-
-        await Task.Delay(durationInMilliseconds);
-
-        _flag = false;
-        Console.WriteLine("CoolDown completed");
     }
 }
