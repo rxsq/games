@@ -26,11 +26,13 @@ public class WipeoutGame : BaseMultiDevice
     private double secondsPerRound;
     private int maxRoundsPerLevel;
 
+    private CancellationTokenSource _cancellationTokenSource;
 
-    public WipeoutGame(GameConfig config, double secondsPerRound) : base(config)
+
+    public WipeoutGame(GameConfig config, int maxRoundsPerLevel) : base(config)
     {
         config.timerPointLoss = false;
-        this.secondsPerRound = secondsPerRound;
+        this.maxRoundsPerLevel = maxRoundsPerLevel;
         Initialize();
     }
 
@@ -51,20 +53,20 @@ public class WipeoutGame : BaseMultiDevice
         currentAngle = 1;
         totalHalfTiles = config.columns * centerY;
         isReversed = false;
-}
-    private CancellationTokenSource _cancellationTokenSource;
+    }
+    
 
     protected override void OnIteration()
     {
         coolDown.SetFlagTrue(500);
         revolutions = 0;
+        secondsPerRound = IterationTime / (maxRoundsPerLevel*1000);
+        LogData("Seconds per round: " + secondsPerRound.ToString());
      
         if (iterationTimer != null)
         {
             iterationTimer.Dispose();
         }
-
-        maxRoundsPerLevel = (int)(IterationTime /(secondsPerRound*1000));
     }
     protected override void OnStart()
     {
@@ -122,7 +124,7 @@ public class WipeoutGame : BaseMultiDevice
     {
         while (!cancellationToken.IsCancellationRequested && isGameRunning)
         {
-            LogData($"currentAngle:{currentAngle} angleStep {angleStep}");
+            //LogData($"currentAngle:{currentAngle} angleStep {angleStep}");
 
             if ((currentAngle >= 360) || (currentAngle <= 0))
             {
@@ -131,7 +133,7 @@ public class WipeoutGame : BaseMultiDevice
                 angleStep = -angleStep;
                 if (currentAngle - angleStep > 360)
                     currentAngle = currentAngle - 5;
-                updateScore(Score + 1);
+                updateScore(Score + Level);
             }
 
 
@@ -179,7 +181,7 @@ public class WipeoutGame : BaseMultiDevice
             }
 
            // logger.Log($"Active devices filling handler:{string.Join(",", udpHandlers.Select(x => x.name))} active devices: {string.Join(",", udpHandlers.Select(x => string.Join(",", x.activeDevices)))}");
-            logger.Log($"Active devices filling handler {sb.ToString()} wait time inms:{waitTime}");
+            logger.Log($"Active devices filling handler {sb.ToString()} wait time in ms:{waitTime}");
             SendColorToUdpAsync();
            
             try
