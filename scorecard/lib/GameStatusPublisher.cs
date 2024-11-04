@@ -42,7 +42,7 @@ public class GameStatusPublisher
     {
         var message = new
         {
-            Score = score,
+            Scores = score,
             LifeLine = lifeLine,
             Level = level,
             Status = status,

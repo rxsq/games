@@ -13,11 +13,9 @@ namespace scorecard
         private ScorecardForm scorecardForm;
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
-        // Logger logger = new AsyncLogger("scorecard");
         ScoreboardListener udpHandler = new ScoreboardListener();
         public GameSelection()
         {
-           
             InitializeComponent();
             StartCheckInTimer();
             if (!Debugger.IsAttached)
@@ -28,12 +26,10 @@ namespace scorecard
             }
             logger.Log("application started");
             InitializeWebView();
-
             SetBrowserFeatureControl();
             InitializeScorecardForm();
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"])  ;
-            // webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid1) =>
             {
                 string uid = uid1.Split(':')[0];
@@ -76,7 +72,14 @@ namespace scorecard
             string receivedData = Encoding.UTF8.GetString(receivedBytes);
 
             var gameMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<GameMessage>(receivedData);
-            scorecardForm.UpdateScoreBoard( gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
+            if(gameMessage.Scores != null)
+            {
+                scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
+            } else
+            {
+                scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
+            }
+
             foreach (var p in players)
             {
                 p.LevelPlayed = gameMessage.Level;
@@ -207,7 +210,7 @@ namespace scorecard
                 int noofplayers = int.Parse(message.Split(':')[2]);
                 string gameType = message.Split(":")[3];
 
-                scorecardForm.updateScreen("gameType");
+                scorecardForm.updateScreen(gameType);
                 
                 if (ConfigurationSettings.AppSettings["gamingEnginePath"].Length>0)
                 {
@@ -310,6 +313,7 @@ namespace scorecard
     class GameMessage
     {
         public int Score;
+        public int[]? Scores;
         public int LifeLine;
         public int Level;
         public string Status;

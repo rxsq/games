@@ -88,12 +88,13 @@ public partial class ScorecardForm : Form
     }
     public void UpdateScores(int[] scores)
     {
-        util.uiupdate($"window.updateScores({scores})", webView2);
+        string scoresJson = Newtonsoft.Json.JsonConvert.SerializeObject(scores);
+        util.uiupdate($"window.updateScores({scoresJson})", webView2);
     }
 
     public void updateScreen(string gameType)
     {
-        util.uiupdate($"window.updateGameType({gameType})", webView2);
+        util.uiupdate($"window.updateGameType(\"{gameType}\")", webView2);
     }
 
     private void UiUpdate(string func, int value)

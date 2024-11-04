@@ -24,11 +24,11 @@ namespace scorecard.lib
                     try
                     {
                         await webView2.ExecuteScriptAsync(script);
-                        Console.WriteLine("Script executed successfully.");
+                        logger.Log("Script executed successfully. Message: " + msg);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Script execution failed: " + ex.Message);
+                        logger.Log("Script execution failed: " + ex.Message);
                     }
                 }));
             }
@@ -37,11 +37,11 @@ namespace scorecard.lib
                 try
                 {
                     await webView2.ExecuteScriptAsync(script);
-                    Console.WriteLine("Script executed successfully.");
+                    logger.Log("Script executed successfully. Message: " + msg);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Script execution failed: " + ex.Message);
+                    logger.Log("Script execution failed: " + ex.Message);
                 }
             }
         }
