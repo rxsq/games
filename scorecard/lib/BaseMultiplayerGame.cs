@@ -69,6 +69,22 @@ public abstract class BaseMultiplayerGame:BaseGame
         if (6 <= random) { musicPlayer.PlayEffect("content/hit2.wav"); }
     }
 
+    protected int getHighestScoreIndex()
+    {
+        int highestScore = scores[0];
+        int highestScoreIndex = 0;
+
+        for (int i = 1; i < scores.Length; i++)
+        {
+            if (scores[i] > highestScore)
+            {
+                highestScore = scores[i];
+                highestScoreIndex = i;
+            }
+        }
+        return highestScoreIndex;
+    }
+
     override protected void IterationWon()
     {
         isGameRunning = false;
@@ -87,11 +103,12 @@ public abstract class BaseMultiplayerGame:BaseGame
             LogData($"Game Win level: {Level}");
             Level = Level + 1;
             iterations = 1;
+            int highest = getHighestScoreIndex();
             if (Level >= config.MaxLevel)
             {
-                Status = $"Reached to last Level {config.MaxLevel} ending game";
+                Status = $"Reached to last Level {config.MaxLevel} ending game. Player {highest+1} wins";
                 LogData(Status);
-                musicPlayer.Announcement("content/GameWinAlllevelPassed.mp3");
+                musicPlayer.Announcement($"content/voicelines/winPlayer{highest+1}.mp3");
                 EndGame();
                 return;
             }
