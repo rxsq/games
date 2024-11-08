@@ -175,9 +175,7 @@
     <Compile Include="lib\BaseMultiplayerGame.cs" />
     <Compile Include="lib\BaseMultiplayerMultiDeviceGame.cs" />
     <Compile Include="lib\BaseUdpHandler.cs" />
-    <Compile Include="lib\Cooldown.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Compile>
+    <Compile Include="lib\Cooldown.cs" />
     <Compile Include="lib\FlygerController.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />
@@ -405,6 +403,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\SmashIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\StepQuestIntro.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\TargetMultiplayerIntro.mp3">

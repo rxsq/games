@@ -96,6 +96,9 @@ class Program
                 case "TargetMultiplayer":
                     currentGame = new TargetMultiplayer(gameConfig);
                     break;
+                case "StepQuest":
+                    currentGame = new StepQuest(gameConfig);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;

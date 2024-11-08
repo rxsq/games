@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace scorecard
@@ -110,47 +111,61 @@ namespace scorecard
             LogData($"Player {playerIndex} score updated: {newScore}");
         }
 
-        protected override void IterationWon()
+        protected int getHighestScoreIndex()
+        {
+            int highestScore = scores[0];
+            int highestScoreIndex = 0;
+
+            for (int i = 1; i < scores.Length; i++)
+            {
+                if (scores[i] > highestScore)
+                {
+                    highestScore = scores[i];
+                    highestScoreIndex = i;
+                }
+            }
+            return highestScoreIndex;
+        }
+
+        override protected void IterationWon()
         {
             isGameRunning = false;
             udpHandlers.ForEach(x => x.StopReceive());
-            LogData($"All targets hit; iterations: {iterations} passed");
-
+            LogData($"All targets hit iterations:{iterations} passed");
             if (config.timerPointLoss)
                 iterationTimer.Dispose();
+            iterations = iterations + 1;
 
-            iterations++;
+
 
             if (iterations >= config.Maxiterations)
             {
-                Status = $"{GameStatus.Running}: Moving to next level {Level}";
-                LogData($"Level {Level} completed");
 
-                Level++;
+                Status = $"{GameStatus.Running}: Moved to Next Level {Level}";
+                LogData($"Game Win level: {Level}");
+                Level = Level + 1;
                 iterations = 1;
-
+                int highest = getHighestScoreIndex();
                 if (Level >= config.MaxLevel)
                 {
-                    Status = $"Reached last level {config.MaxLevel}, ending game";
+                    Status = $"Reached to last Level {config.MaxLevel} ending game. Player {highest + 1} wins";
                     LogData(Status);
-                    musicPlayer.Announcement("content/GameWinAlllevelPassed.mp3");
+                    musicPlayer.Announcement($"content/voicelines/winPlayer{highest + 1}.mp3");
                     EndGame();
                     return;
                 }
                 else
                 {
+                    //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
                     LogData(Status);
                     musicPlayer.Announcement($"content/voicelines/level_{Level}.mp3");
                 }
-            }
-            else
-            {
-                BlinkAllAsync(1);
-            }
 
-            Status = $"{GameStatus.Running}: Moving to next iteration {iterations}";
+            }
+            else { BlinkAllAsync(1); }
+            Status = $"{GameStatus.Running}: Moved to Next iterations {iterations}";
             RunGameInSequence();
-            LogData($"Moving to next iteration: {iterations} with iteration time: {IterationTime}");
+            LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
         }
 
         protected void AssignPlayerTargets()
@@ -177,9 +192,72 @@ namespace scorecard
             return dest;
         }
 
+        protected void AnimateColor(bool reverse)
+        {
+
+            foreach (var handler in udpHandlers)
+            {
+                for (int iterations = 0; iterations < handler.Rows; iterations++)
+                {
+                    for (int i = 0; i < handler.DeviceList.Count; i++)
+                    {
+                        handler.DeviceList[i] = ColorPaletteone.Red;
+                    }
+
+                    int row = (iterations / handler.Rows) % 2 == 0 ? (iterations % handler.Rows) : handler.Rows - 1 - (iterations % handler.Rows);
+
+                    if (reverse)
+                    {
+                        row = handler.Rows - row - 1;
+                    }
+
+                    for (int i = 0; i < config.columns; i++)
+                    {
+                        handler.DeviceList[row * config.columns + i] = ColorPaletteone.Green;
+                    }
+
+                    handler.SendColorsToUdp(handler.DeviceList);
+                    Thread.Sleep(75);
+                }
+            }
+        }
+
         protected override async void StartAnimition()
         {
-            // Animation logic for the multiplayer multi-device setup
+            AnimateGrowth(ColorPaletteone.Pink);
+        }
+        protected void AnimateGrowth(string color)
+        {
+            {
+                var handler = udpHandlers[0];
+                int totalLights = handler.DeviceList.Count * udpHandlers.Count;
+                List<int> unchanged = new List<int>(Enumerable.Range(0, handler.DeviceList.Count * udpHandlers.Count));
+                for (double i = 0.00; i < totalLights && isGameRunning; i++)
+                {
+                    int random = new Random().Next(0, unchanged.Count);
+                    int handlerIndex = unchanged[random] / handler.DeviceList.Count;
+                    int position = unchanged[random] % handler.DeviceList.Count;
+                    Console.WriteLine($"index {handlerIndex} position {position} random {random}");
+                    udpHandlers[handlerIndex].DeviceList[unchanged[random] - handler.DeviceList.Count * handlerIndex] = color;
+                    unchanged.RemoveAt(random);
+
+                    udpHandlers[handlerIndex].SendColorsToUdp(udpHandlers[handlerIndex].DeviceList);
+                    Thread.Sleep(Convert.ToInt32(38.00 - i / 6));
+                }
+            }
+        }
+
+        protected void SendColorToUdpAsync()
+        {
+
+            var tasks = new List<Task>();
+            foreach (var handler in udpHandlers)
+            {
+                tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
+            }
+            Task.WhenAll(tasks);
+
+
         }
     }
 }
