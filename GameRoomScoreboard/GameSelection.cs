@@ -14,6 +14,8 @@ namespace scorecard
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
         ScoreboardListener udpHandler = new ScoreboardListener();
+        string gameType = "";
+        string game = "";
         public GameSelection()
         {
             InitializeComponent();
@@ -72,26 +74,30 @@ namespace scorecard
             string receivedData = Encoding.UTF8.GetString(receivedBytes);
 
             var gameMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<GameMessage>(receivedData);
-            if(gameMessage.Scores != null)
+            if (gameMessage != null)
             {
-                scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
-            } else
-            {
-                scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
-            }
-
-            foreach (var p in players)
-            {
-                p.LevelPlayed = gameMessage.Level;
-                p.Points = gameMessage.Score;
-                if (gameMessage.Status == GameStatus.Completed)
+                if (gameMessage.Scores != null)
                 {
-                    p.playerEndTime = DateTime.Now;
-
+                    scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
+                }
+                else
+                {
+                    scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
                 }
 
+                foreach (var p in players)
+                {
+                    p.LevelPlayed = gameMessage.Level;
+                    p.Points = gameMessage.Score;
+                    if (gameMessage.Status == GameStatus.Completed)
+                    {
+                        p.playerEndTime = DateTime.Now;
+
+                    }
+
+                }
+                HandleSattusChange(gameMessage.Status);
             }
-            HandleSattusChange(gameMessage.Status);
             udpHandler.BeginReceive(data => ReceiveCallback(data));
             //  CurrentGame_StatusChanged(null, gameMessage.Status);
         }
@@ -99,6 +105,7 @@ namespace scorecard
         {
             foreach (var item in players)
             {
+                item.GamesVariantCode = game;
                 item.playerEndTime = DateTime.Now;
             }
             var request = new
@@ -206,9 +213,9 @@ namespace scorecard
             logger.Log($"receive message from front end message{message}");
             if (message.StartsWith("start"))
             {
-                string game = message.Split(':')[1];               
+                game = message.Split(':')[1];               
                 int noofplayers = int.Parse(message.Split(':')[2]);
-                string gameType = message.Split(":")[3];
+                gameType = message.Split(":")[3];
 
                 scorecardForm.updateScreen(gameType);
                 
