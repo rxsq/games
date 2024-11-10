@@ -38,7 +38,7 @@ public class StepQuest: BaseMultiplayerMultiDeviceGames
     }
     protected override void OnIteration()
     {
-        SendSameColorToAllDevice(ColorPaletteone.Gray, true);
+        SendSameColorToAllDevice(ColorPaletteone.NoColor, true);
         logger.Log("Iteration started");
         obstaclePositionsMap.Clear();
         foreach (var handler in udpHandlers)
