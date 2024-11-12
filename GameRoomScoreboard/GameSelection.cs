@@ -16,6 +16,7 @@ namespace scorecard
         ScoreboardListener udpHandler = new ScoreboardListener();
         string gameType = "";
         string game = "";
+        DateTime startTime;
         public GameSelection()
         {
             InitializeComponent();
@@ -118,6 +119,7 @@ namespace scorecard
             foreach (var item in players)
             {
                 item.GamesVariantCode = game;
+                item.playerStartTime = startTime;
                 item.playerEndTime = DateTime.Now;
             }
             var request = new
@@ -228,6 +230,7 @@ namespace scorecard
                 game = message.Split(':')[1];               
                 int noofplayers = int.Parse(message.Split(':')[2]);
                 gameType = message.Split(":")[3];
+                startTime = DateTime.Now;
 
                 scorecardForm.updateScreen(gameType);
                 
