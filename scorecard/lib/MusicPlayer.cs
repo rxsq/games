@@ -78,7 +78,7 @@ public class MusicPlayer
 
     public void PlayEffect(string filePath)
     {
-       logger.Log($"using playefect {filePath} {isPlayingEffect}");
+       logger.Log($"using playeffect {filePath} {isPlayingEffect}");
         if (!File.Exists(filePath))
         {
             logger.Log($"Music File not found: {filePath}");
@@ -86,11 +86,12 @@ public class MusicPlayer
         }
 
         effectQueue.Enqueue(filePath);
-        if (!isPlayingEffect)
-        {
+        PlayNextEffect();
+        //if (!isPlayingEffect)
+        //{
           
-            PlayNextEffect();
-        }
+        //    PlayNextEffect();
+        //}
     }
 
     private void PlayNextEffect()
