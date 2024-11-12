@@ -79,23 +79,35 @@ namespace scorecard
                 if (gameMessage.Scores != null)
                 {
                     scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
+                    for (int i= 0;i < players.Count;i++)
+                    {
+                        var p = players[i];
+                        p.LevelPlayed = gameMessage.Level;
+                        p.Points = gameMessage.Scores[i];
+                        if (gameMessage.Status == GameStatus.Completed)
+                        {
+                            p.playerEndTime = DateTime.Now;
+
+                        }
+
+                    }
                 }
                 else
                 {
                     scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
-                }
-
-                foreach (var p in players)
-                {
-                    p.LevelPlayed = gameMessage.Level;
-                    p.Points = gameMessage.Score;
-                    if (gameMessage.Status == GameStatus.Completed)
+                    foreach (var p in players)
                     {
-                        p.playerEndTime = DateTime.Now;
+                        p.LevelPlayed = gameMessage.Level;
+                        p.Points = gameMessage.Score;
+                        if (gameMessage.Status == GameStatus.Completed)
+                        {
+                            p.playerEndTime = DateTime.Now;
+
+                        }
 
                     }
-
                 }
+
                 HandleSattusChange(gameMessage.Status);
             }
             udpHandler.BeginReceive(data => ReceiveCallback(data));
