@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 public partial class MainForm : Form
 {
@@ -14,15 +15,21 @@ public partial class MainForm : Form
     private Label lblControllersCount;
     private TextBox txtControllersCount;
     private Button btnGenerateButtons;
+    private Label lblPlayersCount;
+    private TextBox txtPlayersCount;
+    private Button btnGeneratePlayers;
     private Panel panelContainer;
     private ColorDialog colorDialog;
     private Color buttonColor = Color.Blue;
     private int numberOfButtons;
     private int buttonsPerRow;
     private int controllersCount;
+    private int numberOfPlayers;
     private List<UdpHandler> udpHandlers;
+    private UdpHandler playerUdpHandler;
     private List<Panel> panels;
     protected Dictionary<UdpHandler, Panel> handlerDevices;
+    private int selectedPlayer = -1;
 
     public static readonly Dictionary<string, KnownColor> ColorMap = new Dictionary<string, KnownColor>
     {
@@ -232,7 +239,16 @@ public partial class MainForm : Form
         var parentPanel = button.Parent as Panel;
 
         var udpSender = handlerDevices.FirstOrDefault(kv => kv.Value == parentPanel).Key;
-        udpSender?.SendAsync(getMessage(buttonNumber, parentPanel));
+
+        if (selectedPlayer >= 0)
+        {
+            string message = getMessage(buttonNumber, parentPanel) + $"0{selectedPlayer}";
+            logger.Log("Message sent:"+message);
+            udpSender?.SendAsync(message);
+        } else
+        {
+            udpSender?.SendAsync(getMessage(buttonNumber, parentPanel));
+        }
 
        
     }
@@ -255,6 +271,66 @@ public partial class MainForm : Form
         }
         logger.Log($"Button number: {buttonNumber} - {sb}");
         return sb.ToString();
+    }
+    private void btnGeneratePlayers_Click(object sender, EventArgs e)
+    {
+        playersContainer.Controls.Clear();
+
+        if (int.TryParse(txtPlayersCount.Text, out numberOfPlayers) && numberOfPlayers > 0)
+        {
+            int buttonWidth = 100;
+            int buttonHeight = 30;
+            int margin = 10;
+            int startX = 0;
+            int startY = 0;
+
+            playersContainer.Size = new Size((buttonWidth + margin), (buttonHeight + margin) * numberOfPlayers);
+            playersContainer.Location = new Point(13, btnGeneratePlayers.Bottom + 10);
+
+            for (int i = 0; i < numberOfPlayers; i++)
+            {
+                int x = startX;
+                int y = startY + i * (buttonHeight + margin);
+
+                Button playerButton = new Button
+                {
+                    Size = new Size(buttonWidth, buttonHeight),
+                    Location = new Point(x, y),
+                    BackColor = Color.LightBlue,
+                    Text = $"P{i + 1}",
+                    Tag = i // Store player number in Tag property
+                };
+
+                playerButton.Click += PlayerButton_Click; // Set up click event for player button
+                playersContainer.Controls.Add(playerButton);
+            }
+            this.Controls.Add(playersContainer);
+        }
+        else
+        {
+            MessageBox.Show("Please enter a valid number of players.");
+        }
+    }
+
+    private void PlayerButton_Click(object sender, EventArgs e)
+    {
+        if (sender is Button playerButton)
+        {
+            // Reset background color for all player buttons to the default color
+            foreach (Control control in playersContainer.Controls)
+            {
+                if (control is Button btn)
+                {
+                    btn.BackColor = Color.LightBlue; // Default color
+                }
+            }
+
+            // Set the selected player's background color to green
+            playerButton.BackColor = Color.Green;
+
+            // Update selected player
+            selectedPlayer = (int)playerButton.Tag;
+        }
     }
 
     private void panelContainer_Paint(object sender, PaintEventArgs e)
