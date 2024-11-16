@@ -86,12 +86,23 @@ public partial class ScorecardForm : Form
         UiUpdate("updateLives", lives);
         UpdateScores(scores);
     }
+    public void UpdateScoreBoard(int timer, int level, int[] lives, int[] scores)
+    {
+        UiUpdate("updateTimer", timer);
+        UiUpdate("updateLevel", level);
+        UpdateScores(scores);
+        UpdateLives(lives);
+    }
     public void UpdateScores(int[] scores)
     {
         string scoresJson = Newtonsoft.Json.JsonConvert.SerializeObject(scores);
         util.uiupdate($"window.updateScores({scoresJson})", webView2);
     }
-
+    public void UpdateLives(int[] lives)
+    {
+        string scoresJson = Newtonsoft.Json.JsonConvert.SerializeObject(lives);
+        util.uiupdate($"window.updateLives({scoresJson})", webView2);
+    }
     public void updateScreen(string gameType)
     {
         util.uiupdate($"window.updateGameType(\"{gameType}\")", webView2);

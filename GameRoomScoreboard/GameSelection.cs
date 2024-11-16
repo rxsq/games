@@ -79,7 +79,8 @@ namespace scorecard
             {
                 if (gameMessage.Scores != null)
                 {
-                    scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
+                    if (gameMessage.LifeLines == null) scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
+                    else scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLines, gameMessage.Scores);
                     for (int i= 0;i < players.Count;i++)
                     {
                         var p = players[i];
@@ -337,6 +338,7 @@ namespace scorecard
         public int Score;
         public int[]? Scores;
         public int LifeLine;
+        public int[]? LifeLines;
         public int Level;
         public string Status;
         public int IterationTime;

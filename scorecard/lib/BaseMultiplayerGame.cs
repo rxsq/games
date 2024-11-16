@@ -7,6 +7,7 @@ public abstract class BaseMultiplayerGame:BaseGame
     public UdpHandler handler;
     protected List<string> devices;
     private int[] scores;
+    private int[] lifeLines;
     override public string Status
     {
         get { return status; }
@@ -43,16 +44,34 @@ public abstract class BaseMultiplayerGame:BaseGame
         get { return lifeLine; }
         set
         {
-            lifeLine = value; statusPublisher.PublishStatus(scores, lifeLine, Level, status, IterationTime, config.GameName, iterations);
+            lifeLine = value; 
+            statusPublisher.PublishStatus(scores, lifeLine, Level, status, IterationTime, config.GameName, iterations);
             OnLifelineChanged(value);
             LogData($"LifeLine: {lifeLine}");
         }
     }
+    public int[] LifeLines
+    {
+        get { return lifeLines; }
+        set
+        {
+            value.CopyTo(scores, 0);
+            statusPublisher.PublishStatus(scores, lifeLines, Level, status, IterationTime, config.GameName, iterations);
+            OnLifeLinesChanged(value);
+            LogData($"LifeLine: {lifeLine}");
+        }
+    }
     public event EventHandler<int[]> ScoresChanged;
+    public event EventHandler<int[]> LifeLinesChanged;
     protected virtual void OnScoresChanged(int[] newScore)
     {
         LogData($"score changed to: {string.Join(", ", scores)}");
         ScoresChanged?.Invoke(this, newScore);
+    }
+    protected virtual void OnLifeLinesChanged(int[] lifeLines)
+    {
+        LogData($"score changed to: {string.Join(", ", scores)}");
+        LifeLinesChanged?.Invoke(this, lifeLines);
     }
     public BaseMultiplayerGame(GameConfig co):base(co)
     {
