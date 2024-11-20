@@ -102,6 +102,9 @@ class Program
                 case "Zenith":
                     currentGame = new Zenith(gameConfig);
                     break;
+                case "BlitzBasket":
+                    currentGame = new BlitzBasket(gameConfig);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;

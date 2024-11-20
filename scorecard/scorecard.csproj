@@ -163,6 +163,7 @@
   <ItemGroup>
     <Compile Include="BaseMultiDevice.cs" />
     <Compile Include="BaseSingleDevice.cs" />
+    <Compile Include="games\Basket\BlitzBasket.cs" />
     <Compile Include="games\Climb\Climb.cs" />
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
