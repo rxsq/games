@@ -139,10 +139,10 @@ public class MusicPlayer
                             }
                             finally
                             {
-                                if (backgroundMusicPlayer != null)
-                                {
-                                    backgroundMusicPlayer.Volume = 0.4f;
-                                }
+                                //if (backgroundMusicPlayer != null)
+                                //{
+                                //    backgroundMusicPlayer.Volume = 0.4f;
+                                //}
                                 isPlayingEffect = false;
                                 PlayNextEffect();
                             }

@@ -99,6 +99,9 @@ class Program
                 case "StepQuest":
                     currentGame = new StepQuest(gameConfig);
                     break;
+                case "Zenith":
+                    currentGame = new Zenith(gameConfig);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;

@@ -58,7 +58,7 @@ public abstract class BaseMultiplayerGame:BaseGame
             value.CopyTo(scores, 0);
             statusPublisher.PublishStatus(scores, lifeLines, Level, status, IterationTime, config.GameName, iterations);
             OnLifeLinesChanged(value);
-            LogData($"LifeLine: {lifeLine}");
+            LogData($"Lifelines: {string.Join(", ", lifeLines)}");
         }
     }
     public event EventHandler<int[]> ScoresChanged;
@@ -70,12 +70,13 @@ public abstract class BaseMultiplayerGame:BaseGame
     }
     protected virtual void OnLifeLinesChanged(int[] lifeLines)
     {
-        LogData($"score changed to: {string.Join(", ", scores)}");
+        LogData($"Lifelines changed to: {string.Join(", ", lifeLines)}");
         LifeLinesChanged?.Invoke(this, lifeLines);
     }
     public BaseMultiplayerGame(GameConfig co):base(co)
     {
         scores = new int[co.MaxPlayers];
+        lifeLines = new int[co.MaxPlayers];
         statusPublisher.PublishStatus(scores, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName, iterations);
         handler = udpHandlers[0];
     }  
@@ -86,6 +87,10 @@ public abstract class BaseMultiplayerGame:BaseGame
         if (0 <= random && random < 3) { musicPlayer.PlayEffect("content//hit2.wav"); }
         if (3 <= random && random < 6) { musicPlayer.PlayEffect("content/hit2.wav"); }
         if (6 <= random) { musicPlayer.PlayEffect("content/hit2.wav"); }
+    }
+    protected void updateLifeline(int newLifeLine, int position)
+    {
+        LifeLines[position] = newLifeLine;
     }
 
     protected int getHighestScoreIndex()
