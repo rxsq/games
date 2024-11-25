@@ -19,11 +19,13 @@ class Zenith: BaseMultiplayerGame
     private readonly string redTargetColor;
     private readonly string greenTargetColor;
     private readonly string targetNoColor;
+    private CoolDown coolDown;
     public Zenith(GameConfig config) : base(config) 
     {
         totalBlueTargetsPerIteration = config.MaxPlayers;
         totalRedTargetsPerIteration = 0;
         blueTilePos = new List<int>();
+        redTilePos = new List<int>();
         greenTilePos = -1;
         blueTargetColor = config.NoofLedPerdevice == 1 ? ColorPaletteone.Blue : ColorPalette.Blue;
         redTargetColor = config.NoofLedPerdevice == 1 ? ColorPaletteone.Red : ColorPalette.Red;
@@ -33,6 +35,7 @@ class Zenith: BaseMultiplayerGame
         {
             LifeLines[i] = 5;
         }
+        coolDown = new CoolDown();
     }
     protected override async void StartAnimition()
     {
@@ -59,11 +62,13 @@ class Zenith: BaseMultiplayerGame
 
     protected override void OnIteration()
     {
-        SendSameColorToAllDevice(targetNoColor);
+        SendColorToDevices(targetNoColor, false);
         totalRedTargetsPerIteration = Math.Min((Level - 1) * 2, handler.DeviceList.Count - totalBlueTargetsPerIteration);
-        redTilePos = new List<int>();
+        redTilePos.Clear();
+        blueTilePos.Clear();
         SetTargets();
         BlinkAllAsync(1);
+        coolDown.SetFlagTrue(100);
     }
 
     private void blinkGreenLight()
@@ -195,16 +200,28 @@ class Zenith: BaseMultiplayerGame
                 updateScore(newScore, playerNumber);
                 updateLifeline(newLifeLine, playerNumber);
                 redTilePos.Remove(td);
-                GameContinue();
             }
 
             handler.activeDevices.Remove(td);
         }
-        handler.BeginReceive(data => ReceiveCallback(data, handler));
+        if (IsLifeLineRemaining()) handler.BeginReceive(data => ReceiveCallback(data, handler));
+        else if(!coolDown.Flag)
+        {
+            coolDown.SetFlagTrue(500);
+            IterationLost(null);
+        }
     }
 
     override protected void IterationLost(object state)
     {
+        if (!IsLifeLineRemaining())
+        {
+            //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
+            musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
+            LogData("GAME OVER");
+            EndGame();
+            return;
+        }
         isGameRunning = false;
         udpHandlers.ForEach(x => x.StopReceive());
         if (!config.timerPointLoss && state == null)
@@ -234,17 +251,6 @@ class Zenith: BaseMultiplayerGame
         {
             RunGameInSequence();
         }
-    }
-
-    private void GameContinue()
-    {
-        if(!IsLifeLineRemaining())
-        {
-            //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
-            musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
-            LogData("GAME OVER");
-            EndGame();
-        } 
     }
 
     private bool IsLifeLineRemaining() 
