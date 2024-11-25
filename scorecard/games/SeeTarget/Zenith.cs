@@ -62,7 +62,7 @@ class Zenith: BaseMultiplayerGame
 
     protected override void OnIteration()
     {
-        SendColorToDevices(targetNoColor, false);
+        SendColorToDevices(targetNoColor, true);
         totalRedTargetsPerIteration = Math.Min((Level - 1) * 2, handler.DeviceList.Count - totalBlueTargetsPerIteration);
         redTilePos.Clear();
         blueTilePos.Clear();
@@ -97,6 +97,8 @@ class Zenith: BaseMultiplayerGame
         handler.activeDevices.Clear();
         blueTilePos.Clear();
         redTilePos.Clear();
+
+        if (greenTilePos != -1) handler.DeviceList[greenTilePos] = greenTargetColor;
 
         for (int i = 0; i < totalBlueTargetsPerIteration; i++)
         {
