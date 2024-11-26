@@ -116,7 +116,6 @@ public class TargetMultiplayer : BaseMultiplayerGame
         {
             if (!handler.activeDevices.Contains(i))
             {
-                Console.WriteLine(i.ToString());
                 string newColor;
                 do
                 {
@@ -125,7 +124,6 @@ public class TargetMultiplayer : BaseMultiplayerGame
 
                 handler.DeviceList[i] = newColor;
             }
-            else { Console.WriteLine("Target at:" + i.ToString()); }
         }
         handler.SendColorsToUdp(handler.DeviceList);
     }

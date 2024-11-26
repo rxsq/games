@@ -42,8 +42,25 @@ public class GameStatusPublisher
     {
         var message = new
         {
-            Score = score,
+            Scores = score,
             LifeLine = lifeLine,
+            Level = level,
+            Status = status,
+            IterationTime = terationTime,
+            game = game1
+        };
+
+        string jsonMessage = JsonConvert.SerializeObject(message);
+        byte[] data = Encoding.UTF8.GetBytes(jsonMessage);
+        await Task.Run(() => udpClient.Send(data, data.Length, remoteEndPoint));
+        logger.Log("Status published: " + jsonMessage);
+    }
+    public async void PublishStatus(int[] score, int[] lifeLines, int level, string status, int terationTime, string game1, int iteration)
+    {
+        var message = new
+        {
+            Scores = score,
+            LifeLines = lifeLines,
             Level = level,
             Status = status,
             IterationTime = terationTime,

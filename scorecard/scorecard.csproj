@@ -163,6 +163,7 @@
   <ItemGroup>
     <Compile Include="BaseMultiDevice.cs" />
     <Compile Include="BaseSingleDevice.cs" />
+    <Compile Include="games\Basket\BlitzBasket.cs" />
     <Compile Include="games\Climb\Climb.cs" />
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
@@ -171,10 +172,12 @@
     <Compile Include="games\Push\Invader.cs" />
     <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="games\Push\WackAMole.cs" />
+    <Compile Include="games\SeeTarget\Zenith.cs" />
     <Compile Include="games\TileHunt\StepQuest.cs" />
     <Compile Include="lib\BaseMultiplayerGame.cs" />
     <Compile Include="lib\BaseMultiplayerMultiDeviceGame.cs" />
     <Compile Include="lib\BaseUdpHandler.cs" />
+    <Compile Include="lib\Cooldown.cs" />
     <Compile Include="lib\FlygerController.cs" />
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />
@@ -404,6 +407,9 @@
     <Content Include="content\voicelines\SmashIntro.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\voicelines\StepQuestIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\voicelines\TargetMultiplayerIntro.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -414,6 +420,21 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\WackAMoleIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\winPlayer1.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\winPlayer2.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\winPlayer3.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\winPlayer4.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\winPlayer5.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\WipeoutIntro.mp3">

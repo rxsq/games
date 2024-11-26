@@ -25,13 +25,14 @@ public abstract class BaseGame
     protected int level = 1;
     protected List<string> gameColors = new List<string>();
     protected bool isGameRunning = false;
+    protected int remainingTime;
     public virtual string Status
     {
         get { return status; }
         set
         {
             status = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, remainingTime, config.GameName, iterations);
             OnStatusChanged(status);
         }
     }
@@ -41,7 +42,7 @@ public abstract class BaseGame
         set
         {
             level = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, remainingTime, config.GameName, iterations);
             OnLevelChanged(level);
 
         }
@@ -52,7 +53,7 @@ public abstract class BaseGame
         set
         {
             score = value;
-            statusPublisher.PublishStatus(score, lifeLine, Level, status, IterationTime, config.GameName, iterations);
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, remainingTime, config.GameName, iterations);
             OnScoreChanged(score);
             //labelScore.Text = $"Score: {score}";
             LogData($"Score: {score}");
@@ -115,7 +116,7 @@ public abstract class BaseGame
         logger.Log("basegame constructor");
         this.config = co;
         statusPublisher = new GameStatusPublisher(config.gameEngineIp);
-        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName, iterations);
+        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, remainingTime, config.GameName, iterations);
         gameColors = getColorList();
         musicPlayer = new MusicPlayer("content/background_music.wav");
 
@@ -150,15 +151,27 @@ public abstract class BaseGame
     {
         Status = GameStatus.Running;
         udpHandlers.ForEach(x => x.StartReceive());
+        remainingTime = IterationTime; // Initialize remaining time
         OnIteration();
         isGameRunning = true;
-        // Start target timer
+
         if (config.timerPointLoss)
-            iterationTimer = new Timer(IterationLost, null, IterationTime, IterationTime); // Change target tiles every 10 seconds
+            iterationTimer = new Timer(UpdateRemainingTime, null, 1000, 1000); // Update every second
         OnStart();
-
-
-
+    }
+    protected void UpdateRemainingTime(object state)
+    {
+        if (remainingTime > 0)
+        {
+            remainingTime -= 1000; // Decrease remaining time by 1 second (1000 ms)
+            statusPublisher.PublishStatus(score, lifeLine, Level, status, remainingTime, config.GameName, iterations); // Publish remaining time
+        }
+        else
+        {
+            // Time's up, handle as iteration loss
+            iterationTimer?.Dispose();
+            IterationLost(null);
+        }
     }
     protected virtual async void StartAnimition()
     {

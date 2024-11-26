@@ -69,16 +69,33 @@ public class MusicPlayer
 
     private void BackgroundMusicPlayer_PlaybackStopped(object sender, StoppedEventArgs e)
     {
-        if (repeatBackgroundMusic && backgroundAudioFile != null)
+        try
         {
-            backgroundAudioFile.Position = 0;
-            backgroundMusicPlayer.Play();
+            if (repeatBackgroundMusic && backgroundAudioFile != null)
+            {
+                // Rewind the audio file
+                backgroundAudioFile.Position = 0;
+
+                // Ensure the player is initialized again before playing
+                if (backgroundMusicPlayer != null)
+                {
+                    backgroundMusicPlayer.Stop(); // Stop in case it’s already running
+                    backgroundMusicPlayer.Init(backgroundAudioFile);
+                    backgroundMusicPlayer.Play();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Log($"Error in PlaybackStopped handler: {ex.Message}");
+            CleanUpBackgroundMusicResources();
         }
     }
 
+
     public void PlayEffect(string filePath)
     {
-       logger.Log($"using playefect {filePath} {isPlayingEffect}");
+       logger.Log($"using playeffect {filePath} {isPlayingEffect}");
         if (!File.Exists(filePath))
         {
             logger.Log($"Music File not found: {filePath}");
@@ -86,11 +103,12 @@ public class MusicPlayer
         }
 
         effectQueue.Enqueue(filePath);
-        if (!isPlayingEffect)
-        {
+        PlayNextEffect();
+        //if (!isPlayingEffect)
+        //{
           
-            PlayNextEffect();
-        }
+        //    PlayNextEffect();
+        //}
     }
 
     private void PlayNextEffect()
@@ -138,10 +156,10 @@ public class MusicPlayer
                             }
                             finally
                             {
-                                if (backgroundMusicPlayer != null)
-                                {
-                                    backgroundMusicPlayer.Volume = 0.4f;
-                                }
+                                //if (backgroundMusicPlayer != null)
+                                //{
+                                //    backgroundMusicPlayer.Volume = 0.4f;
+                                //}
                                 isPlayingEffect = false;
                                 PlayNextEffect();
                             }

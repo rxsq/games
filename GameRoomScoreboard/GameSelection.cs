@@ -13,11 +13,12 @@ namespace scorecard
         private ScorecardForm scorecardForm;
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
-        // Logger logger = new AsyncLogger("scorecard");
         ScoreboardListener udpHandler = new ScoreboardListener();
+        string gameType = "";
+        string game = "";
+        DateTime startTime;
         public GameSelection()
         {
-           
             InitializeComponent();
             StartCheckInTimer();
             if (!Debugger.IsAttached)
@@ -28,12 +29,10 @@ namespace scorecard
             }
             logger.Log("application started");
             InitializeWebView();
-
             SetBrowserFeatureControl();
             InitializeScorecardForm();
             Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"])  ;
-            // webView2.Visibility = Visibility.Visible;
             readerWriter.StatusChanged += (s, uid1) =>
             {
                 string uid = uid1.Split(':')[0];
@@ -76,19 +75,43 @@ namespace scorecard
             string receivedData = Encoding.UTF8.GetString(receivedBytes);
 
             var gameMessage = Newtonsoft.Json.JsonConvert.DeserializeObject<GameMessage>(receivedData);
-            scorecardForm.UpdateScoreBoard( gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
-            foreach (var p in players)
+            if (gameMessage != null)
             {
-                p.LevelPlayed = gameMessage.Level;
-                p.Points = gameMessage.Score;
-                if (gameMessage.Status == GameStatus.Completed)
+                if (gameMessage.Scores != null)
                 {
-                    p.playerEndTime = DateTime.Now;
+                    if (gameMessage.LifeLines == null) scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Scores);
+                    else scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLines, gameMessage.Scores);
+                    for (int i= 0;i < players.Count;i++)
+                    {
+                        var p = players[i];
+                        p.LevelPlayed = gameMessage.Level;
+                        p.Points = gameMessage.Scores[i];
+                        if (gameMessage.Status == GameStatus.Completed)
+                        {
+                            p.playerEndTime = DateTime.Now;
 
+                        }
+
+                    }
+                }
+                else
+                {
+                    scorecardForm.UpdateScoreBoard(gameMessage.IterationTime, gameMessage.Level, gameMessage.LifeLine, gameMessage.Score);
+                    foreach (var p in players)
+                    {
+                        p.LevelPlayed = gameMessage.Level;
+                        p.Points = gameMessage.Score;
+                        if (gameMessage.Status == GameStatus.Completed)
+                        {
+                            p.playerEndTime = DateTime.Now;
+
+                        }
+
+                    }
                 }
 
+                HandleSattusChange(gameMessage.Status);
             }
-            HandleSattusChange(gameMessage.Status);
             udpHandler.BeginReceive(data => ReceiveCallback(data));
             //  CurrentGame_StatusChanged(null, gameMessage.Status);
         }
@@ -96,6 +119,8 @@ namespace scorecard
         {
             foreach (var item in players)
             {
+                item.GamesVariantCode = game;
+                item.playerStartTime = startTime;
                 item.playerEndTime = DateTime.Now;
             }
             var request = new
@@ -203,11 +228,12 @@ namespace scorecard
             logger.Log($"receive message from front end message{message}");
             if (message.StartsWith("start"))
             {
-                string game = message.Split(':')[1];               
+                game = message.Split(':')[1];               
                 int noofplayers = int.Parse(message.Split(':')[2]);
-                string gameType = message.Split(":")[3];
+                gameType = message.Split(":")[3];
+                startTime = DateTime.Now;
 
-                scorecardForm.updateScreen("gameType");
+                scorecardForm.updateScreen(gameType);
                 
                 if (ConfigurationSettings.AppSettings["gamingEnginePath"].Length>0)
                 {
@@ -310,7 +336,9 @@ namespace scorecard
     class GameMessage
     {
         public int Score;
+        public int[]? Scores;
         public int LifeLine;
+        public int[]? LifeLines;
         public int Level;
         public string Status;
         public int IterationTime;

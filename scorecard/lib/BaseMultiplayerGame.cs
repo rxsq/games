@@ -7,6 +7,7 @@ public abstract class BaseMultiplayerGame:BaseGame
     public UdpHandler handler;
     protected List<string> devices;
     private int[] scores;
+    private int[] lifeLines;
     override public string Status
     {
         get { return status; }
@@ -43,20 +44,39 @@ public abstract class BaseMultiplayerGame:BaseGame
         get { return lifeLine; }
         set
         {
-            lifeLine = value; statusPublisher.PublishStatus(scores, lifeLine, Level, status, IterationTime, config.GameName, iterations);
+            lifeLine = value; 
+            statusPublisher.PublishStatus(scores, lifeLine, Level, status, IterationTime, config.GameName, iterations);
             OnLifelineChanged(value);
             LogData($"LifeLine: {lifeLine}");
         }
     }
+    public int[] LifeLines
+    {
+        get { return lifeLines; }
+        set
+        {
+            value.CopyTo(scores, 0);
+            statusPublisher.PublishStatus(scores, lifeLines, Level, status, IterationTime, config.GameName, iterations);
+            OnLifeLinesChanged(value);
+            LogData($"Lifelines: {string.Join(", ", lifeLines)}");
+        }
+    }
     public event EventHandler<int[]> ScoresChanged;
+    public event EventHandler<int[]> LifeLinesChanged;
     protected virtual void OnScoresChanged(int[] newScore)
     {
         LogData($"score changed to: {string.Join(", ", scores)}");
         ScoresChanged?.Invoke(this, newScore);
     }
+    protected virtual void OnLifeLinesChanged(int[] lifeLines)
+    {
+        LogData($"Lifelines changed to: {string.Join(", ", lifeLines)}");
+        LifeLinesChanged?.Invoke(this, lifeLines);
+    }
     public BaseMultiplayerGame(GameConfig co):base(co)
     {
         scores = new int[co.MaxPlayers];
+        lifeLines = new int[co.MaxPlayers];
         statusPublisher.PublishStatus(scores, config.MaxLifeLines, Level, GameStatus.NotStarted, IterationTime, config.GameName, iterations);
         handler = udpHandlers[0];
     }  
@@ -67,6 +87,26 @@ public abstract class BaseMultiplayerGame:BaseGame
         if (0 <= random && random < 3) { musicPlayer.PlayEffect("content//hit2.wav"); }
         if (3 <= random && random < 6) { musicPlayer.PlayEffect("content/hit2.wav"); }
         if (6 <= random) { musicPlayer.PlayEffect("content/hit2.wav"); }
+    }
+    protected void updateLifeline(int newLifeLine, int position)
+    {
+        LifeLines[position] = newLifeLine;
+    }
+
+    protected int getHighestScoreIndex()
+    {
+        int highestScore = scores[0];
+        int highestScoreIndex = 0;
+
+        for (int i = 1; i < scores.Length; i++)
+        {
+            if (scores[i] > highestScore)
+            {
+                highestScore = scores[i];
+                highestScoreIndex = i;
+            }
+        }
+        return highestScoreIndex;
     }
 
     override protected void IterationWon()
@@ -87,11 +127,12 @@ public abstract class BaseMultiplayerGame:BaseGame
             LogData($"Game Win level: {Level}");
             Level = Level + 1;
             iterations = 1;
+            int highest = getHighestScoreIndex();
             if (Level >= config.MaxLevel)
             {
-                Status = $"Reached to last Level {config.MaxLevel} ending game";
+                Status = $"Reached to last Level {config.MaxLevel} ending game. Player {highest+1} wins";
                 LogData(Status);
-                musicPlayer.Announcement("content/GameWinAlllevelPassed.mp3");
+                musicPlayer.Announcement($"content/voicelines/winPlayer{highest+1}.mp3");
                 EndGame();
                 return;
             }

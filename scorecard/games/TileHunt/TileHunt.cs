@@ -258,40 +258,52 @@ public class TileHunt : BaseMultiDevice
             .Where(position => position >= 0)
             .ToList();
 
-        if (positions.Count > 0)
+        try
         {
+            if (positions.Count > 0)
+            {
 
-            List<int> l2 = new List<int>();
+                List<int> l2 = new List<int>();
 
-            foreach (var position in positions)
-            {
-                if (handler.activeDevicesGroup.ContainsKey(position))
+                foreach (var position in positions)
                 {
-                    l2.AddRange(handler.activeDevicesGroup[position]);
+                    if (handler.activeDevicesGroup.ContainsKey(position))
+                    {
+                        l2.AddRange(handler.activeDevicesGroup[position]);
+                    }
                 }
-            }
-            if (l2.Count > 0)
-            {
-                LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
-                LogData($"Touch detected: {string.Join(",", l2)}");
-                ChnageColorToDevice(ColorPaletteone.NoColor, l2, handler);
-                updateScore(Score + l2.Count / 4);
-                foreach (var item in l2)
+                if (l2.Count > 0)
                 {
-                    handler.activeDevicesGroup.Remove(item);
+                    LogData($"Received data from {handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
+                    LogData($"Touch detected: {string.Join(",", l2)}");
+                    ChnageColorToDevice(ColorPaletteone.NoColor, l2, handler);
+                    updateScore(Score + l2.Count / 4);
+                    foreach (var item in l2)
+                    {
+                        handler.activeDevicesGroup.Remove(item);
+                    }
+                    LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup.Values)}");
                 }
-                LogData($"Score updated: {Score} active:{string.Join(",", handler.activeDevicesGroup.Values)}");
-            }
-            else if (killerRowsDict.ContainsKey(handler) && positions.Any(x => killerRowsDict[handler].Contains(x)) && coolDown.Flag==false)
-            {
-                isGameRunning = false;
-                LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
-                killerRowsDict[handler].Clear();
-                base.Score--;
-                IterationLost(null);
-                return;
+                else if (killerRowsDict.ContainsKey(handler))
+                {
+                    if (positions.Any(x => killerRowsDict[handler].Contains(x)) && !coolDown.Flag)
+                    {
+                        isGameRunning = false;
+                        LogData($"Game Failed : {Score} position:{string.Join(",", positions)} killerRow : {string.Join(",", killerRowsDict[handler])}");
+                        killerRowsDict[handler].Clear();
+                        base.Score--;
+                        IterationLost(null);
+                        return;
+                    }
+                }
             }
         }
+        catch (Exception ex)
+        {
+            LogData($"Exception in ReceiveCallback: {ex.Message}");
+        }
+
+        
 
         LogData($"{handler.name} processing received data");
         if (udpHandlers.Where(x => x.activeDevicesGroup.Count > 0).Count() == 0)

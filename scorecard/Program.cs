@@ -39,7 +39,7 @@ class Program
                 gameConfig.IpAddress = "127.0.0.1";
                 gameConfig.isTestMode = true;
                 gameConfig.SmartPlugip = "127.0.0.1";
-                gameConfig.NoofLedPerdevice = 3;
+                gameConfig.NoofLedPerdevice = 1;
 
             }
             gameConfig.GameName = gameVariant;
@@ -73,7 +73,7 @@ class Program
                     currentGame = new Snakes(gameConfig, 5000, 5000, "AIzaSyDfOsv-WRB882U3W1ij-p3Io2xe5tSCRbI");
                     break;
                 case "Wipeout":
-                    currentGame = new WipeoutGame(gameConfig, 9);
+                    currentGame = new WipeoutGame(gameConfig, 2);
                     break;
                 case "TileSiege":
                     currentGame = new TileSiege(gameConfig, 10);
@@ -95,6 +95,15 @@ class Program
                     break;
                 case "TargetMultiplayer":
                     currentGame = new TargetMultiplayer(gameConfig);
+                    break;
+                case "StepQuest":
+                    currentGame = new StepQuest(gameConfig);
+                    break;
+                case "Zenith":
+                    currentGame = new Zenith(gameConfig);
+                    break;
+                case "BlitzBasket":
+                    currentGame = new BlitzBasket(gameConfig);
                     break;
                 default:
                     MessageBox.Show("Unknown game type.");
