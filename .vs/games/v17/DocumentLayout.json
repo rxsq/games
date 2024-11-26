@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Owner\\source\\repos\\games\\",
+  "WorkspaceRootPath": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Owner\\source\\repos\\games\\scorecard\\lib\\ColorPalette.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\scorecard\\lib\\ColorPalette.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:scorecard\\lib\\ColorPalette.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -13,11 +13,11 @@
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Owner\\source\\repos\\games\\GameUdpSimulator\\ColorMapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\GameUdpSimulator\\ColorMapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:GameUdpSimulator\\ColorMapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Owner\\source\\repos\\games\\GameUdpSimulator\\UdpHandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\GameUdpSimulator\\UdpHandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:GameUdpSimulator\\UdpHandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -34,9 +34,9 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "ColorPalette.cs",
-              "DocumentMoniker": "C:\\Users\\Owner\\source\\repos\\games\\scorecard\\lib\\ColorPalette.cs",
+              "DocumentMoniker": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\scorecard\\lib\\ColorPalette.cs",
               "RelativeDocumentMoniker": "scorecard\\lib\\ColorPalette.cs",
-              "ToolTip": "C:\\Users\\Owner\\source\\repos\\games\\scorecard\\lib\\ColorPalette.cs",
+              "ToolTip": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\scorecard\\lib\\ColorPalette.cs",
               "RelativeToolTip": "scorecard\\lib\\ColorPalette.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -48,9 +48,9 @@
               "DocumentIndex": 2,
               "Title": "GameUdpSimulator.exe.config",
               "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config",
               "ToolTip": "C:\\Users\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config",
-              "RelativeToolTip": "..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe.config",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
               "WhenOpened": "2024-06-23T20:46:51.916Z"
@@ -60,9 +60,9 @@
               "DocumentIndex": 1,
               "Title": "GameUdpSimulator.exe",
               "DocumentMoniker": "C:\\Users\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe",
-              "RelativeDocumentMoniker": "..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe",
               "ToolTip": "C:\\Users\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe",
-              "RelativeToolTip": "..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\User\\source\\repos\\games\\GameUdpSimulator\\bin\\Debug\\GameUdpSimulator.exe",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000165|",
               "WhenOpened": "2024-06-23T20:46:48.612Z"
             },
@@ -70,9 +70,9 @@
               "$type": "Document",
               "DocumentIndex": 3,
               "Title": "ColorMapper.cs",
-              "DocumentMoniker": "C:\\Users\\Owner\\source\\repos\\games\\GameUdpSimulator\\ColorMapper.cs",
+              "DocumentMoniker": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\GameUdpSimulator\\ColorMapper.cs",
               "RelativeDocumentMoniker": "GameUdpSimulator\\ColorMapper.cs",
-              "ToolTip": "C:\\Users\\Owner\\source\\repos\\games\\GameUdpSimulator\\ColorMapper.cs",
+              "ToolTip": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\GameUdpSimulator\\ColorMapper.cs",
               "RelativeToolTip": "GameUdpSimulator\\ColorMapper.cs",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAABAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -82,9 +82,9 @@
               "$type": "Document",
               "DocumentIndex": 4,
               "Title": "UdpHandler.cs",
-              "DocumentMoniker": "C:\\Users\\Owner\\source\\repos\\games\\GameUdpSimulator\\UdpHandler.cs",
+              "DocumentMoniker": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\GameUdpSimulator\\UdpHandler.cs",
               "RelativeDocumentMoniker": "GameUdpSimulator\\UdpHandler.cs",
-              "ToolTip": "C:\\Users\\Owner\\source\\repos\\games\\GameUdpSimulator\\UdpHandler.cs",
+              "ToolTip": "C:\\Users\\mangl\\source\\repos\\manglesh1\\games\\GameUdpSimulator\\UdpHandler.cs",
               "RelativeToolTip": "GameUdpSimulator\\UdpHandler.cs",
               "ViewState": "AQIAACQAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
