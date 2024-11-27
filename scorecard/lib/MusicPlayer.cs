@@ -69,12 +69,29 @@ public class MusicPlayer
 
     private void BackgroundMusicPlayer_PlaybackStopped(object sender, StoppedEventArgs e)
     {
-        if (repeatBackgroundMusic && backgroundAudioFile != null)
+        try
         {
-            backgroundAudioFile.Position = 0;
-            backgroundMusicPlayer.Play();
+            if (repeatBackgroundMusic && backgroundAudioFile != null)
+            {
+                // Rewind the audio file
+                backgroundAudioFile.Position = 0;
+
+                // Ensure the player is initialized again before playing
+                if (backgroundMusicPlayer != null)
+                {
+                    backgroundMusicPlayer.Stop(); // Stop in case it’s already running
+                    backgroundMusicPlayer.Init(backgroundAudioFile);
+                    backgroundMusicPlayer.Play();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Log($"Error in PlaybackStopped handler: {ex.Message}");
+            CleanUpBackgroundMusicResources();
         }
     }
+
 
     public void PlayEffect(string filePath)
     {

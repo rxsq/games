@@ -63,7 +63,7 @@ namespace importdata
         {
             foreach (string csvFilePath in lstSelectedFiles.Items)
             {
-                if (cmbImporttype.Text == "Bookings")
+                if (cmbImporttype.Text == "bookings")
                 {
                     importBookings(csvFilePath);
                 }
