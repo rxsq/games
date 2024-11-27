@@ -31,6 +31,8 @@ public partial class MainForm : Form
     protected Dictionary<UdpHandler, Panel> handlerDevices;
     private int selectedPlayer = -1;
 
+    private string[] playerMap = new string[] { "0A", "0B", "0C", "0D", "0E" };
+
     public static readonly Dictionary<string, KnownColor> ColorMap = new Dictionary<string, KnownColor>
     {
         { "ff0000", KnownColor.Red },       // Red
@@ -240,17 +242,7 @@ public partial class MainForm : Form
 
         var udpSender = handlerDevices.FirstOrDefault(kv => kv.Value == parentPanel).Key;
 
-        if (selectedPlayer >= 0)
-        {
-            string message = getMessage(buttonNumber, parentPanel) + $"0{selectedPlayer}";
-            logger.Log("Message sent:"+message);
-            udpSender?.SendAsync(message);
-        } else
-        {
-            udpSender?.SendAsync(getMessage(buttonNumber, parentPanel));
-        }
-
-       
+        udpSender?.SendAsync(getMessage(buttonNumber, parentPanel));
     }
 
     private string getMessage(int buttonNumber, Control pnl)
@@ -262,7 +254,8 @@ public partial class MainForm : Form
         {
             if (i == buttonNumber)
             {
-                sb.Append("0A");
+                if(selectedPlayer >= 0) sb.Append(playerMap[selectedPlayer]);
+                else sb.Append("0A");
             }
             else
             {
