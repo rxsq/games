@@ -96,10 +96,19 @@ public class TileSiege : BaseMultiDevice
             LogData($"Safe Zone created at aCTUAL gROUP: {string.Join(",", ActualGroup)}");
             foreach (var item in group)
             {
+               
                 int actualHandlerPos = base.deviceMapping[item].deviceNo;
                 UdpHandler handler = base.deviceMapping[item].udpHandler;
                 handler.DeviceList[actualHandlerPos] = ColorPaletteone.Green;
-                handler.activeDevicesGroup.Add(actualHandlerPos, ActualGroup);
+                if (!handler.activeDevicesGroup.ContainsKey(actualHandlerPos))
+                {
+                    handler.activeDevicesGroup.Add(actualHandlerPos, ActualGroup);
+                    logger.Log($"Safe Zone created at positions: {actualHandlerPos}");
+                }
+                else
+                {
+                    logger.LogError("activeDevicesGroup already contains key:" + actualHandlerPos);
+                }
                 base.deviceMapping[item].isActive = true;
             }
             LogData($"Safe Zone created at positions: {string.Join(",", obstaclePositions)}");

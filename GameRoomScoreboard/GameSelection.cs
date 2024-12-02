@@ -291,8 +291,9 @@ namespace scorecard
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
 
-               logger.LogError("Output: " + output);
-                logger.LogError("Error: " + error);
+               logger.Log("Output: " + output);
+                if (error.Length > 0)
+                    logger.LogError("Error: " + error);
             }
         }
         private void HandleSattusChange(string status)
