@@ -6,21 +6,26 @@ using System.Diagnostics;
 using System.Text;
 using System.Net.Http;
 using System.Text.Json;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 namespace scorecard
 {
     public partial class GameSelection : Form
     {
         private ScorecardForm scorecardForm;
+        private System.Threading.Timer statusTimer;
         List<Player> players = new List<Player>();
         List<Player> Waitingplayers = new List<Player>();
         ScoreboardListener udpHandler = new ScoreboardListener();
         string gameType = "";
         string game = "";
         DateTime startTime;
+        private string gameStatus;
         public GameSelection()
         {
             InitializeComponent();
             StartCheckInTimer();
+            StartStatusTimer();
+            gameStatus = GameStatus.NotStarted;
             if (!Debugger.IsAttached)
             {
                 this.FormBorderStyle = FormBorderStyle.None;
@@ -68,6 +73,15 @@ namespace scorecard
             };
             udpHandler.BeginReceive(data => ReceiveCallback(data));
 
+        }
+        private void StartStatusTimer()
+        {
+            // Timer callback to send the game status every second
+            statusTimer = new System.Threading.Timer(SendGameStatus, null, 0, 1000);
+        }
+        private void SendGameStatus(object state)
+        {
+            util.uiupdate($"window.updateStatus('{gameStatus}')", webView2);
         }
 
         private void ReceiveCallback(byte[] receivedBytes)
@@ -177,11 +191,13 @@ namespace scorecard
             {
                 webView2.Invoke(new Action(() =>
                 {
+                    Waitingplayers?.Clear();
                     webView2.CoreWebView2.Reload();
                 }));
             }
             else
             {
+                Waitingplayers?.Clear();
                 webView2.CoreWebView2.Reload();
             }
         }
@@ -242,6 +258,10 @@ namespace scorecard
                 }
                 udpHandler.SendStartGameMessage(message);
             }
+            if (message.Equals("refresh"))
+            {
+                RefreshWebView();
+            }
         }
         static void StartGame(string[] args,string  exePath)
         {
@@ -280,15 +300,16 @@ namespace scorecard
            
             if (scorecardForm != null)
             {
-                util.uiupdate($"window.updateStaus('{status}')", webView2);
+                util.uiupdate($"window.updateStatus('{status}')", webView2);
                 logger.Log($"gameselection-receive status change message in select form status:{status}");
+                gameStatus = status;
                 if (status == GameStatus.Completed)
                 {
 
                     UpdateWristBandStatus(players);
                     players.Clear();
                  //   Waitingplayers.Clear(); // Clear the waiting list
-                    RefreshWebView(); // Refresh WebView2
+                    // RefreshWebView(); // Refresh WebView2
                 }
                 if (status.StartsWith(GameStatus.Running))
                 {
@@ -330,7 +351,12 @@ namespace scorecard
                     return "";
             }
         }
-
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            // Dispose of the timer when the form is closed
+            statusTimer?.Dispose();
+            base.OnFormClosed(e);
+        }
 
     }
     class GameMessage
