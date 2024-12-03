@@ -77,7 +77,7 @@ namespace scorecard
         private void StartStatusTimer()
         {
             // Timer callback to send the game status every second
-            statusTimer = new System.Threading.Timer(SendGameStatus, null, 0, 1000);
+            statusTimer = new System.Threading.Timer(callback: SendGameStatus, null, 0, 1000);
         }
         private void SendGameStatus(object state)
         {
