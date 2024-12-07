@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LockTester
@@ -18,6 +11,8 @@ namespace LockTester
         {
             InitializeComponent();
             lblStatus.Text = "Status: Not connected";
+            btnRelayOn.Enabled = false;
+            btnRelayOff.Enabled = false;
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
@@ -46,8 +41,15 @@ namespace LockTester
         {
             if (lockController != null)
             {
-                lockController.TurnRelayOn();
-                lblStatus.Text = "Relay turned ON.";
+                try
+                {
+                    lockController.TurnRelayOn();
+                    lblStatus.Text = "Relay turned ON.";
+                }
+                catch (Exception ex)
+                {
+                    lblStatus.Text = $"Error turning relay ON: {ex.Message}";
+                }
             }
             else
             {
@@ -59,8 +61,15 @@ namespace LockTester
         {
             if (lockController != null)
             {
-                lockController.TurnRelayOff();
-                lblStatus.Text = "Relay turned OFF.";
+                try
+                {
+                    lockController.TurnRelayOff();
+                    lblStatus.Text = "Relay turned OFF.";
+                }
+                catch (Exception ex)
+                {
+                    lblStatus.Text = $"Error turning relay OFF: {ex.Message}";
+                }
             }
             else
             {

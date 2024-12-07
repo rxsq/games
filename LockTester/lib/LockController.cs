@@ -5,10 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Threading;
+//using (SerialPort port = new SerialPort("COM3", 9600, Parity.None, 8, ))
 
 public class LockController
 {
     private SerialPort serialPort;
+
+    byte[] cmdON = { 0xA0, 0x01, 0x01, 0xA2 };
+    byte[] cmdOFF = { 0xA0, 0x01, 0x00, 0xA1 };
 
     public LockController(string portName)
     {
@@ -33,7 +37,7 @@ public class LockController
     {
         if (serialPort.IsOpen)
         {
-            serialPort.WriteLine("ON"); // Send the "ON" command
+            serialPort.Write(cmdON, 0, cmdON.Length); // Send the "ON" command
             Console.WriteLine("Relay turned ON.");
         }
         else
@@ -46,7 +50,7 @@ public class LockController
     {
         if (serialPort.IsOpen)
         {
-            serialPort.WriteLine("OFF"); // Send the "OFF" command
+            serialPort.Write(cmdOFF, 0, cmdOFF.Length); // Send the "OFF" command
             Console.WriteLine("Relay turned OFF.");
         }
         else
@@ -54,6 +58,16 @@ public class LockController
             Console.WriteLine("Serial port is not open.");
         }
     }
+
+    public void TurnonAndOff()
+    {
+        for(int i=0; i<=5;i++)
+        {
+            TurnRelayOn();
+            TurnRelayOff();
+        }
+    }
+
 
     public void Dispose()
     {
