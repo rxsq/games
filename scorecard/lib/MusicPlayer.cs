@@ -15,6 +15,7 @@ public class MusicPlayer
     private Task effectPlayingTask;
     private bool isPlayingEffect;
     string backgroundFilePath;
+    private readonly object effectsLock = new object();
     //Logger logger;
 
     public MusicPlayer(string backgroundFile)
@@ -118,30 +119,20 @@ public class MusicPlayer
             isPlayingEffect = true;
             effectPlayingTask = Task.Run(() =>
             {
-                try
+                lock (effectsLock)
                 {
-                    if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
+                    try
                     {
-                        effectsPlayer.Stop();
-                    }
+                        if (effectsPlayer != null && effectsPlayer.PlaybackState == PlaybackState.Playing)
+                        {
+                            effectsPlayer.Stop();
+                            effectsPlayer.Dispose();
+                        }
 
-                    effectsPlayer = new WaveOutEvent();
-                    var audioFile = new AudioFileReader(filePath);
-                    if (effectsPlayer == null)
-                    {
-                        logger.Log("sound could not play as effectplayer is null");
-                        return;
-
-                    }
-                    effectsPlayer.Init(audioFile);
-                    logger.Log(filePath);
-                    // effectsPlayer.Volume = 1.0f;
-                    if (effectsPlayer == null)
-                    {
-                        logger.Log("sound could not play as effectplayer is null");
-                        return;
-
-                    }
+                        effectsPlayer = new WaveOutEvent();
+                        var audioFile = new AudioFileReader(filePath);
+                        effectsPlayer.Init(audioFile);
+                        logger.Log($"Playing effect: {filePath}");
                         effectsPlayer.Play();
 
                         effectsPlayer.PlaybackStopped += (s, e) =>
@@ -156,26 +147,23 @@ public class MusicPlayer
                             }
                             finally
                             {
-                                //if (backgroundMusicPlayer != null)
-                                //{
-                                //    backgroundMusicPlayer.Volume = 0.4f;
-                                //}
                                 isPlayingEffect = false;
                                 PlayNextEffect();
                             }
                         };
-                    
-                }
-                catch (Exception ex)
-                {
-                    logger.Log($"Error playing effect: {ex.Message}");
-                    CleanUpEffectsResources();
-                    isPlayingEffect = false;
-                    PlayNextEffect();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.Log($"Error playing effect: {ex.Message}");
+                        CleanUpEffectsResources();
+                        isPlayingEffect = false;
+                        PlayNextEffect();
+                    }
                 }
             });
         }
     }
+
 
     public void StopBackgroundMusic()
     {
@@ -238,7 +226,14 @@ public class MusicPlayer
     {
         try
         {
-            effectsPlayer?.Dispose();
+            if (effectsPlayer != null)
+            {
+                if (effectsPlayer.PlaybackState != PlaybackState.Stopped)
+                {
+                    effectsPlayer.Stop();
+                }
+                effectsPlayer.Dispose();
+            }
         }
         catch (Exception ex)
         {
@@ -249,7 +244,8 @@ public class MusicPlayer
             effectsPlayer = null;
         }
     }
-   // bool ifAnnouncementPlaying = false;
+
+    // bool ifAnnouncementPlaying = false;
     public void Announcement(string filePath, bool playbckMusic)
     {
         logger.Log($"Announcement: {filePath}");
