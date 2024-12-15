@@ -63,6 +63,7 @@ public class TileHunt : BaseMultiDevice
         SendSameColorToAllDevice(ColorPaletteone.Red, true);
         targetColor = ColorPaletteone.Green;
         int totalTargets = 0;
+        int tries = 0;
 
         obstaclePositions.Clear();
         foreach (var handler in udpHandlers)
@@ -70,11 +71,8 @@ public class TileHunt : BaseMultiDevice
             handler.activeDevicesGroup.Clear();
         }
 
-        while (totalTargets < config.MaxPlayers)
+        while (totalTargets < config.MaxPlayers && tries < 200)
         {
-            if (totalTargets >= config.MaxPlayers)
-                break;
-
             int origMain = random.Next(0, deviceMapping.Count - 1);
 
             while (!isValidpos(origMain))
@@ -84,10 +82,12 @@ public class TileHunt : BaseMultiDevice
 
             int nextPosition = 1;
             int nextRowAdd = config.columns;
+
             if ((origMain % config.columns == 0 && origMain != 0) || origMain == rows * config.columns)
             {
                 nextPosition = -1;
             }
+
             if (deviceMapping.Count - origMain < config.columns)
             {
                 nextRowAdd = -1 * nextRowAdd;
@@ -96,7 +96,22 @@ public class TileHunt : BaseMultiDevice
             int mainRight = origMain + nextPosition;
             int mainBelow = origMain + nextRowAdd;
             int mainBelowRight = mainBelow + nextPosition;
+
             List<int> group = new List<int> { origMain, mainRight, mainBelow, mainBelowRight };
+            tries++;
+
+            if (tries == 200)
+            {
+                LogData("Max try for finding safe positions reached!");
+            }
+
+            // Skip this group if any of the items already exist in activeDevicesGroup
+            if (group.Any(item => base.deviceMapping[item].udpHandler.activeDevicesGroup.ContainsKey(base.deviceMapping[item].deviceNo)))
+            {
+                LogData($"Item {group} contains items that overlap with existing items. Skipping this loop!");
+                continue;
+            }
+
             obstaclePositions.AddRange(group);
 
             List<int> ActualGroup = new List<int>();
@@ -106,6 +121,7 @@ public class TileHunt : BaseMultiDevice
                 if (base.deviceMapping.ContainsKey(item))
                     ActualGroup.Add(base.deviceMapping[item].deviceNo);
             }
+
             foreach (var item in group)
             {
                 int actualHandlerPos = base.deviceMapping[item].deviceNo;
@@ -113,7 +129,8 @@ public class TileHunt : BaseMultiDevice
                 base.deviceMapping[item].udpHandler.activeDevicesGroup.Add(actualHandlerPos, ActualGroup);
                 base.deviceMapping[item].isActive = true;
             }
-            LogData($"Active devices filling active devices: {string.Join(",", obstaclePositions)}");
+
+            LogData($"Active devices filling active devices: {string.Join(",", new List<int>(obstaclePositions))}"); //
             totalTargets++;
         }
         SendColorToUdpAsync();
@@ -131,6 +148,7 @@ public class TileHunt : BaseMultiDevice
         }
         foreach (int x in obstaclePositions)
         {
+            if(!surroundingMap.ContainsKey(x)) return false;
             List<int> b = surroundingMap[x];
             if (b.Contains(pos))
             {
