@@ -307,7 +307,7 @@ namespace scorecard
                 if (status == GameStatus.Completed)
                 {
 
-                    UpdateWristBandStatus(players);
+                    UpdateWristBandStatus(new List<Player>(players));
                     players.Clear();
                  //   Waitingplayers.Clear(); // Clear the waiting list
                     // RefreshWebView(); // Refresh WebView2
