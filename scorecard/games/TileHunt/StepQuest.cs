@@ -87,6 +87,7 @@ public class StepQuest: BaseMultiplayerMultiDeviceGames
                 handlerObstacles.Add(handler, obstaclesList);
                 logger.Log($"Active devices filling handler:{handler.name} for player: {i} active devices: {string.Join(",", handler.activeDevices)}");
             }
+            if(obstaclePositionsMap.ContainsKey(i)) obstaclePositionsMap.Remove(i);
             obstaclePositionsMap.Add(i, handlerObstacles);
         }
     }
