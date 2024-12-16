@@ -129,6 +129,31 @@ namespace scorecard
             udpHandler.BeginReceive(data => ReceiveCallback(data));
             //  CurrentGame_StatusChanged(null, gameMessage.Status);
         }
+        private void HandleSattusChange(string status)
+        {
+
+            if (scorecardForm != null)
+            {
+                
+                if(gameStatus != status)
+                {
+                    util.uiupdate($"window.updateStatus('{status}')", webView2);
+                    logger.Log($"gameselection-receive status change message in select form status:{status}");
+                    gameStatus = status;
+                    if (status == GameStatus.Completed)
+                    {
+
+                        UpdateWristBandStatus(new List<Player>(players));
+                        players.Clear();
+                    }
+                    //if (status.StartsWith(GameStatus.Running))
+                    //{
+                    //    players.AddRange(Waitingplayers);
+                    //    Waitingplayers.Clear();
+                    //}
+                }
+            }
+        }
         private void UpdateWristBandStatus(List<Player> players)
         {
             foreach (var item in players)
@@ -179,7 +204,6 @@ namespace scorecard
                 if (Waitingplayers.FindAll(x => x.CheckInTime > DateTime.Now.AddMinutes(-5)).Count > 0)
                 {
                     logger.Log($"player did play game minute so clearing them");
-                    Waitingplayers.Clear();
                     RefreshWebView();
                 }
             }
@@ -244,8 +268,16 @@ namespace scorecard
             logger.Log($"receive message from front end message{message}");
             if (message.StartsWith("start"))
             {
-                game = message.Split(':')[1];               
-                int noofplayers = int.Parse(message.Split(':')[2]);
+                if (gameStatus == GameStatus.Running || Waitingplayers.Count == 0)
+                {
+                    RefreshWebView();
+                    return;
+                }
+                game = message.Split(':')[1]; 
+                players.Clear();
+                players.AddRange(Waitingplayers);
+                Waitingplayers.Clear();
+                int noofplayers = players.Count;
                 gameType = message.Split(":")[3];
                 startTime = DateTime.Now;
 
@@ -296,29 +328,7 @@ namespace scorecard
                     logger.LogError("Error: " + error);
             }
         }
-        private void HandleSattusChange(string status)
-        {
-           
-            if (scorecardForm != null)
-            {
-                util.uiupdate($"window.updateStatus('{status}')", webView2);
-                logger.Log($"gameselection-receive status change message in select form status:{status}");
-                gameStatus = status;
-                if (status == GameStatus.Completed)
-                {
-
-                    UpdateWristBandStatus(new List<Player>(players));
-                    players.Clear();
-                 //   Waitingplayers.Clear(); // Clear the waiting list
-                    // RefreshWebView(); // Refresh WebView2
-                }
-                if (status.StartsWith(GameStatus.Running))
-                {
-                    players.AddRange(Waitingplayers);
-                    Waitingplayers.Clear();
-                } 
-            }
-        }
+        
         
        
 
