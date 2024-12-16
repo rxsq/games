@@ -84,23 +84,37 @@ namespace scorecard.lib
                     return;
                 }
 
-                // receiving = true;
                 udpClientReceiver.BeginReceive(ar =>
                 {
-
-                    byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref RemoteEndPoint);
-                    if (receiving)
+                    try
                     {
-                        receiveCallback(receivedBytes);
+                        if (udpClientReceiver?.Client == null || !receiving)
+                        {
+                            return;
+                        }
+
+                        byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref RemoteEndPoint);
+                        if (receiving)
+                        {
+                            receiveCallback(receivedBytes);
+                            BeginReceive(receiveCallback); // Continue receiving
+                        }
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // The socket has been disposed, no further action needed
+                        LogData("UdpClient has been disposed. Stopping receive loop.");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogData($"Error in BeginReceive callback: {ex.Message}");
                     }
 
                 }, null);
-
             }
             catch (Exception ex)
             {
-                LogData(ex.StackTrace);
-
+                LogData($"Exception in BeginReceive: {ex.Message}");
             }
         }
 
@@ -136,10 +150,23 @@ namespace scorecard.lib
         public void Close()
         {
             StopReceive();
-            //logger.Dispose();
-            udpSender.Close();
-            udpClientReceiver.Close();
+
+            try
+            {
+                udpClientReceiver?.Close();
+                udpSender?.Close();
+            }
+            catch (Exception ex)
+            {
+                LogData($"Error closing UdpClient: {ex.Message}");
+            }
+            finally
+            {
+                udpClientReceiver = null;
+                udpSender = null;
+            }
         }
+
         public virtual async void SendColorsToUdp(List<string> colorList)
         {
 
