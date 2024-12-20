@@ -94,6 +94,15 @@ namespace scorecard.lib
                         }
 
                         byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref RemoteEndPoint);
+
+                        // Check the length of the receivedBytes before processing
+                        if (receivedBytes == null || receivedBytes.Length < 2) // Adjust the minimum length based on your protocol
+                        {
+                            LogData("Received data is too short to process.");
+                            BeginReceive(receiveCallback);
+                            return;
+                        }
+
                         if (receiving)
                         {
                             receiveCallback(receivedBytes);
@@ -102,14 +111,12 @@ namespace scorecard.lib
                     }
                     catch (ObjectDisposedException)
                     {
-                        // The socket has been disposed, no further action needed
                         LogData("UdpClient has been disposed. Stopping receive loop.");
                     }
                     catch (Exception ex)
                     {
                         LogData($"Error in BeginReceive callback: {ex.Message}");
                     }
-
                 }, null);
             }
             catch (Exception ex)
