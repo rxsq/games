@@ -5,7 +5,7 @@ namespace LockTester
 {
     public partial class MainForm : Form
     {
-        private LockController lockController;
+        private SecondLockController lockController;
 
         public MainForm()
         {
@@ -26,10 +26,17 @@ namespace LockTester
 
             try
             {
-                lockController = new LockController(portName);
-                lblStatus.Text = $"Connected to {portName}.";
-                btnRelayOn.Enabled = true;
-                btnRelayOff.Enabled = true;
+                lockController = new SecondLockController(portName);
+                string res = lockController.TestRelay();
+                if(res != null && !res.Contains("failed"))
+                {
+                    lblStatus.Text = $"{res}. Connected to {portName}.";
+                    btnRelayOn.Enabled = true;
+                    btnRelayOff.Enabled = true;
+                } else
+                {
+                    lblStatus.Text = $"Failed to connect: test message not received";
+                }
             }
             catch (Exception ex)
             {
