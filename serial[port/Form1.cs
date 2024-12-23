@@ -82,10 +82,14 @@ namespace serial_port
                 Thread.Sleep(100);
                 StartScanning(serialPort);
                 Thread.Sleep(100);
+                ConnectionRequest(serialPort);
+                Thread.Sleep(100);
                 TurnOnTheLaserWithScanning(serialPort, 0);
                 Thread.Sleep(100);
-                TurnOnTheLaserWithScanning(serialPort, 1);
+                TurnOnTheLaserWithScanning(serialPort, 24);
                 Thread.Sleep(100);
+                //TurnOnAllTheLasers(serialPort);
+                //Thread.Sleep(100);
                 //while (true)
                 //{
                 //    //TurnOnAllTheLasers(serialPort);
@@ -131,7 +135,13 @@ namespace serial_port
                 int byteCount = sp.BytesToRead;
                 byte[] receivedBytes = new byte[byteCount];
                 sp.Read(receivedBytes, 0, byteCount);
+                if (receivedBytes != null && receivedBytes[0]==5)
+                {
+                    GetControllers(receivedBytes);
+                }
+                
                 int laserno = receivedBytes[1] - 33 -23;
+                int numberOfDevices = receivedBytes[2] - receivedBytes[1];
                 // Convert the received bytes to a hexadecimal string
                 string hexData = BitConverter.ToString(receivedBytes).Replace("-", " "); // Space separates hex values
                 Console.WriteLine($"Data received (hex): {hexData}");
@@ -142,6 +152,21 @@ namespace serial_port
             }
         }
 
+        public static int[] GetControllers(byte[] bytes)
+        {
+            int numberOfControllers = bytes.Length / 4;
+            int[] controllers = new int[numberOfControllers];
+            for(int i=0; i<bytes.Length; i+=4)
+            {
+                if(bytes[i] == 5)
+                {
+                    controllers[i / 4] = bytes[i + 1] - 33 - 23;
+                }
+            }
+            Console.WriteLine($"Controllers found:{controllers}");
+            
+            return controllers;
+        }
         public static void ConnectionRequest(SerialPort serialPort)
         {
             try
