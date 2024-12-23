@@ -9,28 +9,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using static log4net.Appender.ColoredConsoleAppender;
 
-public class Climb : BaseGame
+public class Climb : BaseGameClimb
 {
-
-
-
     private double targetPercentage;
     private int targetCount;
     string gamecolor;
-    UdpHandlerWeTop handler;
     public Climb(GameConfig config) : base(config)
     {
-        if(handler == null)
-        handler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
-
-        this.config.MaxPlayers = 1;
-        
+        targetCount = (int)Math.Round(config.MaxPlayers * 1.5);
+        //LoopAll(ColorPaletteone.NoColor, 2);
     }
     protected override void Initialize()
     {
-        targetCount = (int)Math.Round(config.MaxPlayers * 1.5);
-        LoopAll(ColorPaletteone.NoColor, 2);
-        BlinkAllAsync(2);
+        AnimateColor(false);
+        AnimateColor(true);
+        BlinkAllAsync(4);
     }
     protected void BlinkAllAsync(int nooftimes)
     {
@@ -55,27 +48,27 @@ public class Climb : BaseGame
        // base.StartAnimition();
 
     }
-    protected void LoopAll(string basecolor, int frequency)
-    {
-        for (int i = 0; i < frequency; i++)
-        {
+    //protected void LoopAll(string basecolor, int frequency)
+    //{
+    //    for (int i = 0; i < frequency; i++)
+    //    {
            
-                var deepCopiedList = handler.DeviceList.Select(x => basecolor).ToList();
-                var loopColor = gameColors[random.Next(gameColors.Count - 1)];
-                for (int j = 0; j < handler.DeviceList.Count; j++)
-                {
-                    deepCopiedList[j] = loopColor;
-                    handler.SendColorsToUdp(deepCopiedList);
-                    Thread.Sleep(100);
-                    deepCopiedList[j] = basecolor;
-                    handler.SendColorsToUdp(deepCopiedList);
-                    Thread.Sleep(100);
-                }
+    //            var deepCopiedList = handler.DeviceList.Select(x => basecolor).ToList();
+    //            var loopColor = gameColors[random.Next(gameColors.Count - 1)];
+    //            for (int j = 0; j < handler.DeviceList.Count; j++)
+    //            {
+    //                deepCopiedList[j] = loopColor;
+    //                handler.SendColorsToUdp(deepCopiedList);
+    //                Thread.Sleep(100);
+    //                deepCopiedList[j] = basecolor;
+    //                handler.SendColorsToUdp(deepCopiedList);
+    //                Thread.Sleep(100);
+    //            }
 
-                LogData($"LoopAll: {string.Join(",", deepCopiedList)}");
-            }
+    //            LogData($"LoopAll: {string.Join(",", deepCopiedList)}");
+    //        }
         
-    }
+    //}
     protected override void OnIteration()
     {
         gamecolor = gameColors[random.Next(gameColors.Count - 1)];
