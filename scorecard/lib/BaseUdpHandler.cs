@@ -43,7 +43,7 @@ namespace scorecard.lib
             // this .Rows = rows;
             receiving = true;
         }
-        public List<string> ReceiveMessage(int noofledPerdevice)
+        public virtual List<string> ReceiveMessage(int noofledPerdevice)
         {
             byte[] t = udpClientReceiver.Receive(ref RemoteEndPoint);
             try

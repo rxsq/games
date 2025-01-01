@@ -9,21 +9,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using static log4net.Appender.ColoredConsoleAppender;
 
-public class Climb : BaseGameClimb
+public class Climb : BaseGame
 {
+
+
+
     private double targetPercentage;
     private int targetCount;
     string gamecolor;
+    UdpHandlerWeTop handler;
     public Climb(GameConfig config) : base(config)
     {
-        targetCount = (int)Math.Round(config.MaxPlayers * 1.5);
-        //LoopAll(ColorPaletteone.NoColor, 2);
+        if (handler == null)
+            handler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
+
+        this.config.MaxPlayers = 1;
+
     }
     protected override void Initialize()
     {
-        AnimateColor(false);
-        AnimateColor(true);
-        BlinkAllAsync(4);
+        targetCount = (int)Math.Round(config.MaxPlayers * 1.5);
+        //LoopAll(ColorPaletteone.NoColor, 2);
+        BlinkAllAsync(5);
     }
     protected void BlinkAllAsync(int nooftimes)
     {
@@ -31,47 +38,47 @@ public class Climb : BaseGameClimb
         for (int i = 0; i < nooftimes; i++)
         {
             var tasks = new List<Task>();
-            
-            var colors = handler.DeviceList.Select(x => config.NoofLedPerdevice == 1 ? ColorPaletteone.Yellow : ColorPalette.yellow).ToList();
+
+            var colors = handler.DeviceList.Select(x => ColorPaletteone.Yellow).ToList();
             handler.SendColorsToUdp(colors);
             Thread.Sleep(100);
-            handler.SendColorsToUdpAsync(handler.DeviceList);
+            handler.SendColorsToUdp(handler.DeviceList);
             Thread.Sleep(100);
         }
     }
     protected override async void StartAnimition()
     {
-      //  if (handler == null)
-       //     handler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
+        //  if (handler == null)
+        //     handler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
 
-       
-       // base.StartAnimition();
+
+        // base.StartAnimition();
 
     }
-    //protected void LoopAll(string basecolor, int frequency)
-    //{
-    //    for (int i = 0; i < frequency; i++)
-    //    {
-           
-    //            var deepCopiedList = handler.DeviceList.Select(x => basecolor).ToList();
-    //            var loopColor = gameColors[random.Next(gameColors.Count - 1)];
-    //            for (int j = 0; j < handler.DeviceList.Count; j++)
-    //            {
-    //                deepCopiedList[j] = loopColor;
-    //                handler.SendColorsToUdp(deepCopiedList);
-    //                Thread.Sleep(100);
-    //                deepCopiedList[j] = basecolor;
-    //                handler.SendColorsToUdp(deepCopiedList);
-    //                Thread.Sleep(100);
-    //            }
+    protected void LoopAll(string basecolor, int frequency)
+    {
+        for (int i = 0; i < frequency; i++)
+        {
 
-    //            LogData($"LoopAll: {string.Join(",", deepCopiedList)}");
-    //        }
-        
-    //}
+            var deepCopiedList = handler.DeviceList.Select(x => basecolor).ToList();
+            var loopColor = gameColors[random.Next(gameColors.Count - 1)];
+            for (int j = 0; j < handler.DeviceList.Count; j++)
+            {
+                deepCopiedList[j] = loopColor;
+                handler.SendColorsToUdp(deepCopiedList);
+                Thread.Sleep(100);
+                deepCopiedList[j] = basecolor;
+                handler.SendColorsToUdp(deepCopiedList);
+                Thread.Sleep(100);
+            }
+
+            LogData($"LoopAll: {string.Join(",", deepCopiedList)}");
+        }
+
+    }
     protected override void OnIteration()
     {
-        gamecolor = gameColors[random.Next(gameColors.Count - 1)];
+        gamecolor = config.NoofLedPerdevice != 3 ? ColorPaletteone.White : ColorPalette.White;
         ActivateRandomLights();
 
     }
@@ -83,7 +90,7 @@ public class Climb : BaseGameClimb
         //Task.Run(() => MoveTargetLight());
     }
 
-   
+
 
     private void ActivateRandomLights()
     {
@@ -93,7 +100,7 @@ public class Climb : BaseGameClimb
         // Clear all lights
         for (int i = 0; i < handler.DeviceList.Count(); i++)
         {
-            handler.DeviceList[i] = config.NoofLedPerdevice == 3 ? ColorPalette.Green : ColorPaletteone.Yellow;
+            handler.DeviceList[i] = config.NoofLedPerdevice == 3 ? ColorPalette.Green : ColorPaletteone.Green;
         }
 
         // Activate a percentage of random lights as targets
@@ -113,6 +120,31 @@ public class Climb : BaseGameClimb
 
     }
 
+    static byte[] ProcessByteArray(byte[] input)
+    {
+        // Convert the input to a list for easier manipulation
+        List<byte> byteList = input.ToList();
+       List<byte> result = new List<byte>();
+        int ct = byteList.Count;
+        // Iterate through the list to remove patterns
+        for (int i = 2; i <ct ;i++)
+        {
+            if (byteList.Count < i)
+                break;
+            if (byteList[i] == 0x88 || byteList[i] == 0x01 || byteList[i] == 0x02 || byteList[i] == 0x03 || byteList[i] == 0xBA)
+            {
+                      
+            }
+            else
+            {
+                result.Add(byteList[i]);
+            }
+            
+        }
+
+        // Convert the list back to a byte array
+        return result.ToArray();
+    }
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandlerWeTop handler)
 
@@ -121,20 +153,23 @@ public class Climb : BaseGameClimb
             return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         //LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
-        
-        List<int> positions = receivedBytes
+        byte[] filteredBytes = ProcessByteArray(receivedBytes);
+        List<int> positions = filteredBytes
                                 .Select((b, index) => new { Byte = b, Index = index }) // Select byte and index
                                 .Where(x => x.Byte == 0xCC) // Filter where byte equals 0xCC
-                                .Select(x => x.Index-3) // Select only the indices
+                                .Select(x => x.Index-1) // Select only the indices
                                 .ToList();
+        if (positions.Count > 0)
+            LogData("a");
         LogData($"Received data from {String.Join(",", positions)}: active positions:{string.Join(",", handler.activeDevices)}");
         var touchedActiveDevices = handler.activeDevices.FindAll(x => positions.Contains(x));
+        
         if (touchedActiveDevices.Count > 0)
         {
             if (!isGameRunning)
                 return;
             foreach (var device in touchedActiveDevices) { handler.DeviceList[device] = ColorPaletteone.NoColor; }
-            handler.SendColorsToUdp(handler.DeviceList);       
+            handler.SendColorsToUdp(handler.DeviceList);
             handler.activeDevices.RemoveAll(x => touchedActiveDevices.Contains(x));
             updateScore(Score + 1);
             LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", handler.activeDevices)}");

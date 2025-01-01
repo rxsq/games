@@ -124,7 +124,7 @@ public abstract class BaseGame
         lightonoff(true);
         Thread.Sleep(3000); // Countdown 
         udpHandlers = new List<UdpHandler>();
-        if (config.IpAddress != "169.254.255.255")
+        if (config.IpAddress != "169.254.255.255" && config.GameName != "Climb")
         {
 
             udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));

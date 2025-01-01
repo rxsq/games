@@ -8,11 +8,16 @@ using System.Threading.Tasks;
 
 namespace scorecard.lib
 {
-    public class UdpHandlerWeTop: BaseUdpHandler
+    public class UdpHandlerWeTop : BaseUdpHandler
     {
+        protected Dictionary<int,int> countMap;
         public UdpHandlerWeTop(string ipAddress, int destPort, int srcPort, int receiverPort, int noofledPerdevice, int columns, string namep) : base(ipAddress, destPort, srcPort, receiverPort, noofledPerdevice, columns, namep)
         {
-            int noofdevices = 20;
+            countMap = new Dictionary<int, int>();
+            countMap.Add(0, 90);
+            countMap.Add(1, 100);
+            countMap.Add(2, 100);
+            int noofdevices = 290;
             List<String> x = new List<String>();
             foreach (var device in Enumerable.Range(0, noofdevices))
             {
@@ -20,7 +25,7 @@ namespace scorecard.lib
             }
             SendColorsToUdp(x);
             byte[] t = udpClientReceiver.Receive(ref RemoteEndPoint);
-            DeviceList = this.ReceiveMessage(noofledPerdevice);
+            DeviceList = x;//  this.ReceiveMessage(noofledPerdevice);
             logger.Log($"no of devices found:{DeviceList.Count} :{namep}");
             this.Rows = DeviceList.Count / columns;
             this.columns = columns;
@@ -30,7 +35,7 @@ namespace scorecard.lib
         {
             try
             {
-                
+
                 udpSender.Send(mockResponse[0], mockResponse[0].Length, destinationIpAddress, destinationPort);
                 //if (sn == 1)
                 //{
@@ -51,15 +56,15 @@ namespace scorecard.lib
         UDPResponseFactory udp = new UDPResponseFactory();
         int sn = 1;
         byte[][] mockResponse;
-        public  void SendColorsToUdp(List<string> colorList)
+        public void SendColorsToUdp(List<string> colorList)
         {
-         
-            mockResponse = udp.CreateMockResponse(colorList.Count, colorList, sn);
-           
+
+            mockResponse = udp.CreateMockResponse(colorList.Count, colorList, sn, countMap);
+
             udpSender.Send(mockResponse[0], mockResponse[0].Length, destinationIpAddress, destinationPort);
             if (sn == 1)
             {
-                udpSender.Send(mockResponse[1], mockResponse[1].Length, destinationIpAddress, destinationPort);                
+                udpSender.Send(mockResponse[1], mockResponse[1].Length, destinationIpAddress, destinationPort);
             }
             udpSender.Send(mockResponse[2], mockResponse[2].Length, destinationIpAddress, destinationPort);
             udpSender.Send(mockResponse[3], mockResponse[3].Length, destinationIpAddress, destinationPort);
@@ -76,8 +81,8 @@ namespace scorecard.lib
                 {
                     if (t[i].ToString() == "186")
                         return l;
-                        l.Add(ColorPaletteone.NoColor);
-                    
+                    l.Add(ColorPaletteone.NoColor);
+
                 }
             }
             catch (SocketException ex)
@@ -96,5 +101,5 @@ namespace scorecard.lib
             return new List<string>();
         }
     }
-   
+
 }

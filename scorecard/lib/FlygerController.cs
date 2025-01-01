@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
 public class UDPResponseFactory
 {
-    private static readonly int byteLength = 1001;
+    private static readonly int byteLength = 2001;
     private byte[] bytes = null;
     private int cursor = 14;
     private int controlNum = 1;
@@ -17,6 +18,114 @@ public class UDPResponseFactory
     }
 
     // Method to create mock response data
+
+    public byte[][] CreateMockResponse(int pointNum, List<string> displayColors, int sn, Dictionary<int, int> countMap)
+    {
+
+        Dictionary<int, List<string>> colorMap = new Dictionary<int, List<string>>();
+        int deviceNo = 0;
+        for(int i=0; i<countMap.Count;i++)
+        {
+            int noofdevices = countMap[i];
+            List<string> colors = new List<string>();
+            for (int j=0;j<noofdevices;j++)
+            {
+                try
+                {
+                    colors.Add(displayColors[deviceNo]);
+                    deviceNo = deviceNo + 1;
+                }
+                catch (Exception e) { int x = deviceNo; }
+            }
+            colorMap.Add(i, colors);
+        }
+
+        //RGB[] rgbColors = new RGB[]
+        //{
+        //    RGB.RED,    // Red
+        //    RGB.GREEN,  // Green
+        //    RGB.BLUE    // Blue
+        //};
+        //   string displayColor = "r";
+        List<byte[]> responseBytes = new List<byte[]>();
+        AddStartRate(responseBytes, sn);
+
+        for (int c = 0; c < controlNum; c++)
+        {
+            AddFFF0(responseBytes, c, channelNum, pointNum);
+
+//            for (int p = 0; p < pointNum; p++)
+                for (int p = 0; p < 100; p++)
+                {
+                 // RGB[] rgbs = new RGB[channelNum];
+
+                //for (int i = 0; i < channelNum; i++)
+                //{
+                //    rgbs[i] = displayColors[p];
+                //}
+
+                Write(responseBytes, c, p,  displayColors[p], colorMap);
+            }
+
+            FillBytes(pointNum, channelNum, responseBytes);
+        }
+
+        AddEndRate(responseBytes, sn);
+
+
+        return responseBytes.ToArray();
+    }
+    private void Write(List<byte[]> responses, int controlIdx, int port, string lightColor, Dictionary<int, List<string>> colorMap)
+    {
+        if (cursor > byteLength - 3 * channelNum - 3)
+        {
+            ResetCursor();
+        }
+
+        if (bytes == null)
+        {
+            bytes = new byte[byteLength];
+            bytes[0] = 0x75; // 117 in hexadecimal
+            bytes[1] = (byte)new Random().Next(0, 0x7F); // 127 in hexadecimal
+            bytes[2] = (byte)new Random().Next(0, 0x7F);
+            bytes[3] = 0;
+            bytes[4] = 0;
+            bytes[5] = 0x02; // 2 in hexadecimal
+            bytes[6] = 0;
+            bytes[7] = (byte)controlIdx;
+            bytes[8] = 0x88; // -120 is converted to 136
+            bytes[9] = 0x77; // 119 in hexadecimal
+            bytes[10] = 0;
+            bytes[11] = 0;
+            bytes[12] = 0;
+            bytes[13] = 0;
+            responses.Add(bytes);
+        }
+
+        for (int i = 0; i <= colorMap.Count; i++)
+        {
+            string color = "000000";
+            if (colorMap.ContainsKey(i) && colorMap[i].Count > port)
+            {
+               
+                    color = colorMap[i][port];
+            }
+            
+
+           
+            string r = color.Substring(0, 2).Replace("FE", "FF").Replace("fe","FF");
+            string g = color.Substring(2, 2).Replace("FE", "FF").Replace("fe", "FF"); ;
+            string b = color.Substring(4, 2).Replace("FE", "FF").Replace("fe", "FF"); ;
+
+            bytes[cursor] = byte.Parse(g, System.Globalization.NumberStyles.HexNumber);
+            bytes[cursor + channelNum] = byte.Parse(r, System.Globalization.NumberStyles.HexNumber);
+            bytes[cursor + channelNum * 2] = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
+            cursor++;
+
+        }
+
+        cursor += channelNum * 2;
+    }
     public byte[][] CreateMockResponse(int pointNum, List<string> displayColors, int sn)
     {
         //RGB[] rgbColors = new RGB[]
@@ -53,7 +162,7 @@ public class UDPResponseFactory
 
         return responseBytes.ToArray();
     }
-
+   
     // Method to fill the bytes array with proper data
     private void FillBytes(int maxPortNum, int controlChannel, List<byte[]> list)
     {
@@ -126,6 +235,18 @@ public class UDPResponseFactory
 
         for (int i = 0; i < rgbs.Length; i++)
         {
+            if(i>0)
+            {
+                string rr = "FF";
+                string gg = "00";
+                string bb = "00";
+
+                bytes[cursor] = byte.Parse(gg, System.Globalization.NumberStyles.HexNumber);
+                bytes[cursor + rgbs.Length] = byte.Parse(rr, System.Globalization.NumberStyles.HexNumber);
+                bytes[cursor + rgbs.Length * 2] = byte.Parse(bb, System.Globalization.NumberStyles.HexNumber);
+                cursor++;
+                continue;
+            }
             string r = lightColor.Substring(0, 2).Replace("FE","FF");
             string g = lightColor.Substring(2, 2).Replace("FE", "FF");
             string b = lightColor.Substring(4, 2).Replace("FE", "FF");
@@ -134,6 +255,7 @@ public class UDPResponseFactory
             bytes[cursor + rgbs.Length] = byte.Parse(g, System.Globalization.NumberStyles.HexNumber);
             bytes[cursor + rgbs.Length * 2] = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
             cursor++;
+        
         }
 
         cursor += rgbs.Length * 2;

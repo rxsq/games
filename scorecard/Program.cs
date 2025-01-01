@@ -138,7 +138,7 @@ class Program
             gameConfig1.SocketBReceiverPort = 7800;
             gameConfig1.NoOfControllers = 1;
             gameConfig1.NoofLedPerdevice = 1;
-            gameConfig1.columns = 4;
+            gameConfig1.columns = 5;
             gameConfig1.MaxPlayers = 3;
             gameConfig1.GameType = "team";
             return gameConfig1;
