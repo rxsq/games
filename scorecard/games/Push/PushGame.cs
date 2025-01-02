@@ -23,7 +23,8 @@ public class PushGame : BaseSingleDevice
     public PushGame(GameConfig gameConfig) : base(gameConfig)
     {
         totalTiles = handler.DeviceList.Count;
-        columns = config.columns;
+        columns = totalTiles/config.columns;
+        rows = config.columns;
         borderTiles = getBorderIndex();
         centerTiles = getCenterTiles();   // Mark the center tiles first
         exampleTiles = GetRemainingLeftTiles();  // Get left tiles excluding center and border
@@ -142,15 +143,7 @@ public class PushGame : BaseSingleDevice
         playTileColors.Clear();     // Clear previous play colors
 
         // Determine the number of columns in each section
-        int sectionColumns;
-        if (columns % 2 == 0)  // Even number of columns
-        {
-            sectionColumns = (columns - 4) / 2;
-        }
-        else  // Odd number of columns
-        {
-            sectionColumns = (columns - 3) / 2;
-        }
+        int sectionColumns = rows - 2;
 
         if (Level == 1)
         {
@@ -167,7 +160,7 @@ public class PushGame : BaseSingleDevice
             // Level 2: Vertical stripes without snake counting
             for (int i = 0; i < exampleTiles.Count; i++)
             {
-                int col = i % sectionColumns;
+                int col = i / sectionColumns;
 
                 // Assign the same color to each column in the sections
                 string color = availableColors[col % availableColors.Length];
@@ -212,10 +205,10 @@ public class PushGame : BaseSingleDevice
             for (int i = 0; i < exampleTiles.Count; i++)
             {
                 int row = i / sectionColumns;
-                int col = i % sectionColumns;
-
+                int col = row%2==0?i % sectionColumns:sectionColumns - i%sectionColumns - 1;
+                int colIndex = (row + col) % availableColors.Count();
                 // Assign colors for diagonal stripes
-                string color = availableColors[(row + col) % availableColors.Length];
+                string color = availableColors[colIndex];
                 exampleTileColors[exampleTiles[i]] = color;
                 playTileColors[playTiles[i]] = color;
             }
@@ -283,24 +276,24 @@ public class PushGame : BaseSingleDevice
     protected List<int> getCenterTiles()
     {
         List<int> centerTiles = new List<int>();
-        int halfColumns = columns / 2;
+        int halfColumns = (columns / 2)*rows;
         bool isOdd = columns % 2 != 0;
 
         // For odd number of columns, there is one center column
         if (isOdd)
         {
-            for (int i = halfColumns; i < totalTiles; i += columns)
+            for (int i = 1; i < rows-1; i++)
             {
-                centerTiles.Add(i);
+                centerTiles.Add(halfColumns+i);
             }
         }
         else
         {
             // For even number of columns, two center columns
-            for (int i = halfColumns - 1; i < totalTiles; i += columns)
+            for (int i = 1; i < rows - 1; i++)
             {
-                centerTiles.Add(i);     // First center column
-                centerTiles.Add(i + 1); // Second center column
+                centerTiles.Add(halfColumns + i);
+                centerTiles.Add(halfColumns - i - 1); 
             }
         }
 
@@ -312,23 +305,23 @@ public class PushGame : BaseSingleDevice
     {
         List<int> borderIndex = new List<int>();
 
-        // Top row (first row)
-        for (int i = 0; i < columns; i++)
+        // (first column)
+        for (int i = 0; i < rows; i++)
         {
             borderIndex.Add(i);
         }
 
-        // Bottom row (last row)
-        for (int i = totalTiles - columns; i < totalTiles; i++)
+        // (last column)
+        for (int i = totalTiles - rows; i < totalTiles; i++)
         {
             borderIndex.Add(i);
         }
 
-        // Left and right edges (excluding the corners)
-        for (int i = columns; i < totalTiles - columns; i += columns)
+        // top and bottom row (excluding the corners)
+        for (int i = rows; i < totalTiles - rows; i += rows)
         {
-            borderIndex.Add(i);               // Left edge
-            borderIndex.Add(i + columns - 1); // Right edge
+            borderIndex.Add(i);               
+            borderIndex.Add(i + rows - 1); 
         }
 
         return borderIndex;
@@ -338,36 +331,14 @@ public class PushGame : BaseSingleDevice
     protected List<int> GetRemainingLeftTiles()
     {
         List<int> leftTiles = new List<int>();
-        int halfColumns = columns / 2;
+        int halfColumns = columns / 2 * rows + rows;
         bool isOdd = columns % 2 != 0;
-        int centerStart = isOdd ? halfColumns : halfColumns - 1;
 
-        // Iterate through each row, excluding the first and last row (border)
-        for (int row = 1; row < (totalTiles / columns) - 1; row++)
+        for(int i = halfColumns; i<totalTiles-rows; i += rows)
         {
-            // Even row (left to right direction)
-            if (row % 2 == 0)
+            for(int j = 1; j<rows-1; j++)
             {
-                for (int col = 1; col < centerStart; col++)  // Exclude the center and first column
-                {
-                    int tileIndex = row * columns + col;
-                    if (!centerTiles.Contains(tileIndex))  // Ensure not part of the center
-                    {
-                        leftTiles.Add(tileIndex);
-                    }
-                }
-            }
-            // Odd row (right to left direction)
-            else
-            {
-                for (int col = columns - 2; col > centerStart; col--) // Exclude the center and last column
-                {
-                    int tileIndex = row * columns + col;
-                    if (!centerTiles.Contains(tileIndex))  // Ensure not part of the center
-                    {
-                        leftTiles.Add(tileIndex);
-                    }
-                }
+                leftTiles.Add(i + j);
             }
         }
 
@@ -378,36 +349,15 @@ public class PushGame : BaseSingleDevice
     protected List<int> GetRemainingRightTiles()
     {
         List<int> rightTiles = new List<int>();
-        int halfColumns = columns / 2;
+        
         bool isOdd = columns % 2 != 0;
-        int centerStart = isOdd ? halfColumns + 1 : halfColumns;
+        int halfColumns = isOdd ? columns / 2 * rows - 1 : columns / 2 * rows - rows - 1;
 
-        // Iterate through each row, excluding the first and last row (border)
-        for (int row = 1; row < (totalTiles / columns) - 1; row++)
+        for (int i = rows; i <= halfColumns; i += rows)
         {
-            // Even row (left to right direction)
-            if (row % 2 == 0)
+            for (int j = 1; j < rows - 1; j++)
             {
-                for (int col = centerStart + 1; col < columns - 1; col++)  // Exclude the center and last column
-                {
-                    int tileIndex = row * columns + col;
-                    if (!centerTiles.Contains(tileIndex))  // Ensure not part of the center
-                    {
-                        rightTiles.Add(tileIndex);
-                    }
-                }
-            }
-            // Odd row (right to left direction)
-            else
-            {
-                for (int col = centerStart - 1; col > 0; col--) // Exclude the center and first column
-                {
-                    int tileIndex = row * columns + col;
-                    if (!centerTiles.Contains(tileIndex))  // Ensure not part of the center
-                    {
-                        rightTiles.Add(tileIndex);
-                    }
-                }
+                rightTiles.Add(i + j);
             }
         }
 
