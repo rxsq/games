@@ -69,17 +69,11 @@ public class Invador : BaseSingleDevice
     {
         homeTiles.Clear();
         hitTiles.Clear();
-        int homeColumns = Level * 2;
+        int noHomeTiles = Level * columns;
         // Place home tiles in the first column
-        for (int i = 0; i < totalTiles; i+=columns*2)
+        for (int i = 0; i < noHomeTiles; i++)
         {
-            for (int j = 0; j < homeColumns; j++)
-            {
-                homeTiles.Add(i);
-                if(i-j > 0) homeTiles.Add(i-j);
-                if (i - j -1 > 0) homeTiles.Add(i - j - 1);
-                if (i + j < totalTiles) homeTiles.Add(i+j);
-            }
+            homeTiles.Add(i);
         }
 
         // Generate hit tiles randomly on the right side
@@ -90,7 +84,7 @@ public class Invador : BaseSingleDevice
             int randomHitTile = random.Next(totalTiles);
 
             // Ensure hit tile is far enough from home tiles (distance > 15)
-            if (!hitTiles.Contains(randomHitTile) && !homeTiles.Any(tile => Math.Abs(randomHitTile - tile) < 15))
+            if (!hitTiles.Contains(randomHitTile) && !homeTiles.Any(tile => Math.Abs(randomHitTile - tile) < 105))
             {
                 hitTiles.Add(randomHitTile);  // Add unique hit tiles
                 bulletPositions.Add(MoveBullet(randomHitTile));
@@ -153,11 +147,29 @@ public class Invador : BaseSingleDevice
         }
     }
 
+    //private int MoveBullet(int position)
+    //{
+    //    handler.DeviceList[position] = ColorPaletteone.NoColor;
+    //    int newPos = (position / columns) % 2 == 0 ? position - 1 : position + 1;
+    //    if(homeTiles.Contains(newPos))
+    //    {
+    //        logger.Log("bullet hit home. Iteration lost");
+    //        udpHandlers.ForEach(x => x.activeDevices.Clear());
+    //        CancelTargetThread();
+    //        BlinkAllAsync(1);
+    //        IterationLost("bullet hit home. Iteration lost");
+    //    }
+    //    handler.DeviceList[position] = hitTiles.Contains(position) ? hitColor:backgroundColor;
+    //    handler.DeviceList[newPos] = bulletColor;
+    //    return newPos;
+    //}
     private int MoveBullet(int position)
     {
         handler.DeviceList[position] = ColorPaletteone.NoColor;
-        int newPos = (position / columns) % 2 == 0 ? position - 1 : position + 1;
-        if(homeTiles.Contains(newPos))
+        int quo = position / columns;
+        int rem = position % columns;
+        int newPos = quo*columns-rem-1;
+        if (homeTiles.Contains(newPos))
         {
             logger.Log("bullet hit home. Iteration lost");
             udpHandlers.ForEach(x => x.activeDevices.Clear());
@@ -165,11 +177,10 @@ public class Invador : BaseSingleDevice
             BlinkAllAsync(1);
             IterationLost("bullet hit home. Iteration lost");
         }
-        handler.DeviceList[position] = hitTiles.Contains(position) ? hitColor:backgroundColor;
+        handler.DeviceList[position] = hitTiles.Contains(position) ? hitColor : backgroundColor;
         handler.DeviceList[newPos] = bulletColor;
         return newPos;
     }
-
     // Callback for tile touches
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
