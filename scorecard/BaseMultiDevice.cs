@@ -208,6 +208,22 @@ namespace scorecard
             Console.WriteLine(string.Join(",", handler.activeDevices));
             return colorList;
         }
+        public int GetKeyFromDeviceMapping(UdpHandler handler, int deviceNumber)
+        {
+            // Iterate through the deviceMapping dictionary
+            foreach (var entry in deviceMapping)
+            {
+                // Check if the handler and device number match
+                if (entry.Value.udpHandler == handler && entry.Value.deviceNo == deviceNumber)
+                {
+                    // Return the matching key
+                    return entry.Key;
+                }
+            }
+
+            // Return null if no match is found
+            return -1;
+        }
 
     }
 }
