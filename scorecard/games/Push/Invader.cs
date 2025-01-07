@@ -3,11 +3,12 @@ using scorecard.lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Invador : BaseSingleDevice
+public class Invador : BaseMultiDevice
 {
     private string bulletColor = ColorPaletteone.Silver;
     private string homeColor = ColorPaletteone.Green;
@@ -23,16 +24,18 @@ public class Invador : BaseSingleDevice
     private int bulletsPerLevel = 15;  // Each player will have 15 bullets per level
     private int bulletsRemaining;
     private CancellationTokenSource cancellationTokenSource;
+    private CoolDown coolDown;
 
     public Invador(GameConfig config) : base(config)
     {
         bulletPositions = new List<int>();
         homeTiles = new List<int>();
         hitTiles = new List<int>();
-        totalTiles = handler.DeviceList.Count;
+        totalTiles = deviceMapping.Count;
         columns = config.columns;
         bulletSpeedSlowdown = 1000; // Default slowdown (can be adjusted per level)
         targetPerPlayer = 3;  // Number of hit tiles per player, can increase with level
+        coolDown = new CoolDown();
     }
 
     protected override void Initialize()
@@ -49,13 +52,21 @@ public class Invador : BaseSingleDevice
     // Start receiving tile data when the game starts
     protected override void OnStart()
     {
-        handler.BeginReceive(data => ReceiveCallback(data, handler));
+        foreach (var handler in udpHandlers)
+        {
+            handler.BeginReceive(data => ReceiveCallback(data, handler));
+        }
     }
 
     // Logic for each iteration
     protected override void OnIteration()
     {
+        coolDown.SetFlagTrue(100);
         bulletPositions.Clear();
+        foreach (var handler in udpHandlers)
+        {
+            handler.activeDevices.Clear();
+        }
         SendColorToDevices(backgroundColor, true); // Set all tiles to a base color at the start
         bulletsRemaining = bulletsPerLevel * config.MaxPlayers;
         GenerateHomeAndHitTiles();
@@ -87,7 +98,10 @@ public class Invador : BaseSingleDevice
             if (!hitTiles.Contains(randomHitTile) && !homeTiles.Any(tile => Math.Abs(randomHitTile - tile) < 105))
             {
                 hitTiles.Add(randomHitTile);  // Add unique hit tiles
-                bulletPositions.Add(MoveBullet(randomHitTile));
+                int newBulletPosition = MoveBullet(randomHitTile);
+                int newBulletActualPosition = deviceMapping[newBulletPosition].deviceNo;
+                deviceMapping[newBulletPosition].udpHandler.activeDevices.Add(newBulletActualPosition);
+                bulletPositions.Add(newBulletPosition);
             }
         }
     }
@@ -101,17 +115,27 @@ public class Invador : BaseSingleDevice
     {
         foreach (int tile in homeTiles)
         {
-            handler.DeviceList[tile] = homeColor;
+            int actualPos = deviceMapping[tile].deviceNo;
+            deviceMapping[tile].udpHandler.DeviceList[actualPos] = homeColor;
         }
         foreach (int tile in hitTiles)
         {
-            handler.DeviceList[tile] = hitColor;
+            int actualPos = deviceMapping[tile].deviceNo;
+            deviceMapping[tile].udpHandler.DeviceList[actualPos] = hitColor;
         }
-        foreach (int tile in bulletPositions)
+        //foreach (int tile in bulletPositions)
+        //{
+        //    int actualPos = deviceMapping[tile].deviceNo;
+        //    deviceMapping[tile].udpHandler.DeviceList[tile] = bulletColor;
+        //}
+        foreach(var handler in udpHandlers)
         {
-            handler.DeviceList[tile] = bulletColor;
+            foreach(int pos in handler.activeDevices)
+            {
+                handler.DeviceList[pos] = bulletColor;
+            }
+            handler.SendColorsToUdp(handler.DeviceList);
         }
-        handler.SendColorsToUdp(handler.DeviceList);
     }
 
     // Move bullets one step closer to the home tiles
@@ -122,15 +146,25 @@ public class Invador : BaseSingleDevice
             while (!cancellationToken.IsCancellationRequested && isGameRunning)
             {
                 List<int> nextBulletPositions = new List<int>();
+                foreach(var handler in udpHandlers)
+                {
+                    handler.activeDevices.Clear();
+                }
                 foreach (int pos in bulletPositions)
                 {
-                    nextBulletPositions.Add(MoveBullet(pos));
+                    int newBulletPos = MoveBullet(pos);
+                    int actualNewBulletPos = deviceMapping[newBulletPos].deviceNo;
+                    deviceMapping[newBulletPos].udpHandler.activeDevices.Add(actualNewBulletPos);
+                    nextBulletPositions.Add(newBulletPos);
                 }
                 bulletPositions.Clear();
                 bulletPositions.AddRange(nextBulletPositions);
 
-                // Send updated bullet positions to devices
-                handler.SendColorsToUdp(handler.DeviceList);
+                foreach(var handler in udpHandlers)
+                {
+                    // Send updated bullet positions to devices
+                    await handler.SendColorsToUdpAsync(handler.DeviceList);
+                }
 
                 await Task.Delay(bulletSpeedSlowdown, cancellationToken);
             }
@@ -165,10 +199,13 @@ public class Invador : BaseSingleDevice
     //}
     private int MoveBullet(int position)
     {
-        handler.DeviceList[position] = ColorPaletteone.NoColor;
-        int quo = position / columns;
-        int rem = position % columns;
-        int newPos = quo*columns-rem-1;
+        int actualPosition = deviceMapping[position].deviceNo;
+        //deviceMapping[position].udpHandler.DeviceList[actualPosition] = backgroundColor;
+        //handler.DeviceList[position] = ColorPaletteone.NoColor;
+        //int quo = position / columns;
+        //int rem = position % columns;
+        //int newPos = quo*columns-rem-1;
+        int newPos = position - 7;
         if (homeTiles.Contains(newPos))
         {
             logger.Log("bullet hit home. Iteration lost");
@@ -177,8 +214,9 @@ public class Invador : BaseSingleDevice
             BlinkAllAsync(1);
             IterationLost("bullet hit home. Iteration lost");
         }
-        handler.DeviceList[position] = hitTiles.Contains(position) ? hitColor : backgroundColor;
-        handler.DeviceList[newPos] = bulletColor;
+        int newActualPosition = deviceMapping[newPos].deviceNo;
+        deviceMapping[position].udpHandler.DeviceList[actualPosition] = hitTiles.Contains(position) ? hitColor : backgroundColor;
+        deviceMapping[newPos].udpHandler.DeviceList[newActualPosition] = bulletColor;
         return newPos;
     }
     // Callback for tile touches
@@ -197,13 +235,20 @@ public class Invador : BaseSingleDevice
         // Check if the tapped tile corresponds to a bullet
         foreach (int tileIndex in positions)
         {
-            if (bulletPositions.Contains(tileIndex))
+            if (handler.activeDevices.Contains(tileIndex) && !coolDown.Flag)
             {
-                bulletPositions.Remove(tileIndex);  // Remove the bullet
-                handler.DeviceList[tileIndex] = hitTiles.Contains(tileIndex) ? hitColor: backgroundColor;
-                updateScore(Score + Level);
-                generateBullet();
-                bulletsRemaining--;  // Decrease remaining bullet count
+                int mappingDeviceNo = GetKeyFromDeviceMapping(handler, tileIndex);
+                if(mappingDeviceNo>0)
+                {
+                    bulletPositions.Remove(mappingDeviceNo);  // Remove the bullet
+                    handler.activeDevices.Remove(tileIndex);
+                    handler.DeviceList[tileIndex] = hitTiles.Contains(tileIndex) ? hitColor : backgroundColor;
+                    updateScore(Score + Level);
+                    generateBullet();
+                    bulletsRemaining--;  // Decrease remaining bullet count
+                    coolDown.SetFlagTrue(100);
+                }
+                
             }
         }
 
