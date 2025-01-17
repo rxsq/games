@@ -20,6 +20,7 @@ namespace scorecard
         string game = "";
         DateTime startTime;
         private string gameStatus;
+        LockController lockController = new LockController("COM5"); //Check COM port from the device manager
         public GameSelection()
         {
             InitializeComponent();
@@ -81,6 +82,8 @@ namespace scorecard
         }
         private void SendGameStatus(object state)
         {
+            if (gameStatus.ToLower().Contains("running")) lockController.TurnRelayOff();
+            else lockController.TurnRelayOn();
             util.uiupdate($"window.updateStatus('{gameStatus}')", webView2);
         }
 
