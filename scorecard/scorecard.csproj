@@ -163,6 +163,7 @@
   <ItemGroup>
     <Compile Include="BaseMultiDevice.cs" />
     <Compile Include="BaseSingleDevice.cs" />
+    <Compile Include="games\Basket\BasketQuest.cs" />
     <Compile Include="games\Basket\BlitzBasket.cs" />
     <Compile Include="games\Climb\BaseGameClimb.cs" />
     <Compile Include="games\Climb\Climb.cs" />
@@ -334,6 +335,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\target_hit.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\BasketQuest.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\BlitzBasket.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\FloorGameIntro.mp3">
