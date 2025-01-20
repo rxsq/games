@@ -14,11 +14,9 @@ public class CoolDown
     public async Task SetFlagTrue(int durationInMilliseconds)
     {
         _flag = true;
-        Console.WriteLine("Cool Down Set for " + durationInMilliseconds.ToString() + " ms");
 
         await Task.Delay(durationInMilliseconds);
 
         _flag = false;
-        Console.WriteLine("CoolDown completed");
     }
 }
