@@ -156,7 +156,7 @@ public class TargetMultiplayer : BaseMultiplayerGame
                     int newScore = Scores[i];
                     newScore+=Level;
                     updateScore(newScore, i);
-                    LogData($"Score updated: {Score.ToString()}  position: {td}");
+                    LogData($"Score updated: {string.Join(", ", Scores)}  position: {td}");
                     targetMap[i].Remove(td);
                     if (targetMap[i].Count() == 0)
                     {
