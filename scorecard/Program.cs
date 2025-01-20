@@ -105,6 +105,9 @@ class Program
                 case "BlitzBasket":
                     currentGame = new BlitzBasket(gameConfig);
                     break;
+                case "BasketQuest":
+                    currentGame = new BasketQuest(gameConfig);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;
