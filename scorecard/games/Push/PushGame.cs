@@ -107,7 +107,7 @@ public class PushGame : BaseMultiDevice
                 if (playTiles.Contains(actualPos))
                 {
                     // Cycle the color for the touched tile
-                    CycleTileColor(tileIndex, handler);
+                    CycleTileColor(actualPos, tileIndex, handler);
                 }
             }
 
@@ -129,10 +129,10 @@ public class PushGame : BaseMultiDevice
 
 
     // Method to cycle the color of a tile
-    private void CycleTileColor(int tileIndex, UdpHandler handler)
+    private void CycleTileColor(int actualPos, int tileIndex, UdpHandler handler)
     {
         // Get the current color index of the tile
-        int currentIndex = Array.FindIndex(availableColors, color => color == playTileColors[tileIndex]);
+        int currentIndex = Array.FindIndex(availableColors, color => color == playTileColors[actualPos]);
 
         // Move to the next color in the array (cyclic)
         int nextIndex = (currentIndex + 1) % availableColors.Length;
@@ -141,7 +141,7 @@ public class PushGame : BaseMultiDevice
         handler.DeviceList[tileIndex] = availableColors[nextIndex];
 
         // Update the color index for the tile
-        playTileColors[GetKeyFromDeviceMapping(handler, tileIndex)] = availableColors[nextIndex];
+        playTileColors[actualPos] = availableColors[nextIndex];
     }
 
     // Helper function to display target colors and patterns
