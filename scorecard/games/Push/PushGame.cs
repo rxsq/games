@@ -20,18 +20,20 @@ public class PushGame : BaseMultiDevice
     private int totalTiles;
     private int columns;
     private int targetPerPlayer = 3;
+    CoolDown coolDown;
 
     public PushGame(GameConfig gameConfig) : base(gameConfig)
     {
         totalTiles = deviceMapping.Count;
-        columns = config.columns;
-        rows = totalTiles/config.columns;
+        rows = config.columns;
+        columns = totalTiles/config.columns;
         borderTiles = GetBorderIndex();
         centerTiles = GetCenterTiles();   // Mark the center tiles first
         exampleTiles = GetRemainingLeftTiles();  // Get left tiles excluding center and border
         playTiles = GetRemainingRightTiles();    // Get right tiles excluding center and border
         exampleTileColors = new Dictionary<int, string>();  // Track colors for the target pattern tiles
         playTileColors = new Dictionary<int, string>();  // Track colors for the play tiles
+        coolDown = new CoolDown();
     }
 
     protected override void Initialize()
@@ -57,12 +59,25 @@ public class PushGame : BaseMultiDevice
     // Logic for each iteration
     protected override void OnIteration()
     {
+        coolDown.SetFlagTrue(200);
         SendColorToDevices(availableColors[0], false); // Set all tiles to blue at the start
+        foreach(int bt in borderTiles)
+        {
+            deviceMapping[bt].udpHandler.DeviceList[deviceMapping[bt].deviceNo] = borderColor;
+        }
+        foreach (int bt in centerTiles)
+        {
+            deviceMapping[bt].udpHandler.DeviceList[deviceMapping[bt].deviceNo] = borderColor;
+        }
         foreach (var handler in udpHandlers)
         {
-            ChnageColorToDevice(borderColor, borderTiles, handler);  // Set borders to white
-            ChnageColorToDevice(borderColor, centerTiles, handler);  // Set center tiles to white
+            handler.SendColorsToUdp(handler.DeviceList);
         }
+        //foreach (var handler in udpHandlers)
+        //{
+        //    ChnageColorToDevice(borderColor, borderTiles, handler);  // Set borders to white
+        //    ChnageColorToDevice(borderColor, centerTiles, handler);  // Set center tiles to white
+        //}
 
         // Populate and display the target pattern (exampleTiles)
         GenerateTargetCombination();
@@ -82,24 +97,29 @@ public class PushGame : BaseMultiDevice
                                           .Select(x => (x.index - 2) / config.NoofLedPerdevice)
                                           .ToList();
 
-        // Handle correct hits
-        foreach (int tileIndex in positions)
+        if(positions.Count > 0 && !coolDown.Flag)
         {
-            if (playTiles.Contains(tileIndex))
+            
+            // Handle correct hits
+            foreach (int tileIndex in positions)
             {
-                // Cycle the color for the touched tile
-                CycleTileColor(tileIndex, handler);
+                int actualPos = GetKeyFromDeviceMapping(handler, tileIndex);
+                if (playTiles.Contains(actualPos))
+                {
+                    // Cycle the color for the touched tile
+                    CycleTileColor(tileIndex, handler);
+                }
             }
-        }
 
-        // Send the updated color information to the devices
-        handler.SendColorsToUdp(handler.DeviceList);
+            // Send the updated color information to the devices
+            handler.SendColorsToUdp(handler.DeviceList);
 
-        if (CombinationMatch())
-        {
-            logger.Log("Pattern match, display time ended, iteration won.");
-            updateScore(Score + config.MaxPlayers * targetPerPlayer + Level * LifeLine);
-            IterationWon(); // Mark the iteration as won when all targets are hit
+            if (CombinationMatch())
+            {
+                logger.Log("Pattern match, display time ended, iteration won.");
+                updateScore(Score + config.MaxPlayers * targetPerPlayer + Level * LifeLine);
+                IterationWon(); // Mark the iteration as won when all targets are hit
+            }
         }
 
         // Continue receiving input if the iteration is not complete
@@ -121,27 +141,35 @@ public class PushGame : BaseMultiDevice
         handler.DeviceList[tileIndex] = availableColors[nextIndex];
 
         // Update the color index for the tile
-        playTileColors[tileIndex] = availableColors[nextIndex];
+        playTileColors[GetKeyFromDeviceMapping(handler, tileIndex)] = availableColors[nextIndex];
     }
 
     // Helper function to display target colors and patterns
     protected void DisplayTargetAndPlayPattern()
     {
+        for(int i = 0; i < exampleTiles.Count; i++)
+        {
+            Mapping exampleMapping = deviceMapping[exampleTiles[i]];
+            Mapping playMapping = deviceMapping[playTiles[i]];
+            exampleMapping.udpHandler.DeviceList[exampleMapping.deviceNo] = exampleTileColors[exampleTiles[i]];
+            playMapping.udpHandler.DeviceList[playMapping.deviceNo] = playTileColors[playTiles[i]];
+        }
+
         foreach(var handler in udpHandlers)
         {
-            for (int i = 0; i < exampleTiles.Count; i++)
-            {
-                // Ensure each target tile gets a color from the target combination
-                if (exampleTileColors.ContainsKey(exampleTiles[i]))
-                {
-                    handler.DeviceList[exampleTiles[i]] = exampleTileColors[exampleTiles[i]];  // Set target tile to its assigned color
-                }
-                // Ensure each target tile gets a color from the target combination
-                if (playTileColors.ContainsKey(playTiles[i]))
-                {
-                    handler.DeviceList[playTiles[i]] = playTileColors[playTiles[i]];  // Set target tile to its assigned color
-                }
-            }
+            //for (int i = 0; i < exampleTiles.Count; i++)
+            //{
+            //    // Ensure each target tile gets a color from the target combination
+            //    if (exampleTileColors.ContainsKey(exampleTiles[i]))
+            //    {
+            //        handler.DeviceList[deviceMapping[exampleTiles[i]].deviceNo] = exampleTileColors[exampleTiles[i]];  // Set target tile to its assigned color
+            //    }
+            //    // Ensure each target tile gets a color from the target combination
+            //    if (playTileColors.ContainsKey(playTiles[i]))
+            //    {
+            //        handler.DeviceList[deviceMapping[playTiles[i]].deviceNo] = playTileColors[playTiles[i]];  // Set target tile to its assigned color
+            //    }
+            //}
             handler.SendColorsToUdp(handler.DeviceList);  // Send updated colors to the devices
         }
     }
@@ -267,17 +295,18 @@ public class PushGame : BaseMultiDevice
             }
         }
 
-        foreach(var handler in udpHandlers)
-        {
-            // Update the play tiles with the new colors
-            handler.SendColorsToUdp(handler.DeviceList);
-        }
+        //foreach(var handler in udpHandlers)
+        //{
+        //    // Update the play tiles with the new colors
+        //    handler.SendColorsToUdp(handler.DeviceList);
+        //}
     }
 
 
     // Check of the target tiles and play tiles are same
     protected bool CombinationMatch()
     {
+        coolDown.SetFlagTrue(100);
         for (int i = 0; i < exampleTiles.Count; i++)
         {
             if(exampleTileColors[exampleTiles[i]] != playTileColors[playTiles[i]]) return false;
