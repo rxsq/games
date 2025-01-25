@@ -271,20 +271,29 @@ namespace scorecard
             logger.Log($"receive message from front end message{message}");
             if (message.StartsWith("start"))
             {
-                if (gameStatus == GameStatus.Running || Waitingplayers.Count == 0)
+                if (gameStatus == GameStatus.Running)
                 {
                     RefreshWebView();
                     return;
                 }
-                game = message.Split(':')[1]; 
+                string[] messageArray = message.Split(':');
+                game = messageArray[1]; 
                 players.Clear();
                 players.AddRange(Waitingplayers);
                 Waitingplayers.Clear();
-                int noofplayers = players.Count;
-                gameType = message.Split(":")[3];
+                int noofplayers = Int32.Parse(messageArray[2]);
+                gameType = messageArray[3];
                 startTime = DateTime.Now;
 
                 scorecardForm.updateScreen(gameType);
+                int playersLength = players.Count;
+                if(noofplayers>playersLength)
+                {
+                    for(int i= noofplayers - playersLength; i>0; i--)
+                    {
+                        players.Add(new Player{wristbandCode = (i).ToString(), CheckInTime=DateTime.Now});
+                    }
+                }
                 
                 if (ConfigurationSettings.AppSettings["gamingEnginePath"].Length>0)
                 {
