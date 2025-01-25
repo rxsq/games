@@ -224,7 +224,7 @@ public abstract class BaseGame
         musicPlayer.Dispose();
         OnEnd();
         BlinkAllAsync(2);
-        SendSameColorToAllDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.Green : ColorPalette.Green);
+        SendSameColorToAllDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3);
 
         foreach (var handler in udpHandlers)
         {
