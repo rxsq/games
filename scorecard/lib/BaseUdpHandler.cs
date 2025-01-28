@@ -106,7 +106,7 @@ namespace scorecard.lib
                         if (receiving)
                         {
                             receiveCallback(receivedBytes);
-                            BeginReceive(receiveCallback); // Continue receiving
+                            //BeginReceive(receiveCallback); // Continue receiving
                         }
                     }
                     catch (ObjectDisposedException)
