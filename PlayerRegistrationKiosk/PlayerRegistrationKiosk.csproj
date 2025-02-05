@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LibNew\LibNew.csproj" />
+    <ProjectReference Include="..\POS\POS.csproj" />
   </ItemGroup>
 
 </Project>
