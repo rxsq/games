@@ -21,9 +21,19 @@ namespace scorecard
         DateTime startTime;
         private string gameStatus;
         LockController lockController = new LockController("COM5"); //Check COM port from the device manager
+        Lib.BaseScanner readerWriter;
         public GameSelection()
         {
             InitializeComponent();
+            webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"]);
+            readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
+            if (!readerWriter.isScannerActive)
+            {
+                readerWriter = new Lib.HandScanner("V", ConfigurationSettings.AppSettings["server"]);
+                readerWriter.OnGameStatusChanged(gameStatus);
+                readerWriter.OnNumberOfPlayersChanged(Waitingplayers.Count);
+                Thread.Sleep(1000);
+            }
             StartCheckInTimer();
             StartStatusTimer();
             gameStatus = GameStatus.NotStarted;
@@ -37,41 +47,47 @@ namespace scorecard
             InitializeWebView();
             SetBrowserFeatureControl();
             InitializeScorecardForm();
-            Lib.NFCReaderWriter readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
-            webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"])  ;
-            readerWriter.StatusChanged += (s, uid1) =>
+            if(readerWriter.isScannerActive)
             {
-                string uid = uid1.Split(':')[0];
-                string result = uid1.Split(':')[1];
-                if (uid.Length == 0)
+                readerWriter.StatusChanged += (s, uid1) =>
                 {
-                    logger.Log($"card uid not detected {uid}"); return;
-                }
-                if (result.Length > 0)
-                {
-                    logger.Log($"card not valid {uid}");
-                    return;
-                }
-                if (Waitingplayers.FindAll(x => x.wristbandCode == uid).Count > 0)
-                {
+                    string uid = uid1.Split(':')[0];
+                    string result = uid1.Split(':')[1];
+                    if (uid.Length == 0)
+                    {
+                        logger.Log($"card uid not detected {uid}"); return;
+                    }
+                    if (result.Length > 0)
+                    {
+                        logger.Log($"card not valid {uid}");
+                        return;
+                    }
+                    if (Waitingplayers.FindAll(x => x.wristbandCode == uid).Count > 0)
+                    {
 
-                    logger.Log($"card already added {uid}");
-                    return;
-                }
-                logger.Log($"card uid detected {uid}");
-                //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
-                Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
-                if (webView2.InvokeRequired)
-                {
-                    webView2.Invoke(new Action(() =>
-                        webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')")
-                    ));
-                }
-                else
-                {
-                    webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
-                } 
-            };
+                        logger.Log($"card already added {uid}");
+                        return;
+                    }
+                    logger.Log($"card uid detected {uid}");
+                    //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
+                    Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
+                    readerWriter.OnNumberOfPlayersChanged(Waitingplayers.Count);
+                    if (webView2.InvokeRequired)
+                    {
+                        webView2.Invoke(new Action(() =>
+                            webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')")
+                        ));
+                    }
+                    else
+                    {
+                        webView2.CoreWebView2.ExecuteScriptAsync($"window.receiveMessageFromWPF('{uid}')");
+                    }
+                };
+            } else
+            {
+                logger.Log("No Scanner Found!");
+                MessageBox.Show("No Scanner Found!");
+            }
             udpHandler.BeginReceive(data => ReceiveCallback(data));
 
         }
@@ -82,8 +98,16 @@ namespace scorecard
         }
         private void SendGameStatus(object state)
         {
-            if (gameStatus.ToLower().Contains("running")) lockController.TurnRelayOff();
-            else lockController.TurnRelayOn();
+            if (gameStatus.ToLower().Contains("running"))
+            {
+                readerWriter.OnGameStatusChanged(GameStatus.Running);
+                lockController.TurnRelayOff();
+            }
+            else
+            {
+                readerWriter.OnGameStatusChanged(gameStatus);
+                lockController.TurnRelayOn();
+            }
             util.uiupdate($"window.updateStatus('{gameStatus}')", webView2);
         }
 
@@ -134,7 +158,6 @@ namespace scorecard
         }
         private void HandleSattusChange(string status)
         {
-
             if (scorecardForm != null)
             {
                 
@@ -214,6 +237,7 @@ namespace scorecard
 
         private void RefreshWebView()
         {
+            readerWriter.OnNumberOfPlayersChanged(0);
             if (webView2.InvokeRequired)
             {
                 webView2.Invoke(new Action(() =>
@@ -281,6 +305,7 @@ namespace scorecard
                 players.Clear();
                 players.AddRange(Waitingplayers);
                 Waitingplayers.Clear();
+                readerWriter.OnNumberOfPlayersChanged(0);
                 int noofplayers = Int32.Parse(messageArray[2]);
                 gameType = messageArray[3];
                 startTime = DateTime.Now;
@@ -300,49 +325,52 @@ namespace scorecard
                     Task.Run(() => StartGame(new string[] { game, noofplayers.ToString() }, ConfigurationSettings.AppSettings["gamingEnginePath"]));
                     Thread.Sleep(1000);
                 }
-                udpHandler.SendStartGameMessage(message);
+                //udpHandler.SendStartGameMessage(message);
             }
             if (message.Equals("refresh"))
             {
                 RefreshWebView();
             }
         }
-        static void StartGame(string[] args,string  exePath)
+        static void StartGame(string[] args, string exePath)
         {
-            // Path to the executable
-            //string exePath = @"C:\Path\To\YourExecutable.exe";
-
-            // Arguments to pass to the executable
-            string arguments = $"\"{args[0]}\" {args[1]} {ConfigurationSettings.AppSettings["isTestMode"]}";
-            logger.Log($"Starting game with arguments:program {arguments}");
-            // Create a new process start information
-            ProcessStartInfo startInfo = new ProcessStartInfo
+            try
             {
-                FileName = exePath,     // The path of the executable
-                Arguments = arguments,  // The arguments to pass
-                UseShellExecute = false, // Set to true if you need to use the shell to start the process
-                RedirectStandardOutput = true, // To capture the output
-                RedirectStandardError = true,  // To capture errors
-                CreateNoWindow = true, // Set to true if you don't want a new window to be created
-                
-            };
-            startInfo.WorkingDirectory = Path.GetDirectoryName(exePath);
-            // Start the process
-            using (Process process = Process.Start(startInfo))
-            {
-                // Optionally, capture the output
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
+                string arguments = $"\"{args[0]}\" {args[1]} {ConfigurationSettings.AppSettings["isTestMode"]}";
+                logger.Log($"Starting game with arguments:program {arguments}");
 
-               logger.Log("Output: " + output);
-                if (error.Length > 0)
-                    logger.LogError("Error: " + error);
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(exePath)
+                };
+
+                using (Process process = Process.Start(startInfo))
+                {
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+
+                    logger.Log("Output: " + output);
+                    if (error.Length > 0)
+                        logger.LogError("Error: " + error);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Error starting game: " + ex.Message);
+                logger.LogError("Stack Trace: " + ex.StackTrace);
             }
         }
-        
-        
-       
+
+
+
+
 
         private void SetBrowserFeatureControl()
         {
