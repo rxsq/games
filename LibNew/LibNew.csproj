@@ -52,6 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseScanner.cs" />
+    <Compile Include="HandScanner.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="NFCReaderWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
