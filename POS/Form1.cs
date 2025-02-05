@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Threading;
 using System.Windows.Forms;
 using Lib;
 
@@ -7,7 +8,7 @@ namespace POS
 {
     public partial class Form1 : Form
     {
-        private readonly NFCReaderWriter _readerWriter;
+        private readonly BaseScanner _readerWriter;
 
         private string _selectedGameType = string.Empty;
         private int _selectedCount;
@@ -17,10 +18,12 @@ namespace POS
         {
             InitializeComponent();
 
-            _readerWriter = new NFCReaderWriter(
-                "I",
-                ConfigurationManager.AppSettings["server"]
-            );
+            _readerWriter = new NFCReaderWriter("I", ConfigurationManager.AppSettings["server"]);
+            if (!_readerWriter.isScannerActive)
+            {
+                _readerWriter = new Lib.HandScanner("I", ConfigurationSettings.AppSettings["server"]);
+                Thread.Sleep(1000);
+            }
             _readerWriter.StatusChanged += ReaderWriter_StatusChanged;
         }
 
