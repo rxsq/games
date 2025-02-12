@@ -20,23 +20,24 @@ namespace scorecard
         string game = "";
         DateTime startTime;
         private string gameStatus;
-        LockController lockController = new LockController("COM5"); //Check COM port from the device manager
+        LockController lockController = new LockController(ConfigurationSettings.AppSettings["LockComPort"]); //Check COM port from the device manager
         Lib.BaseScanner readerWriter;
         public GameSelection()
         {
             InitializeComponent();
+            gameStatus = GameStatus.NotStarted;
             webView2.Source = new Uri(ConfigurationSettings.AppSettings["gameurl"]);
-            readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
-            if (!readerWriter.isScannerActive)
-            {
-                readerWriter = new Lib.HandScanner("V", ConfigurationSettings.AppSettings["server"]);
+            //readerWriter = new Lib.NFCReaderWriter("V", ConfigurationSettings.AppSettings["server"]);
+            //if (!readerWriter.isScannerActive)
+            //{
+                readerWriter = new Lib.HandScanner("V", ConfigurationSettings.AppSettings["server"], ConfigurationSettings.AppSettings["HandScannerComPort"]);
                 readerWriter.OnGameStatusChanged(gameStatus);
                 readerWriter.OnNumberOfPlayersChanged(Waitingplayers.Count);
                 Thread.Sleep(1000);
-            }
+            //}
             StartCheckInTimer();
             StartStatusTimer();
-            gameStatus = GameStatus.NotStarted;
+            
             if (!Debugger.IsAttached)
             {
                 this.FormBorderStyle = FormBorderStyle.None;

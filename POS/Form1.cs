@@ -21,7 +21,7 @@ namespace POS
             _readerWriter = new NFCReaderWriter("I", ConfigurationManager.AppSettings["server"]);
             if (!_readerWriter.isScannerActive)
             {
-                _readerWriter = new Lib.HandScanner("I", ConfigurationSettings.AppSettings["server"]);
+                _readerWriter = new Lib.HandScanner("I", ConfigurationSettings.AppSettings["server"], ConfigurationSettings.AppSettings["HandScannerComPort"]);
                 Thread.Sleep(1000);
             }
             _readerWriter.StatusChanged += ReaderWriter_StatusChanged;
