@@ -46,7 +46,7 @@ public class LockController
         {
             serialPort.Write(command.ToCharArray(), 0, command.Length); // Send the command
             string response = serialPort.ReadLine(); // Read the response
-            logger.Log($"Command: {command}, Response: {response}");
+            //logger.Log($"Command: {command}, Response: {response}");
             return response;
         }
         catch (Exception ex)
