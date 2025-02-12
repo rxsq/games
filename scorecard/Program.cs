@@ -3,6 +3,7 @@ using scorecard.lib;
 using scorecard.model;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -11,14 +12,17 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Windows.Forms;
+using static NAudio.Wave.WaveInterop;
 
 class Program
 {
+    private static RestartButton restartButton = new RestartButton(ConfigurationSettings.AppSettings["RestartButtonComPort"]);
     static void Main(string[] p)
     {
         logger.Log($"Starting game:{string.Join(" ",p)} ");
         if (p != null)
         {
+            restartButton.StopScan(); 
             StartGame(p[0], p[1], p[2]);
         }
         else
@@ -30,6 +34,13 @@ class Program
     
     public static void StartGame(string gameVariant, string numberofplayers, string IsTestMode)
     {
+        bool restart = false;
+        bool restarting = false;
+        restartButton.ButtonPressed += (s, a) =>
+        {
+            restart = true;
+            restartButton.StopScan();
+        };
         try
         {
             var gameConfig = FetchGameConfig(gameVariant);
@@ -119,8 +130,20 @@ class Program
                 if (args == GameStatus.Completed)
                 {
                     logger.Log("Game ended");
-                    //currentGame?.Dispose();
-                    Environment.Exit(0); // Force the application to exit immediately
+                    //restart?
+                    
+                    restartButton.startScan();
+                    
+                    Thread.Sleep(10000);
+                    restartButton.StopScan();
+                    if (restart && !restarting)
+                    {
+                        restart = false;
+                        restarting = true;
+                        currentGame.Dispose();
+                        StartGame(gameVariant, numberofplayers, IsTestMode);
+                    }
+                    else Environment.Exit(0); // Force the application to exit immediately
                     //Application.Exit();
                 }
             };
@@ -130,6 +153,11 @@ class Program
         {
             logger.LogError($"Failed to start the game: {ex.Message}  \n{ex.StackTrace}" );
         }
+    }
+    private void ReceiveCallback(byte[] receivedBytes)
+    {
+        string message = Encoding.UTF8.GetString(receivedBytes);
+            
     }
     private static GameConfig FetchGameConfig(string gameType)
     {
