@@ -8,10 +8,11 @@ namespace Lib
     public class HandScanner:BaseScanner
     {
         private SerialPort serialPort;
-        private string portName = "COM8";
+        private string portName;
 
-        public HandScanner(string mode, string serverurl)
+        public HandScanner(string mode, string serverurl, string port)
         {
+            portName = port;
             // Initialize the SerialPort
             serialPort = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One)
             {
@@ -56,13 +57,13 @@ namespace Lib
                     else
                     {
                         uid = receivedMessage.Split('\r')[0];
-                        logger.Log($"Card inserted, processing... {receivedMessage}");
+                        logger.LogError($"Card inserted, processing... {receivedMessage}");
                         if (uid.Length == 0)
                         {
                             OnStatusChanged($"{uid}:card could not be read please try again");
                             return;
                         }
-                        logger.Log($"received card number...{uid}");
+                        logger.LogError($"received card number...{uid}");
                         string result = "";
                         try
                         {
@@ -81,7 +82,7 @@ namespace Lib
                                 {
                                     result = ifPlayerHaveTime(uid);
                                 }
-                                logger.Log($"uuid:{uid} result:{result}");
+                                logger.LogError($"uuid:{uid} result:{result}");
 
                             }
                         }
@@ -166,46 +167,59 @@ namespace Lib
         //}
         private void SendAck()
         {
+            if (!serialPort.IsOpen) { logger.LogError("Serial port is not open for Hand Scanner"); return; }
             string message = " CONN\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void SetNumberOfPlayersInBlue(int num)
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" L_LVLB_{num}\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void SetNumberOfPlayersInGreen(int num)
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" L_LVLG_{num}\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void SetBackgroundGreen()
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" L_BG_G\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void SetBackgroundBlue()
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" L_BG_B\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void SetBackgroundRed()
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" L_BG_R\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void SetBackgroundBlinkingBlue()
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" L_BG_1\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void TurnOff()
         {
+            if (!serialPort.IsOpen) 
+            {
+                logger.LogError("Serial port is not open for Hand Scanner"); 
+                return;
+            }
             string message = $" ABORT_1\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
         private void TurnOffWithRed()
         {
+            if (!serialPort.IsOpen) {logger.LogError("Serial port is not open for Hand Scanner"); return;}
             string message = $" ABORT_R\n";
             serialPort.Write(message.ToCharArray(), 0, message.Length);
         }
