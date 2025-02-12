@@ -10,8 +10,7 @@ public class GameStatusPublisher
 {
     private UdpClient udpClient;
     private IPEndPoint remoteEndPoint;
-    private UdpClient acknowledgmentListener;
-    private int acknowledgmentPort = 11002; // Port for receiving acknowledgment
+    private int gameSelectionPort = 11002; // Port for receiving acknowledgment
     private CancellationTokenSource cancellationTokenSource;
 
     public GameStatusPublisher(string ipAddress)
@@ -20,11 +19,20 @@ public class GameStatusPublisher
         cancellationTokenSource = new CancellationTokenSource();
 
         // Initialize the UDP client for sending
-        udpClient = new UdpClient();
+        udpClient = new UdpClient(gameSelectionPort);
+        
+    }
 
-        // Initialize the UDP client for receiving acknowledgments
-        acknowledgmentListener = new UdpClient(acknowledgmentPort);
-        Task.Run(() => ListenForAcknowledgment(cancellationTokenSource.Token), cancellationTokenSource.Token);
+    public void BeginReceive(Action<byte[]> receiveCallback)
+    {
+        try
+        {
+            Task.Run(() => ReceiveMessageFromGameSelection(receiveCallback, cancellationTokenSource.Token), cancellationTokenSource.Token);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error in BeginReceive: " + ex.Message);
+        }
     }
 
     public async void PublishStatus(int score, int lifeLine, int level, string status, int iterationTime, string game1, int iteration)
@@ -92,30 +100,30 @@ public class GameStatusPublisher
         }
     }
 
-    private async Task ListenForAcknowledgment(CancellationToken cancellationToken)
+    private async Task ReceiveMessageFromGameSelection(Action<byte[]> receiveCallback, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                if (acknowledgmentListener == null || acknowledgmentListener.Client == null)
+                if (udpClient == null || udpClient.Client == null)
                 {
-                    Console.WriteLine("Acknowledgment listener is not initialized. Reinitializing...");
-                    acknowledgmentListener = new UdpClient(acknowledgmentPort); // Reinitialize the listener
+                    logger.Log("Game Selection listener is not initialized. Reinitializing...");
+                    udpClient = new UdpClient(gameSelectionPort); // Reinitialize the listener
                 }
 
-                UdpReceiveResult result = await acknowledgmentListener.ReceiveAsync().WithCancellation(cancellationToken);
-                string ackMessage = Encoding.UTF8.GetString(result.Buffer);
-                Console.WriteLine("Acknowledgment received: " + ackMessage);
+                UdpReceiveResult result = await udpClient.ReceiveAsync().WithCancellation(cancellationToken);
+                string message = Encoding.UTF8.GetString(result.Buffer);
+                logger.Log("Message received from Game Selection: " + message);
             }
             catch (ObjectDisposedException)
             {
-                Console.WriteLine("Acknowledgment listener was disposed. Reinitializing...");
-                acknowledgmentListener = new UdpClient(acknowledgmentPort); // Reinitialize the listener
+                logger.Log("Game Selection listener was disposed. Reinitializing...");
+                udpClient = new UdpClient(gameSelectionPort); // Reinitialize the listener
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error in ListenForAcknowledgment: " + ex.Message);
+                logger.LogError("Error in Game Selection Listner: " + ex.Message);
                 await Task.Delay(1000, cancellationToken); // Wait before retrying
             }
         }
@@ -125,7 +133,7 @@ public class GameStatusPublisher
     {
         cancellationTokenSource.Cancel();
         udpClient?.Close();
-        acknowledgmentListener?.Close();
+        udpClient?.Close();
     }
 }
 
