@@ -79,7 +79,7 @@ class BasketQuest : BaseMultiplayerGame
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
-        if (!isGameRunning)
+        if (!isGameRunning && coolDown.Flag)
             return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         //   LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
@@ -92,13 +92,15 @@ class BasketQuest : BaseMultiplayerGame
         ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
         foreach (int td in touchedActiveDevices)
         {
-            if (!isGameRunning)
-                return;
-            handler.activeDevices.Remove(td);
-            int playerNo = basketMap[td];
-            updateScore(Scores[playerNo] + 1, playerNo);
-            LogData($"Score updated: {string.Join(", ", Scores)}  position: {td}");
-            IterationWon();
+            if (isGameRunning && basketMap.ContainsKey(td))
+            {
+                handler.activeDevices.Remove(td);
+                int playerNo = basketMap[td];
+                updateScore(Scores[playerNo] + 1, playerNo);
+                LogData($"Score updated: {string.Join(", ", Scores)}  position: {td}");
+                IterationWon();
+            }
+            
         }
         handler.BeginReceive(data => ReceiveCallback(data, handler));
 
