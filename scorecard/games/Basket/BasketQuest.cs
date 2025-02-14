@@ -79,28 +79,34 @@ class BasketQuest : BaseMultiplayerGame
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
-        if (!isGameRunning && coolDown.Flag)
+        if (!isGameRunning)
             return;
-        string receivedData = Encoding.UTF8.GetString(receivedBytes);
-        //   LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
+        if (!coolDown.Flag)
+        {
+            string receivedData = Encoding.UTF8.GetString(receivedBytes);
+            //   LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
 
-        List<int> touchedActiveDevices = receivedData.Select((value, index) => new { value, index })
+            List<int> touchedActiveDevices = receivedData.Select((value, index) => new { value, index })
                                           .Where(x => x.value == 0x0A)
                                           //    .Where(x=> activeIndicesSingle.Contains((x.index  -2) / config.NoofLedPerdevice))
                                           .Select(x => (x.index - 2) / config.NoofLedPerdevice)
                                           .ToList();
-        ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
-        foreach (int td in touchedActiveDevices)
-        {
-            if (isGameRunning && basketMap.ContainsKey(td))
+        
+        
+            ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
+            foreach (int td in touchedActiveDevices)
             {
-                handler.activeDevices.Remove(td);
-                int playerNo = basketMap[td];
-                updateScore(Scores[playerNo] + 1, playerNo);
-                LogData($"Score updated: {string.Join(", ", Scores)}  position: {td}");
-                IterationWon();
+                if (isGameRunning && basketMap.ContainsKey(td))
+                {
+                    
+                    handler.activeDevices.Remove(td);
+                    int playerNo = basketMap[td];
+                    updateScore(Scores[playerNo] + 1, playerNo);
+                    LogData($"Score updated: {string.Join(", ", Scores)}  position: {td}");
+                    IterationWon();
+                }
+
             }
-            
         }
         handler.BeginReceive(data => ReceiveCallback(data, handler));
 

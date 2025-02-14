@@ -70,7 +70,7 @@ class BlitzBasket:BaseSingleDevice
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
-        if (!isGameRunning)
+        if (!isGameRunning )
             return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         //   LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
@@ -85,22 +85,26 @@ class BlitzBasket:BaseSingleDevice
         {
             if (!isGameRunning)
                 return;
-            foreach (var device in touchedActiveDevices) 
+            if(!coolDown.Flag)
             {
-                if (targets.Contains(device))
+                foreach (var device in touchedActiveDevices)
                 {
-                    ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
-                    handler.activeDevices.Remove(device);
-                    targets.Remove(device);
-                    hitTargets.Add(device);
-                    updateScore(Score + Level);
-                    LogData($"Score updated: {Score}.");
-                } else if(!hitTargets.Contains(device))
-                {
-                    coolDown.SetFlagTrue(500);
-                    IterationLost(null);
-                    LogData($"Wrong Basket.");
-                    return;
+                    if (targets.Contains(device))
+                    {
+                        ChnageColorToDevice(config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3, touchedActiveDevices, handler);
+                        handler.activeDevices.Remove(device);
+                        targets.Remove(device);
+                        hitTargets.Add(device);
+                        updateScore(Score + Level);
+                        LogData($"Score updated: {Score}.");
+                    }
+                    else if (!hitTargets.Contains(device))
+                    {
+                        coolDown.SetFlagTrue(500);
+                        IterationLost(null);
+                        LogData($"Wrong Basket.");
+                        return;
+                    }
                 }
             }
         }
