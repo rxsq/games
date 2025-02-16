@@ -184,6 +184,7 @@
     <Compile Include="lib\GameStatusPublisher.cs" />
     <Compile Include="lib\NumberToWordConverter.cs" />
     <Compile Include="lib\PlayerScore.cs" />
+    <Compile Include="lib\RestartButton.cs" />
     <Compile Include="lib\UdpHandlerWeTop.cs" />
     <Compile Include="model\Player.cs" />
     <Compile Include="games\TileHunt\TileHunt.cs" />
@@ -410,6 +411,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\PushGameIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\Restart.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\SmashIntro.mp3">

@@ -8,9 +8,11 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Reflection;
 using log4net;
+using static NAudio.Wave.WaveInterop;
+using System.Text;
 public abstract class BaseGame
 {
-    protected GameStatusPublisher statusPublisher;
+    public GameStatusPublisher statusPublisher = GameStatusPublisher.Instance;
     TPLinkSmartDevices.Devices.TPLinkSmartPlug plug;
     protected List<UdpHandler> udpHandlers;
     protected Dictionary<UdpHandler, HashSet<int>> activeIndices;
@@ -97,31 +99,31 @@ public abstract class BaseGame
     }
 
     public string targetColor;
-    private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-    public void lightonoff(bool on)
-    {
-        try
-        {
-            if (!config.isTestMode)
-            {
-                var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
-                plug.OutletPowered = !on;
-                plug.OutletPowered = on;
-            }
-        }
-        catch { }
-    }
+    //private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+    //public void lightonoff(bool on)
+    //{
+    //    try
+    //    {
+    //        if (!config.isTestMode)
+    //        {
+    //            var plug = new TPLinkSmartDevices.Devices.TPLinkSmartPlug(config.SmartPlugip);
+    //            plug.OutletPowered = !on;
+    //            plug.OutletPowered = on;
+    //        }
+    //    }
+    //    catch { }
+    //}
     public BaseGame(GameConfig co)
     {
         logger.Log("basegame constructor");
         this.config = co;
-        statusPublisher = new GameStatusPublisher(config.gameEngineIp);
-        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.NotStarted, remainingTime, config.GameName, iterations);
+        //statusPublisher = new GameStatusPublisher(config.gameEngineIp);
+        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.Running, remainingTime, config.GameName, iterations);
         gameColors = getColorList();
         musicPlayer = new MusicPlayer("content/background_music.wav");
 
 
-        lightonoff(true);
+        //lightonoff(true);
         Thread.Sleep(3000); // Countdown 
         udpHandlers = new List<UdpHandler>();
         if (config.IpAddress != "169.254.255.255" && config.GameName != "Climb")
@@ -234,9 +236,9 @@ public abstract class BaseGame
         }
         Thread.Sleep(2000);
 
-        lightonoff(false);
+        //lightonoff(false);
 
-        Status = GameStatus.Completed;
+        //Status = GameStatus.Completed;
 
 
     }
@@ -506,5 +508,14 @@ public abstract class BaseGame
             }
         }
         return colorList;
+    }
+
+    public void Dispose()
+    {
+        foreach(var udpHandler in udpHandlers)
+        {
+            udpHandler.Close();
+        }
+
     }
 }

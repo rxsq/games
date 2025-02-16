@@ -12,6 +12,11 @@ public class GameStatusPublisher
     private IPEndPoint remoteEndPoint;
     private int gameSelectionPort = 11002; // Port for receiving acknowledgment
     private CancellationTokenSource cancellationTokenSource;
+    public string[] playerList;
+    public string waitingStaus = "false";
+
+    private static readonly Lazy<GameStatusPublisher> _instance =
+        new Lazy<GameStatusPublisher>(() => new GameStatusPublisher("127.0.0.1")); // Default IP (modify if needed)
 
     public GameStatusPublisher(string ipAddress)
     {
@@ -20,10 +25,12 @@ public class GameStatusPublisher
 
         // Initialize the UDP client for sending
         udpClient = new UdpClient(gameSelectionPort);
-        
     }
 
-    public void BeginReceive(Action<byte[]> receiveCallback)
+    // Public method to access the single instance
+    public static GameStatusPublisher Instance => _instance.Value;
+
+    public void BeginReceive(Action<string> receiveCallback)
     {
         try
         {
@@ -80,27 +87,27 @@ public class GameStatusPublisher
         {
             if (udpClient == null || udpClient.Client == null)
             {
-                Console.WriteLine("UdpClient is not initialized. Reinitializing...");
+                logger.Log("UdpClient is not initialized. Reinitializing...");
                 udpClient = new UdpClient(); // Reinitialize the UdpClient
             }
 
             string jsonMessage = JsonConvert.SerializeObject(message);
             byte[] data = Encoding.UTF8.GetBytes(jsonMessage);
             await udpClient.SendAsync(data, data.Length, remoteEndPoint);
-            Console.WriteLine("Status published: " + jsonMessage);
+            logger.Log("Status published: " + jsonMessage);
         }
         catch (ObjectDisposedException)
         {
-            Console.WriteLine("UdpClient was disposed. Reinitializing...");
+            logger.Log("UdpClient was disposed. Reinitializing...");
             udpClient = new UdpClient(); // Reinitialize the UdpClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Error in PublishStatus: " + ex.Message);
+            logger.Log("Error in PublishStatus: " + ex.Message);
         }
     }
 
-    private async Task ReceiveMessageFromGameSelection(Action<byte[]> receiveCallback, CancellationToken cancellationToken)
+    private async Task ReceiveMessageFromGameSelection(Action<string> receiveCallback, CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -115,8 +122,16 @@ public class GameStatusPublisher
                 UdpReceiveResult result = await udpClient.ReceiveAsync().WithCancellation(cancellationToken);
                 string message = Encoding.UTF8.GetString(result.Buffer);
                 logger.Log("Message received from Game Selection: " + message);
+                receiveCallback(message);
+
+                
             }
             catch (ObjectDisposedException)
+            {
+                logger.Log("Game Selection listener was disposed. Reinitializing...");
+                udpClient = new UdpClient(gameSelectionPort); // Reinitialize the listener
+            }
+            catch (System.Net.Sockets.SocketException)
             {
                 logger.Log("Game Selection listener was disposed. Reinitializing...");
                 udpClient = new UdpClient(gameSelectionPort); // Reinitialize the listener

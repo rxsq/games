@@ -14,7 +14,7 @@ namespace scorecard
         private ScorecardForm scorecardForm;
         private System.Threading.Timer statusTimer;
         List<Player> players = new List<Player>();
-        List<Player> Waitingplayers = new List<Player>();
+        List<Player> waitingPlayers = new List<Player>();
         ScoreboardListener udpHandler = new ScoreboardListener();
         string gameType = "";
         string game = "";
@@ -32,7 +32,7 @@ namespace scorecard
             //{
                 readerWriter = new Lib.HandScanner("V", ConfigurationSettings.AppSettings["server"], ConfigurationSettings.AppSettings["HandScannerComPort"]);
                 readerWriter.OnGameStatusChanged(gameStatus);
-                readerWriter.OnNumberOfPlayersChanged(Waitingplayers.Count);
+                readerWriter.OnNumberOfPlayersChanged(waitingPlayers.Count);
                 Thread.Sleep(1000);
             //}
             StartCheckInTimer();
@@ -63,7 +63,7 @@ namespace scorecard
                         logger.Log($"card not valid {uid}");
                         return;
                     }
-                    if (Waitingplayers.FindAll(x => x.wristbandCode == uid).Count > 0)
+                    if (waitingPlayers.FindAll(x => x.wristbandCode == uid).Count > 0)
                     {
 
                         logger.Log($"card already added {uid}");
@@ -71,8 +71,9 @@ namespace scorecard
                     }
                     logger.Log($"card uid detected {uid}");
                     //wristbandCode, playerStartTime, playerEndTime, gameType, points, LevelPlayed
-                    Waitingplayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
-                    readerWriter.OnNumberOfPlayersChanged(Waitingplayers.Count);
+                    waitingPlayers.Add(new Player { wristbandCode = uid, CheckInTime = DateTime.Now });
+                    readerWriter.OnNumberOfPlayersChanged(waitingPlayers.Count);
+                    udpHandler.SendWaitingPlayersStatus("true");
                     if (webView2.InvokeRequired)
                     {
                         webView2.Invoke(new Action(() =>
@@ -228,7 +229,7 @@ namespace scorecard
         {
           //  if (!scorecardForm.currentGame.IsRunning)
             {
-                if (Waitingplayers.FindAll(x => x.CheckInTime > DateTime.Now.AddMinutes(-5)).Count > 0)
+                if (waitingPlayers.FindAll(x => x.CheckInTime > DateTime.Now.AddMinutes(-5)).Count > 0)
                 {
                     logger.Log($"player did play game minute so clearing them");
                     RefreshWebView();
@@ -239,17 +240,18 @@ namespace scorecard
         private void RefreshWebView()
         {
             readerWriter.OnNumberOfPlayersChanged(0);
+            udpHandler.SendWaitingPlayersStatus("false");
             if (webView2.InvokeRequired)
             {
                 webView2.Invoke(new Action(() =>
                 {
-                    Waitingplayers?.Clear();
+                    waitingPlayers?.Clear();
                     webView2.CoreWebView2.Reload();
                 }));
             }
             else
             {
-                Waitingplayers?.Clear();
+                waitingPlayers?.Clear();
                 webView2.CoreWebView2.Reload();
             }
         }
@@ -304,8 +306,8 @@ namespace scorecard
                 string[] messageArray = message.Split(':');
                 game = messageArray[1]; 
                 players.Clear();
-                players.AddRange(Waitingplayers);
-                Waitingplayers.Clear();
+                players.AddRange(waitingPlayers);
+                waitingPlayers.Clear();
                 readerWriter.OnNumberOfPlayersChanged(0);
                 int noofplayers = Int32.Parse(messageArray[2]);
                 gameType = messageArray[3];
@@ -320,6 +322,12 @@ namespace scorecard
                         players.Add(new Player{wristbandCode = (i).ToString(), CheckInTime=DateTime.Now});
                     }
                 }
+                string[] uids = new string[playersLength];
+                for (int i= 0;i < playersLength; i++) {
+                    uids[i] = players[i].wristbandCode;
+                }
+                udpHandler.SendPlayersListToGameEngine(uids);
+                udpHandler.SendWaitingPlayersStatus("false");
                 
                 if (ConfigurationSettings.AppSettings["gamingEnginePath"].Length>0)
                 {

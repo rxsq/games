@@ -13,10 +13,14 @@ using System.Text.Json;
 using System.Threading;
 using System.Windows.Forms;
 using static NAudio.Wave.WaveInterop;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 class Program
 {
     private static RestartButton restartButton = new RestartButton(ConfigurationSettings.AppSettings["RestartButtonComPort"]);
+    private static MusicPlayer musicPlayer = new MusicPlayer("content/background_music.wav");
+    private static GameStatusPublisher statusPublisher = GameStatusPublisher.Instance;
+
     static void Main(string[] p)
     {
         logger.Log($"Starting game:{string.Join(" ",p)} ");
@@ -29,11 +33,12 @@ class Program
         {
 
         }
-
+        statusPublisher.BeginReceive(data => Program.ReceiveCallback(data));
     }
     
     public static void StartGame(string gameVariant, string numberofplayers, string IsTestMode)
     {
+        statusPublisher.BeginReceive(data => ReceiveCallback(data));
         bool restart = false;
         bool restarting = false;
         restartButton.ButtonPressed += (s, a) =>
@@ -132,18 +137,32 @@ class Program
                     logger.Log("Game ended");
                     //restart?
                     
-                    restartButton.startScan();
-                    
-                    Thread.Sleep(10000);
-                    restartButton.StopScan();
-                    if (restart && !restarting)
+                    if(statusPublisher.waitingStaus.Equals("false"))
                     {
-                        restart = false;
-                        restarting = true;
-                        currentGame.Dispose();
-                        StartGame(gameVariant, numberofplayers, IsTestMode);
+                        musicPlayer.Announcement("content/voicelines/Restart.mp3", false);
+                        restartButton.startScan();
+
+                        Thread.Sleep(10000);
+                        restartButton.StopScan();
+                        if (restart && !restarting)
+                        {
+                            restart = false;
+                            restarting = true;
+                            currentGame.Dispose();
+                            StartGame(gameVariant, numberofplayers, IsTestMode);
+                        }
+                        else
+                        {
+                            statusPublisher.PublishStatus(0, 0, 0, GameStatus.Completed, 0, "completed", 0);
+                            Environment.Exit(0); // Force the application to exit immediately
+                        }
                     }
-                    else Environment.Exit(0); // Force the application to exit immediately
+                    else
+                    {
+                        statusPublisher.PublishStatus(0, 0, 0, GameStatus.Completed, 0, "completed", 0);
+                        Environment.Exit(0); // Force the application to exit immediately
+                    }
+
                     //Application.Exit();
                 }
             };
@@ -154,10 +173,22 @@ class Program
             logger.LogError($"Failed to start the game: {ex.Message}  \n{ex.StackTrace}" );
         }
     }
-    private void ReceiveCallback(byte[] receivedBytes)
+    private static void ReceiveCallback(string gameMessage)
     {
-        string message = Encoding.UTF8.GetString(receivedBytes);
-            
+        if (gameMessage != null)
+        {
+            string[] message = gameMessage.Split(':');
+            if (message[0].StartsWith("waitingStatus"))
+            {
+                statusPublisher.waitingStaus = message[1];
+            }
+            else if (message[0].StartsWith("players"))
+            {
+                statusPublisher.playerList = message[0].Split(':')[1].Split('-');
+            }
+        }
+        statusPublisher.BeginReceive(data => ReceiveCallback(data));
+        //  CurrentGame_StatusChanged(null, gameMessage.Status);
     }
     private static GameConfig FetchGameConfig(string gameType)
     {
