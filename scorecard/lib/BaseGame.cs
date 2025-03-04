@@ -200,7 +200,8 @@ public abstract class BaseGame
             //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
             musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
             LogData("GAME OVER");
-            EndGame();
+            Status = GameStatus.Completed;
+            
 
         }
         else

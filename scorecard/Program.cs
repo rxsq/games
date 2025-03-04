@@ -38,6 +38,7 @@ class Program
     
     public static void StartGame(string gameVariant, string numberofplayers, string IsTestMode)
     {
+        Thread.Sleep(10000);
         statusPublisher.BeginReceive(data => ReceiveCallback(data));
         bool restart = false;
         bool restarting = false;
@@ -135,10 +136,12 @@ class Program
                 if (args == GameStatus.Completed)
                 {
                     logger.Log("Game ended");
+                    currentGame.EndGame();
                     //restart?
-                    
-                    if(statusPublisher.waitingStaus.Equals("false"))
+
+                    if (statusPublisher.waitingStaus.Equals("false"))
                     {
+                        logger.Log("Asking for restart");
                         musicPlayer.Announcement("content/voicelines/Restart.mp3", false);
                         restartButton.startScan();
 
@@ -148,7 +151,8 @@ class Program
                         {
                             restart = false;
                             restarting = true;
-                            currentGame.Dispose();
+                            currentGame.Dispose(); 
+                            musicPlayer.Announcement("content/voicelines/GameRestarting.mp3", false);
                             StartGame(gameVariant, numberofplayers, IsTestMode);
                         }
                         else
