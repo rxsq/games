@@ -125,6 +125,9 @@ class Program
                 case "BasketQuest":
                     currentGame = new BasketQuest(gameConfig);
                     break;
+                case "CTarget":
+                    currentGame = new CTarget(gameConfig);
+                    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;
