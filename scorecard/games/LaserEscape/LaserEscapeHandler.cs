@@ -5,166 +5,212 @@ using System.Text;
 public class LaserEscapeHandler
 {
     private SerialPort serialPort;
+    private StringBuilder buffer = new StringBuilder();  // Store incomplete messages
+    private int numberOfLasers;
+    private int numberOfControllers;
+    private int rows;
+    private int columns;
+    private int numberOfLasersPerController;
+    private char[] laserControllerA;
+    private char[] laserControllerB;
 
-    // Event for laser data received
-    public event Action<int> LaserTriggered;
-    public event Action<string> DataReceived;
-
-    public LaserEscapeHandler(string portName)
+    public LaserEscapeHandler(string portName, int numberOfDevices, int numberOfControllers, int rows)
     {
-        // Initialize the SerialPort
+        this.numberOfLasers = numberOfDevices;
+        this.numberOfControllers = numberOfControllers;
+        this.rows = rows;
+        this.columns = numberOfDevices / rows;
+        numberOfLasersPerController = numberOfLasers / numberOfControllers;
+
+        // Laser state tracking
+        laserControllerA = new string('0', numberOfLasersPerController).ToCharArray(); // First 48 lasers
+        laserControllerB = new string('0', numberOfLasersPerController).ToCharArray(); // Next 48 lasers
         serialPort = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One)
-        {
-            Handshake = Handshake.None
-        };
+            {
+                Handshake = Handshake.None
+            };
 
         try
         {
             serialPort.Open();
-            Console.WriteLine($"Serial port {portName} opened successfully.");
-            Process(); // Start listening to the serial data
+            logger.Log($"Serial port for laser escape {portName} opened successfully.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to open serial port: {ex.Message}");
+            logger.Log($"Failed to open serial port for laser escape handler: {ex.Message}");
         }
     }
 
-    private void Process()
-    {
-        serialPort.DataReceived += (sender, args) =>
-        {
-            SerialPort sp = (SerialPort)sender;
-            try
-            {
-                int byteCount = sp.BytesToRead;
-                byte[] receivedBytes = new byte[byteCount];
-                sp.Read(receivedBytes, 0, byteCount);
-
-                if (receivedBytes.Length > 0)
-                {
-                    string receivedMessage = Encoding.UTF8.GetString(receivedBytes);
-                    logger.Log ($"Received message: {receivedMessage}");
-                    DataReceived?.Invoke(receivedMessage);
-
-                    if (receivedBytes[0] == 5)
-                    {
-                        GetControllers(receivedBytes);
-                    } else
-                    {
-                        int laserNumber = receivedBytes[1] - 33 - 23;
-                        LaserTriggered?.Invoke(laserNumber);
-                    }
-
-                    
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error reading data: {ex.Message}");
-            }
-        };
-    }
-
-    public int[] GetControllers(byte[] bytes)
-    {
-        int numberOfControllers = bytes.Length / 4;
-        int[] controllers = new int[numberOfControllers];
-
-        for (int i = 0; i < bytes.Length; i += 4)
-        {
-            if (bytes[i] == 5)
-            {
-                controllers[i / 4] = bytes[i + 1] - 33 - 23;
-            }
-        }
-        Console.WriteLine($"Controllers found: {string.Join(", ", controllers)}");
-        return controllers;
-    }
-
-    // Sends a connection request to the device
-    public void ConnectionRequest()
-    {
-        SendCommand("040A", "Connection request sent.");
-    }
-
-    // Starts laser scanning
-    public void StartScanning()
-    {
-        SendCommand("080A", "Started scanning lasers.");
-    }
-
-    // Turns on all lasers
-    public void TurnOnAllLasers()
-    {
-        SendCommand("070A", "All lasers turned on.");
-    }
-
-    // Turns off all lasers
-    public void TurnOffAllLasers()
-    {
-        SendCommand("060A", "All lasers turned off.");
-    }
-
-    // Turns on a specific laser without scanning
-    public void TurnOnLaserWithoutScanning(int laserNumber)
-    {
-        SendCommand($"00{laserNumber + 33:X2}0A", $"Laser {laserNumber} turned on without scanning.");
-    }
-
-    // Turns on a specific laser with scanning
-    public void TurnOnLaserWithScanning(int laserNumber)
-    {
-        SendCommand($"01{laserNumber + 33:X2}0A", $"Laser {laserNumber} turned on with scanning.");
-    }
-
-    // Turns on a range of lasers with scanning
-    public void TurnOnLaserWithScanningRange(int startLaserNumber, int endLaserNumber)
-    {
-        SendCommand($"09{startLaserNumber + 33:X2}{endLaserNumber + 33:X2}0A", $"Lasers {startLaserNumber} to {endLaserNumber} turned on with scanning.");
-    }
-
-    // Turns off a specific laser
-    public void TurnOffLaser(int laserNumber)
-    {
-        SendCommand($"02{laserNumber + 33:X2}0A", $"Laser {laserNumber} turned off.");
-    }
-
-    // Simulates cutting a laser
-    public void CutLaser(int laserNumber)
-    {
-        SendCommand($"03{laserNumber + 33:X2}0A", $"Laser {laserNumber} simulated as cut.");
-    }
-
-    // Helper method to send commands
-    private void SendCommand(string hexCommand, string logMessage)
+    public void BeginReceive(Action<string> receiveCallback)
     {
         try
         {
-            byte[] commandBytes = HexStringToByteArray(hexCommand);
-            serialPort.Write(commandBytes, 0, commandBytes.Length);
-            Console.WriteLine(logMessage);
+            if (serialPort?.IsOpen != true)
+            {
+                logger.LogError("Serial port is not open. Cannot start receiving.");
+                return;
+            }
+
+            byte[] readBuffer = new byte[1024];
+
+            serialPort.BaseStream.BeginRead(readBuffer, 0, readBuffer.Length, ar =>
+            {
+                try
+                {
+                    int bytesRead = serialPort.BaseStream.EndRead(ar);
+                    if (bytesRead > 0)
+                    {
+                        string receivedMessage = Encoding.UTF8.GetString(readBuffer, 0, bytesRead);
+                        ProcessReceivedData(receivedMessage, receiveCallback);
+                    }
+
+                    // Continue receiving
+                    BeginReceive(receiveCallback);
+                }
+                catch (ObjectDisposedException)
+                {
+                    logger.LogError("SerialPort has been disposed. Stopping receive loop.");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"Error in BeginReceive callback: {ex.Message}");
+                }
+            }, null);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to send command: {ex.Message}");
+            logger.LogError($"Exception in BeginReceive: {ex.Message}");
         }
     }
 
-    // Converts a hex string to a byte array
-    private byte[] HexStringToByteArray(string hex)
+    private void ProcessReceivedData(string data, Action<string> receiveCallback)
     {
-        if (string.IsNullOrEmpty(hex))
-            throw new ArgumentException("Hex string cannot be null or empty.", nameof(hex));
+        buffer.Append(data); // Append new data to the buffer
 
-        if (hex.Length % 2 != 0)
-            throw new ArgumentException("Hex string length must be a multiple of 2.", nameof(hex));
-
-        byte[] bytes = new byte[hex.Length / 2];
-        for (int i = 0; i < hex.Length; i += 2)
+        while (buffer.ToString().Contains("\n"))
         {
-            bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            int newlineIndex = buffer.ToString().IndexOf("\n");
+
+            // Extract the complete message
+            string completeMessage = buffer.ToString(0, newlineIndex).Trim();
+            buffer.Remove(0, newlineIndex + 1);  // Remove processed part
+
+            if (!string.IsNullOrEmpty(completeMessage))
+            {
+                //ProcessMessage(completeMessage);
+
+                // Send processed data to callback
+                receiveCallback?.Invoke(completeMessage);
+            }
         }
-        return bytes;
+    }
+
+    //private void ProcessMessage(string message)
+    //{
+    //    if (string.IsNullOrEmpty(message) || message.Length < 2) return;
+
+    //    char controllerId = message[0];
+    //    string sensorData = message.Substring(1);
+
+    //    // Handle sensor trigger
+    //    for (int i = 0; i < sensorData.Length; i++)
+    //    {
+    //        if (sensorData[i] == '1')
+    //        {
+    //            int sensorNumber = (controllerId == 'a') ? i : i + 48;
+    //        }
+    //    }
+    //}
+
+    public void SetLaserState(int laserIndex, bool state)
+    {
+        if(laserIndex<48)
+        {
+            laserControllerA[laserIndex] = state ? '1' : '0';
+        }
+        else if(laserIndex<96)
+        {
+            laserControllerB[laserIndex-48] = state ? '1' : '0';
+        }
+        else
+        {
+            logger.LogError($"Invalid laser index {laserIndex}");
+        }
+    }
+
+    public void SendData()
+    {
+        string commandA = $"a{new string(laserControllerA)}\n";
+        string commandB = $"b{new string(laserControllerB)}\n";
+
+        SendCommand(commandA);
+        SendCommand(commandB);
+    }
+
+    public void TurnOnAllTheLasers()
+    {
+        for(int i = 0; i < numberOfLasersPerController; i++)
+        {
+            laserControllerA[i] = '1';
+            laserControllerB[i] = '1';
+        }
+        SendData();
+        logger.Log("Turned On all the lasers");
+    }
+    public void TurnOffAllTheLasers()
+    {
+        for (int i = 0; i < numberOfLasersPerController; i++)
+        {
+            laserControllerA[i] = '0';
+            laserControllerB[i] = '0';
+        }
+        SendData();
+        logger.Log("Turned Off all the lasers");
+    }
+    public void TurnOnRow(int rowIndex)
+    {
+        if (rowIndex < 0 || rowIndex >= rows)
+        {
+            logger.LogError($"Invalid row index {rowIndex}");
+            return;
+        }
+
+        for (int col = 0; col < columns; col++)
+        {
+            int laserIndex = (col * rows) + rowIndex; // Calculate laser index for each column in the given row
+            SetLaserState(laserIndex, true);
+        }
+        SendData();
+        logger.Log($"Turned on row {rowIndex}");
+    }
+
+    public void TurnOnColumn(int columnIndex)
+    {
+        if (columnIndex < 0 || columnIndex >= columns)
+        {
+            logger.LogError($"Invalid column index {columnIndex}");
+            return;
+        }
+
+        for (int row = 0; row < rows; row++)
+        {
+            int laserIndex = (columnIndex * rows) + row; // Calculate laser index for each row in the given column
+            SetLaserState(laserIndex, true);
+        }
+        SendData();
+        logger.Log($"Turned on column {columnIndex}");
+    }
+
+    private void SendCommand(string command)
+    {
+        try
+        {
+            serialPort.Write(command);
+            logger.Log($"Sent command: {command.Trim()}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError($"Failed to send command: {ex.Message}");
+        }
     }
 }
