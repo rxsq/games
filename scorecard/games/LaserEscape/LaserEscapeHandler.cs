@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 public class LaserEscapeHandler
@@ -8,11 +11,12 @@ public class LaserEscapeHandler
     private StringBuilder buffer = new StringBuilder();  // Store incomplete messages
     private int numberOfLasers;
     private int numberOfControllers;
-    private int rows;
-    private int columns;
+    public int rows;
+    public int columns;
     private int numberOfLasersPerController;
-    private char[] laserControllerA;
+    public char[] laserControllerA;
     private char[] laserControllerB;
+    private List<int> activeDevices = new List<int>();
 
     public LaserEscapeHandler(string portName, int numberOfDevices, int numberOfControllers, int rows)
     {
@@ -32,7 +36,11 @@ public class LaserEscapeHandler
 
         try
         {
-            serialPort.Open();
+            if (!serialPort.IsOpen)
+            {
+                serialPort.Open();
+            }
+
             logger.Log($"Serial port for laser escape {portName} opened successfully.");
         }
         catch (Exception ex)
@@ -41,7 +49,7 @@ public class LaserEscapeHandler
         }
     }
 
-    public void BeginReceive(Action<string> receiveCallback)
+    public void BeginReceive(Action<List<int>> receiveCallback)
     {
         try
         {
@@ -83,7 +91,7 @@ public class LaserEscapeHandler
         }
     }
 
-    private void ProcessReceivedData(string data, Action<string> receiveCallback)
+    private void ProcessReceivedData(string data, Action<List<int>> receiveCallback)
     {
         buffer.Append(data); // Append new data to the buffer
 
@@ -98,12 +106,38 @@ public class LaserEscapeHandler
             if (!string.IsNullOrEmpty(completeMessage))
             {
                 //ProcessMessage(completeMessage);
+                List<int> cutLasers = new List<int>();
+                if (completeMessage[0]=='a')
+                {
+                    cutLasers = GetCutLasers(completeMessage.Substring(1), 0);
+                } else
+                {
+                    cutLasers = GetCutLasers(completeMessage.Substring(1), 1);
+                }
 
                 // Send processed data to callback
-                receiveCallback?.Invoke(completeMessage);
+                receiveCallback(cutLasers);
             }
         }
     }
+    private List<int> GetCutLasers(string message, int controller)
+    {
+        List<int> cutLasers = new List<int>();
+        int maxIndex = numberOfLasersPerController * (controller + 1);
+        int minIndex = numberOfLasersPerController * controller;
+
+        foreach (int index in activeDevices.ToList())
+        {
+            int relativeIndex = index - minIndex;
+            if (relativeIndex >= 0 && relativeIndex < message.Length && message[relativeIndex] == '1')
+            {
+                cutLasers.Add(index);
+                SetLaserState(index, false);
+            }
+        }
+        return cutLasers;
+    }
+
 
     //private void ProcessMessage(string message)
     //{
@@ -124,19 +158,19 @@ public class LaserEscapeHandler
 
     public void SetLaserState(int laserIndex, bool state)
     {
-        if(laserIndex<48)
-        {
+        if (laserIndex < 0 || laserIndex >= numberOfLasers) return;
+
+        if (state && !activeDevices.Contains(laserIndex))
+            activeDevices.Add(laserIndex);
+        else if (!state && activeDevices.Contains(laserIndex))
+            activeDevices.Remove(laserIndex);
+
+        if (laserIndex < numberOfLasersPerController)
             laserControllerA[laserIndex] = state ? '1' : '0';
-        }
-        else if(laserIndex<96)
-        {
-            laserControllerB[laserIndex-48] = state ? '1' : '0';
-        }
         else
-        {
-            logger.LogError($"Invalid laser index {laserIndex}");
-        }
+            laserControllerB[laserIndex - numberOfLasersPerController] = state ? '1' : '0';
     }
+
 
     public void SendData()
     {
@@ -153,6 +187,8 @@ public class LaserEscapeHandler
         {
             laserControllerA[i] = '1';
             laserControllerB[i] = '1';
+            activeDevices.Add(i);
+            activeDevices.Add(i + numberOfLasersPerController);
         }
         SendData();
         logger.Log("Turned On all the lasers");
@@ -164,6 +200,7 @@ public class LaserEscapeHandler
             laserControllerA[i] = '0';
             laserControllerB[i] = '0';
         }
+        activeDevices.Clear();
         SendData();
         logger.Log("Turned Off all the lasers");
     }
@@ -212,5 +249,91 @@ public class LaserEscapeHandler
         {
             logger.LogError($"Failed to send command: {ex.Message}");
         }
+    }
+    public void ActivateLevel(int level)
+    {
+        TurnOffAllTheLasers(); // Ensure previous state is cleared
+
+        if (level == 1)
+        {
+            // Turn on first row with alternating lasers
+            for (int col = 0; col < columns; col += 2)
+            {
+                int laserIndex = (col * rows);
+                SetLaserState(laserIndex, true);
+            }
+        }
+        else if (level == 2)
+        {
+            // Turn on all rows except the first three
+            for (int row = 3; row < rows; row++)
+            {
+                TurnOnRow(row);
+            }
+        }
+        else if (level == 3)
+        {
+            // Turn on two rows with a 2-column gap
+            for (int row = 0; row < rows; row++)
+            {
+                if (row % 2 == 0) // Every alternate row
+                {
+                    for (int col = 0; col < columns; col += 3) // 2-column gap
+                    {
+                        int laserIndex = (col * rows) + row;
+                        SetLaserState(laserIndex, true);
+                    }
+                }
+            }
+        }
+        else if (level == 4)
+        {
+            // Turn on all rows except the first 2
+            for (int row = 2; row < rows; row++)
+            {
+                TurnOnRow(row);
+            }
+        }
+        else if (level == 5)
+        {
+            // First 2 lasers in the first 2 columns
+            for (int col = 0; col < 2; col++)
+            {
+                for (int row = 0; row < 2; row++)
+                {
+                    int laserIndex = (col * rows) + row;
+                    SetLaserState(laserIndex, true);
+                }
+            }
+
+            // Last 4 lasers in the next 4 columns, repeating pattern with a 3-column gap
+            for (int col = 2; col < columns; col += 7) // Start from 2nd col, 3-column gap
+            {
+                for (int repeat = 0; repeat < 4; repeat++) // 4 columns in each repeat
+                {
+                    int currentCol = col + repeat;
+                    if (currentCol < columns)
+                    {
+                        for (int row = rows - 4; row < rows; row++) // Last 4 rows
+                        {
+                            int laserIndex = (currentCol * rows) + row;
+                            SetLaserState(laserIndex, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        SendData();
+        logger.Log($"Activated level {level}");
+    }
+
+    public void Dispose()
+    {
+        if (serialPort?.IsOpen == true)
+        {
+            serialPort.Close();
+        }
+        serialPort?.Dispose();
     }
 }
