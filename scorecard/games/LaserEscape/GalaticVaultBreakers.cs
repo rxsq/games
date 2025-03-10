@@ -35,6 +35,7 @@ class GalaticVaultBreakers : BaseSingleDevice
         coolDown.SetFlagTrue(500);
         handler.activeDevices.Clear();
         ActivateLasers();
+        ActivatePush();
     }
     protected override void OnStart()
     {
@@ -44,10 +45,25 @@ class GalaticVaultBreakers : BaseSingleDevice
 
     private void ActivateLasers()
     {
-        handler.SendColorsToUdp(handler.DeviceList);
+        
         laserEscapeHandler.ActivateLevel(Level);
     }
-
+    private void ActivatePush()
+    {
+        for(int i = 0; i<=config.MaxPlayers; i++)
+        {
+            if(iterationCount%2==0)
+            {
+                handler.DeviceList[i] = activeColor;
+                handler.activeDevices.Add(i);
+            } else
+            {
+                handler.DeviceList[i+5] = activeColor;
+                handler.activeDevices.Add(i+5);
+            }
+        }
+        handler.SendColorsToUdp(handler.DeviceList);
+    }
 
     private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
     {
