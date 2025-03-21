@@ -116,18 +116,21 @@ class Program
                 case "StepQuest":
                     currentGame = new StepQuest(gameConfig);
                     break;
-                case "Zenith":
-                    currentGame = new Zenith(gameConfig);
-                    break;
+                //case "Zenith":
+                //    currentGame = new Zenith(gameConfig);
+                //    break;
                 case "BlitzBasket":
                     currentGame = new BlitzBasket(gameConfig);
                     break;
                 case "BasketQuest":
                     currentGame = new BasketQuest(gameConfig);
                     break;
-                case "CTarget":
-                    currentGame = new CTarget(gameConfig);
+                case "GalacticVaultBreakers":
+                    currentGame = new GalacticVaultBreakers(gameConfig);
                     break;
+                //case "CTarget":
+                //    currentGame = new CTarget(gameConfig);
+                //    break;
                 default:
                     MessageBox.Show("Unknown game type.");
                     return;

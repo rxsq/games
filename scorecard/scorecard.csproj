@@ -167,17 +167,16 @@
     <Compile Include="games\Basket\BlitzBasket.cs" />
     <Compile Include="games\Climb\BaseGameClimb.cs" />
     <Compile Include="games\Climb\Climb.cs" />
+    <Compile Include="games\CTarget\CTarget.cs" />
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
     <Compile Include="games\HexaQuest\HexaPatternMatch.cs" />
     <Compile Include="games\HexaQuest\TargetMultiplayer.cs" />
-    <Compile Include="games\LaserEscape\GalaticVaultBreakers.cs" />
+    <Compile Include="games\LaserEscape\GalacticVaultBreakers.cs" />
     <Compile Include="games\LaserEscape\LaserEscapeHandler.cs" />
     <Compile Include="games\Push\Invader.cs" />
     <Compile Include="games\Push\PushGame.cs" />
     <Compile Include="games\Push\WackAMole.cs" />
-    <Compile Include="games\SeeTarget\CTarget.cs" />
-    <Compile Include="games\SeeTarget\Zenith.cs" />
     <Compile Include="games\TileHunt\StepQuest.cs" />
     <Compile Include="lib\BaseMultiplayerGame.cs" />
     <Compile Include="lib\BaseMultiplayerMultiDeviceGame.cs" />
@@ -348,6 +347,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\FloorGameIntro.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\voicelines\GalacticVaultBreakers.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="content\voicelines\GameOver.mp3">
