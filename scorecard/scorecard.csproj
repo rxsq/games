@@ -168,6 +168,8 @@
     <Compile Include="games\Climb\BaseGameClimb.cs" />
     <Compile Include="games\Climb\Climb.cs" />
     <Compile Include="games\CTarget\CTarget.cs" />
+    <Compile Include="games\CTarget\CTargetCompititive.cs" />
+    <Compile Include="games\CTarget\CyberShotArena.cs" />
     <Compile Include="games\HexaQuest\Chaser.cs" />
     <Compile Include="content\snakes.cs" />
     <Compile Include="games\HexaQuest\HexaPatternMatch.cs" />

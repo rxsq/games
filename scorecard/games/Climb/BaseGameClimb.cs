@@ -14,178 +14,86 @@ namespace scorecard
 {
     public class BaseGameClimb : BaseGame
     {
-        protected Dictionary<int, Mapping> deviceMapping;
         protected int rows = 0;
-        protected Dictionary<int, List<int>> surroundingMap;
-        private List<UdpHandlerWeTop> udpHandlersWeTop;
+        private UdpHandlerWeTop climbHandler;
         public BaseGameClimb(GameConfig config) : base(config)
         {
+            if (climbHandler == null)
+                climbHandler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
 
-            deviceMapping = new Dictionary<int, Mapping>();
-            int k = 0;
-            foreach (var handler in udpHandlersWeTop)
+        }
+        protected override void BlinkAllAsync(int nooftimes)
+        {
+
+            for (int i = 0; i < nooftimes; i++)
             {
-                for (int i = 0; i < handler.DeviceList.Count; i++)
+                var tasks = new List<Task>();
+
+                var colors = climbHandler.DeviceList.Select(x => ColorPaletteone.Yellow).ToList();
+                climbHandler.SendColorsToUdp(colors);
+                Thread.Sleep(100);
+                climbHandler.SendColorsToUdp(climbHandler.DeviceList);
+                Thread.Sleep(100);
+            }
+        }
+        protected override void LoopAll(string basecolor, int frequency)
+        {
+            for (int i = 0; i < frequency; i++)
+            {
+
+                var deepCopiedList = climbHandler.DeviceList.Select(x => basecolor).ToList();
+                var loopColor = gameColors[random.Next(gameColors.Count - 1)];
+                for (int j = 0; j < climbHandler.DeviceList.Count; j++)
                 {
-                    deviceMapping.Add(k, new Mapping(handler, false, Resequencer(i)));
-                    k += 1;
+                    deepCopiedList[j] = loopColor;
+                    climbHandler.SendColorsToUdp(deepCopiedList);
+                    Thread.Sleep(100);
+                    deepCopiedList[j] = basecolor;
+                    climbHandler.SendColorsToUdp(deepCopiedList);
+                    Thread.Sleep(100);
                 }
+
+                LogData($"LoopAll: {string.Join(",", deepCopiedList)}");
             }
-            foreach (var handler in udpHandlersWeTop)
-            {
-                rows += handler.Rows;
-            }
-            surroundingMap = SurroundingMap.CreateSurroundingTilesDictionary(config.columns, rows, 3);
-            logger.Log($"surrounding map created {surroundingMap.Count}");
-            logger.Log($"device mapping created {deviceMapping.Count}");
+
         }
-
-
-
-
-        protected void AnimateColor(bool reverse)
+        protected void SendColorToUdp(List<string> colorList)
         {
-
-            foreach (var handler in udpHandlersWeTop)
+            climbHandler.SendColorsToUdp(colorList);
+        }
+        public override void BlinkLights(List<int> lightIndex, int repeation, string Color)
+        {
+            for (int j = 0; j < repeation; j++)
             {
-                for (int iterations = 0; iterations < handler.Rows; iterations++)
+                climbHandler.SendColorsToUdp(climbHandler.DeviceList.Select((x, i) => lightIndex.Contains(i) ? Color : x).ToList());
+                Thread.Sleep(100);
+                climbHandler.SendColorsToUdp(climbHandler.DeviceList);
+            }
+        }
+        protected static byte[] ProcessByteArray(byte[] input)
+        {
+            // Convert the input to a list for easier manipulation
+            List<byte> byteList = input.ToList();
+            List<byte> result = new List<byte>();
+            int ct = byteList.Count;
+            // Iterate through the list to remove patterns
+            for (int i = 2; i < ct; i++)
+            {
+                if (byteList.Count < i)
+                    break;
+                if (byteList[i] == 0x88 || byteList[i] == 0x01 || byteList[i] == 0x02 || byteList[i] == 0x03 || byteList[i] == 0xBA)
                 {
-                    for (int i = 0; i < handler.DeviceList.Count; i++)
-                    {
-                        handler.DeviceList[i] = ColorPaletteone.Red;
-                    }
 
-                    int row = (iterations / handler.Rows) % 2 == 0 ? (iterations % handler.Rows) : handler.Rows - 1 - (iterations % handler.Rows);
-
-                    if (reverse)
-                    {
-                        row = handler.Rows - row - 1;
-                    }
-
-                    for (int i = 0; i < config.columns; i++)
-                    {
-                        handler.DeviceList[row * config.columns + i] = ColorPaletteone.Green;
-                    }
-
-                    handler.SendColorsToUdp(handler.DeviceList);
-                    Thread.Sleep(75);
                 }
-            }
-        }
-
-        protected override async void StartAnimition()
-        {
-            AnimateGrowth(ColorPaletteone.Pink);
-        }
-        protected void AnimateGrowth(string color)
-        {
-
-            //            foreach (var handler inudpHandlersWeTop)
-            {
-                var handler =udpHandlersWeTop[0];
-                int totalLights = handler.DeviceList.Count *udpHandlersWeTop.Count;
-                List<int> unchanged = new List<int>(Enumerable.Range(0, handler.DeviceList.Count *udpHandlersWeTop.Count));
-                for (double i = 0.00; i < totalLights && isGameRunning; i++)
+                else
                 {
-                    int random = new Random().Next(0, unchanged.Count);
-                    int handlerIndex = unchanged[random] / handler.DeviceList.Count;
-                    int position = unchanged[random] % handler.DeviceList.Count;
-                    Console.WriteLine($"index {handlerIndex} position {position} random {random}");
-                   udpHandlersWeTop[handlerIndex].DeviceList[unchanged[random] - handler.DeviceList.Count * handlerIndex] = color;
-                    unchanged.RemoveAt(random);
-
-                   udpHandlersWeTop[handlerIndex].SendColorsToUdp(udpHandlers[handlerIndex].DeviceList);
-                    Thread.Sleep(Convert.ToInt32(38.00 - i / 6));
+                    result.Add(byteList[i]);
                 }
-            }
-        }
-
-        protected int Resequencer(int index)
-        {
-            if ((index / config.columns) % 2 == 0)
-            {
-                return index;
-            }
-
-            int columns = config.columns;
-            int row = index / columns;
-            int column = index % columns;
-            int dest = (row + 1) * columns - 1 - column;
-            return dest;
-        }
-        protected List<string> ResequencedPositions(List<string> colorList, UdpHandler handler)
-        {
-            int columns = config.columns;
-            int rows = handler.Rows;
-            var activeIndicesList = handler.activeDevices.ToList();
-
-            // Find and process devices in odd rows
-            var oddRowIndices = activeIndicesList
-                .Where(index => (index / columns) % 2 != 0)
-                .ToList();
-
-            foreach (var orig in oddRowIndices)
-            {
-                int row = orig / columns;
-                int column = orig % columns;
-                int dest = (row + 1) * columns - 1 - column;
-
-                // Swap colors
-                (colorList[orig], colorList[dest]) = (colorList[dest], colorList[orig]);
-
-                // Update active indices
-                handler.activeDevices[handler.activeDevices.IndexOf(orig)] = dest;
 
             }
 
-            LogData($"repalced following ones {string.Join(",", oddRowIndices)}");
-            return colorList;
+            // Convert the list back to a byte array
+            return result.ToArray();
         }
-        protected void SendColorToUdpAsync()
-        {
-
-            var tasks = new List<Task>();
-            foreach (var handler in udpHandlersWeTop)
-            {
-                tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
-            }
-            Task.WhenAll(tasks);
-
-
-        }
-
-
-        protected List<string> ResequencedPositions1(List<string> colorList, UdpHandlerWeTop handler)
-        {
-
-            Console.WriteLine($" before resequencing  {string.Join(",", handler.activeDevices)}");
-            //hold indices in temp list
-            var actind = handler.activeDevices.Select(x => x).ToList();
-
-
-            for (int i = 0; i < handler.Rows; i++)
-            {
-                if (i % 2 != 0)
-                {
-                    for (int j = 0; j < handler.columns; j++)
-                    {
-                        int orig = i * handler.columns + j;
-                        int dest = (i + 1) * handler.columns - 1 - j;
-
-                        if (actind.Contains(orig))
-                        {
-                            // Swap colors
-                            (colorList[orig], colorList[dest]) = (colorList[dest], colorList[orig]);
-                            handler.activeDevices.Remove(orig);
-                            handler.activeDevices.Add(dest);
-                        }
-                    }
-                }
-            }
-            // activeIndices[hangler] = activeIndicesp;
-            Console.WriteLine(string.Join(",", handler.activeDevices));
-            return colorList;
-        }
-
     }
 }

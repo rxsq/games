@@ -38,7 +38,7 @@ class Program
     
     public static void StartGame(string gameVariant, string numberofplayers, string IsTestMode)
     {
-        Thread.Sleep(10000);
+        //Thread.Sleep(10000);
         statusPublisher.BeginReceive(data => ReceiveCallback(data));
         bool restart = false;
         bool restarting = false;
@@ -127,6 +127,12 @@ class Program
                     break;
                 case "GalacticVaultBreakers":
                     currentGame = new GalacticVaultBreakers(gameConfig);
+                    break;
+                case "CyberShotArena":
+                    currentGame = new CyberShotArena(gameConfig);
+                    break;
+                case "CTargetCompititive":
+                    currentGame = new CTargetCompititive(gameConfig);
                     break;
                 //case "CTarget":
                 //    currentGame = new CTarget(gameConfig);
