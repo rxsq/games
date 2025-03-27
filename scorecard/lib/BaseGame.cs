@@ -396,7 +396,7 @@ public abstract class BaseGame
     }
 
 
-    protected void BlinkAllAsync(int nooftimes)
+    protected virtual void BlinkAllAsync(int nooftimes)
     {
         for (int i = 0; i < nooftimes; i++)
         {
@@ -419,7 +419,7 @@ public abstract class BaseGame
             Thread.Sleep(100);
         }
     }
-    public void BlinkLights(List<int> lightIndex, int repeation, UdpHandler handler, string Color)
+    public virtual void BlinkLights(List<int> lightIndex, int repeation, UdpHandler handler, string Color)
     {
         for (int j = 0; j < repeation; j++)
         {
@@ -428,11 +428,15 @@ public abstract class BaseGame
             handler.SendColorsToUdp(handler.DeviceList);
         }
     }
+    public virtual void BlinkLights(List<int> lightIndex, int repeation, string color)
+    {
+
+    }
     protected void LoopAll()
     {
         LoopAll((config.NoofLedPerdevice == 1 ? ColorPaletteone.NoColor : ColorPalette.noColor3), 1);
     }
-    protected void LoopAll(string basecolor, int frequency)
+    protected virtual void LoopAll(string basecolor, int frequency)
     {
         for (int i = 0; i < frequency; i++)
         {
