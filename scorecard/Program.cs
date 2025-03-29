@@ -1,4 +1,5 @@
 ﻿using scorecard;
+using scorecard.games.Basket;
 using scorecard.lib;
 using scorecard.model;
 using System;
@@ -133,6 +134,9 @@ class Program
                     break;
                 case "CTargetCompititive":
                     currentGame = new CTargetCompititive(gameConfig);
+                    break;
+                case "ColorCountdown":
+                    currentGame = new ColorCountdown(gameConfig);
                     break;
                 //case "CTarget":
                 //    currentGame = new CTarget(gameConfig);

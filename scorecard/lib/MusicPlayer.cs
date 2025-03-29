@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -209,6 +210,7 @@ public class MusicPlayer
         try
         {
             backgroundMusicPlayer?.Dispose();
+            Thread.Sleep(100);
             backgroundAudioFile?.Dispose();
         }
         catch (Exception ex)
