@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\GameUdpSimulator",
+    "\\scorecard\\lib"
   ],
-  "SelectedNode": "\\scorecard.sln",
+  "SelectedNode": "\\GameUdpSimulator\\GameUdpSimulator.sln",
   "PreviewInSolutionExplorer": false
 }
