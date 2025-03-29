@@ -27,11 +27,11 @@ namespace scorecard.games.Basket
         private List<int> lastActiveIndices = new List<int>();
 
         // Audio file paths
-        private string hitSoundPath = "content/Basket/ColorCountdown/hit.mp3";
-        private string missSoundPath = "content/Basket/ColorCountdown/miss.mp3";
-        private string roundEndSoundPath = "content/Basket/ColorCountdown/round_end.mp3";
-        private string backgroundMusicPath = "content/Basket/ColorCountdown/background_music.mp3";
-        private string gameEndSoundPath = "content/Basket/ColorCountdown/game_end.mp3";
+        private string hitSoundPath = "content/Basket/ColorCountdown/hit-sound.mp3";
+        private string missSoundPath = "content/Basket/ColorCountdown/miss-sound.mp3";
+        private string roundEndSoundPath = "content/Basket/ColorCountdown/round-end.mp3";
+        private string backgroundMusicPath = "content/Basket/ColorCountdown/background-music.mp3";
+        private string gameEndSoundPath = "content/Basket/ColorCountdown/game-over.mp3";
 
         public ColorCountdown(GameConfig co) : base(co)
         {

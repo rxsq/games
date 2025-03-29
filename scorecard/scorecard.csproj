@@ -215,6 +215,21 @@
     <Content Include="content\background_music.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\Basket\ColorCountdown\background-music.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\Basket\ColorCountdown\game-over.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\Basket\ColorCountdown\hit-sound.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\Basket\ColorCountdown\miss-sound.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="content\Basket\ColorCountdown\round-end.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\fail.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
