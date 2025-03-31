@@ -11,6 +11,7 @@ public class UDPResponseFactory
     private int cursor = 14;
     private int controlNum = 1;
     private int channelNum = 4;
+    private readonly object bytesLock = new object();
 
     public UDPResponseFactory()
     {
@@ -77,91 +78,90 @@ public class UDPResponseFactory
     }
     private void Write(List<byte[]> responses, int controlIdx, int port, string lightColor, Dictionary<int, List<string>> colorMap)
     {
-        if (cursor > byteLength - 3 * channelNum - 3)
+        lock (bytesLock) // Lock the bytes array
         {
-            ResetCursor();
-        }
-
-        if (bytes == null)
-        {
-            bytes = new byte[byteLength];
-            bytes[0] = 0x75; // 117 in hexadecimal
-            bytes[1] = (byte)new Random().Next(0, 0x7F); // 127 in hexadecimal
-            bytes[2] = (byte)new Random().Next(0, 0x7F);
-            bytes[3] = 0;
-            bytes[4] = 0;
-            bytes[5] = 0x02; // 2 in hexadecimal
-            bytes[6] = 0;
-            bytes[7] = (byte)controlIdx;
-            bytes[8] = 0x88; // -120 is converted to 136
-            bytes[9] = 0x77; // 119 in hexadecimal
-            bytes[10] = 0;
-            bytes[11] = 0;
-            bytes[12] = 0;
-            bytes[13] = 0;
-            responses.Add(bytes);
-        }
-
-        for (int i = 0; i <= colorMap.Count; i++)
-        {
-            string color = "000000";
-            if (colorMap.ContainsKey(i) && colorMap[i].Count > port)
+            if (cursor > byteLength - 3 * channelNum - 3)
             {
-               
+                ResetCursor();
+            }
+
+            if (bytes == null)
+            {
+                bytes = new byte[byteLength];
+                bytes[0] = 0x75; // 117 in hexadecimal
+                bytes[1] = (byte)new Random().Next(0, 0x7F); // 127 in hexadecimal
+                bytes[2] = (byte)new Random().Next(0, 0x7F);
+                bytes[3] = 0;
+                bytes[4] = 0;
+                bytes[5] = 0x02; // 2 in hexadecimal
+                bytes[6] = 0;
+                bytes[7] = (byte)controlIdx;
+                bytes[8] = 0x88; // -120 is converted to 136
+                bytes[9] = 0x77; // 119 in hexadecimal
+                bytes[10] = 0;
+                bytes[11] = 0;
+                bytes[12] = 0;
+                bytes[13] = 0;
+                responses.Add(bytes);
+            }
+
+            for (int i = 0; i <= colorMap.Count; i++)
+            {
+                string color = "000000";
+                if (colorMap.ContainsKey(i) && colorMap[i].Count > port)
+                {
                     color = colorMap[i][port];
+                }
+
+                string r = color.Substring(0, 2).Replace("FE", "FF").Replace("fe", "FF");
+                string g = color.Substring(2, 2).Replace("FE", "FF").Replace("fe", "FF");
+                string b = color.Substring(4, 2).Replace("FE", "FF").Replace("fe", "FF");
+
+                bytes[cursor] = byte.Parse(g, System.Globalization.NumberStyles.HexNumber);
+                bytes[cursor + channelNum] = byte.Parse(r, System.Globalization.NumberStyles.HexNumber);
+                bytes[cursor + channelNum * 2] = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
+                cursor++;
             }
-            
 
-           
-            string r = color.Substring(0, 2).Replace("FE", "FF").Replace("fe","FF");
-            string g = color.Substring(2, 2).Replace("FE", "FF").Replace("fe", "FF"); ;
-            string b = color.Substring(4, 2).Replace("FE", "FF").Replace("fe", "FF"); ;
-
-            bytes[cursor] = byte.Parse(g, System.Globalization.NumberStyles.HexNumber);
-            bytes[cursor + channelNum] = byte.Parse(r, System.Globalization.NumberStyles.HexNumber);
-            bytes[cursor + channelNum * 2] = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
-            cursor++;
-
+            cursor += channelNum * 2;
         }
-
-        cursor += channelNum * 2;
     }
-    public byte[][] CreateMockResponse(int pointNum, List<string> displayColors, int sn)
-    {
-        //RGB[] rgbColors = new RGB[]
-        //{
-        //    RGB.RED,    // Red
-        //    RGB.GREEN,  // Green
-        //    RGB.BLUE    // Blue
-        //};
-     //   string displayColor = "r";
-        List<byte[]> responseBytes = new List<byte[]>();
-        AddStartRate(responseBytes, sn);
+    //public byte[][] CreateMockResponse(int pointNum, List<string> displayColors, int sn)
+    //{
+    //    //RGB[] rgbColors = new RGB[]
+    //    //{
+    //    //    RGB.RED,    // Red
+    //    //    RGB.GREEN,  // Green
+    //    //    RGB.BLUE    // Blue
+    //    //};
+    // //   string displayColor = "r";
+    //    List<byte[]> responseBytes = new List<byte[]>();
+    //    AddStartRate(responseBytes, sn);
 
-        for (int c = 0; c < controlNum; c++)
-        {
-            AddFFF0( responseBytes, c, channelNum, pointNum);
+    //    for (int c = 0; c < controlNum; c++)
+    //    {
+    //        AddFFF0( responseBytes, c, channelNum, pointNum);
 
-            for (int p = 0; p < pointNum; p++)
-            {
-                RGB[] rgbs = new RGB[channelNum];
+    //        for (int p = 0; p < pointNum; p++)
+    //        {
+    //            RGB[] rgbs = new RGB[channelNum];
 
-                //for (int i = 0; i < channelNum; i++)
-                //{
-                //    rgbs[i] = displayColors[p];
-                //}
+    //            //for (int i = 0; i < channelNum; i++)
+    //            //{
+    //            //    rgbs[i] = displayColors[p];
+    //            //}
 
-                Write(responseBytes, c, p, rgbs, displayColors[p]);
-            }
+    //            Write(responseBytes, c, p, rgbs, displayColors[p]);
+    //        }
 
-            FillBytes(pointNum, channelNum, responseBytes);
-        }
+    //        FillBytes(pointNum, channelNum, responseBytes);
+    //    }
 
-        AddEndRate(responseBytes, sn);
+    //    AddEndRate(responseBytes, sn);
        
 
-        return responseBytes.ToArray();
-    }
+    //    return responseBytes.ToArray();
+    //}
    
     // Method to fill the bytes array with proper data
     private void FillBytes(int maxPortNum, int controlChannel, List<byte[]> list)
@@ -206,60 +206,60 @@ public class UDPResponseFactory
         ResetCursor();
     }
 
-    private void Write(List<byte[]> responses, int controlIdx, int port, RGB[] rgbs,string  lightColor)
-    {
-        if (cursor > byteLength - 3 * rgbs.Length - 3)
-        {
-            ResetCursor();
-        }
+    //private void Write(List<byte[]> responses, int controlIdx, int port, RGB[] rgbs,string  lightColor)
+    //{
+    //    if (cursor > byteLength - 3 * rgbs.Length - 3)
+    //    {
+    //        ResetCursor();
+    //    }
 
-        if (bytes == null)
-        {
-            bytes = new byte[byteLength];
-            bytes[0] = 0x75; // 117 in hexadecimal
-            bytes[1] = (byte)new Random().Next(0, 0x7F); // 127 in hexadecimal
-            bytes[2] = (byte)new Random().Next(0, 0x7F);
-            bytes[3] = 0;
-            bytes[4] = 0;
-            bytes[5] = 0x02; // 2 in hexadecimal
-            bytes[6] = 0;
-            bytes[7] = (byte)controlIdx;
-            bytes[8] = 0x88; // -120 is converted to 136
-            bytes[9] = 0x77; // 119 in hexadecimal
-            bytes[10] = 0;
-            bytes[11] = 0;
-            bytes[12] = 0;
-            bytes[13] = 0;
-            responses.Add(bytes);
-        }
+    //    if (bytes == null)
+    //    {
+    //        bytes = new byte[byteLength];
+    //        bytes[0] = 0x75; // 117 in hexadecimal
+    //        bytes[1] = (byte)new Random().Next(0, 0x7F); // 127 in hexadecimal
+    //        bytes[2] = (byte)new Random().Next(0, 0x7F);
+    //        bytes[3] = 0;
+    //        bytes[4] = 0;
+    //        bytes[5] = 0x02; // 2 in hexadecimal
+    //        bytes[6] = 0;
+    //        bytes[7] = (byte)controlIdx;
+    //        bytes[8] = 0x88; // -120 is converted to 136
+    //        bytes[9] = 0x77; // 119 in hexadecimal
+    //        bytes[10] = 0;
+    //        bytes[11] = 0;
+    //        bytes[12] = 0;
+    //        bytes[13] = 0;
+    //        responses.Add(bytes);
+    //    }
 
-        for (int i = 0; i < rgbs.Length; i++)
-        {
-            if(i>0)
-            {
-                string rr = "FF";
-                string gg = "00";
-                string bb = "00";
+    //    for (int i = 0; i < rgbs.Length; i++)
+    //    {
+    //        if(i>0)
+    //        {
+    //            string rr = "FF";
+    //            string gg = "00";
+    //            string bb = "00";
 
-                bytes[cursor] = byte.Parse(gg, System.Globalization.NumberStyles.HexNumber);
-                bytes[cursor + rgbs.Length] = byte.Parse(rr, System.Globalization.NumberStyles.HexNumber);
-                bytes[cursor + rgbs.Length * 2] = byte.Parse(bb, System.Globalization.NumberStyles.HexNumber);
-                cursor++;
-                continue;
-            }
-            string r = lightColor.Substring(0, 2).Replace("FE","FF");
-            string g = lightColor.Substring(2, 2).Replace("FE", "FF");
-            string b = lightColor.Substring(4, 2).Replace("FE", "FF");
+    //            bytes[cursor] = byte.Parse(gg, System.Globalization.NumberStyles.HexNumber);
+    //            bytes[cursor + rgbs.Length] = byte.Parse(rr, System.Globalization.NumberStyles.HexNumber);
+    //            bytes[cursor + rgbs.Length * 2] = byte.Parse(bb, System.Globalization.NumberStyles.HexNumber);
+    //            cursor++;
+    //            continue;
+    //        }
+    //        string r = lightColor.Substring(0, 2).Replace("FE","FF");
+    //        string g = lightColor.Substring(2, 2).Replace("FE", "FF");
+    //        string b = lightColor.Substring(4, 2).Replace("FE", "FF");
 
-            bytes[cursor] = byte.Parse(r, System.Globalization.NumberStyles.HexNumber); 
-            bytes[cursor + rgbs.Length] = byte.Parse(g, System.Globalization.NumberStyles.HexNumber);
-            bytes[cursor + rgbs.Length * 2] = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
-            cursor++;
+    //        bytes[cursor] = byte.Parse(r, System.Globalization.NumberStyles.HexNumber); 
+    //        bytes[cursor + rgbs.Length] = byte.Parse(g, System.Globalization.NumberStyles.HexNumber);
+    //        bytes[cursor + rgbs.Length * 2] = byte.Parse(b, System.Globalization.NumberStyles.HexNumber);
+    //        cursor++;
         
-        }
+    //    }
 
-        cursor += rgbs.Length * 2;
-    }
+    //    cursor += rgbs.Length * 2;
+    //}
 
     private void ResetCursor()
     {

@@ -17,12 +17,12 @@ public class Climb : BaseGameClimb
     private List<int> obstacles = new List<int>();
     private List<int> targets = new List<int>();
     private string obstacleColor;
+    private CoolDown coolDown = new CoolDown();
     Task targetTask;
-    UdpHandlerWeTop handler;
     public Climb(GameConfig config) : base(config)
     {
-        if (handler == null)
-            handler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
+        if (climbHandler == null)
+            climbHandler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
 
         this.config.MaxPlayers = 1;
         targetColor = config.NoofLedPerdevice != 3 ? ColorPaletteone.White : ColorPalette.White;
@@ -31,18 +31,20 @@ public class Climb : BaseGameClimb
     }
     protected override void OnIteration()
     {
-        handler.activeDevices.Clear();
+        coolDown.SetFlagTrue(200);
+        climbHandler.activeDevices.Clear();
         obstacles.Clear();
-        for (int i = 0; i < handler.DeviceList.Count(); i++)
+        targets.Clear();
+        for (int i = 0; i < climbHandler.DeviceList.Count(); i++)
         {
-            handler.DeviceList[i] = config.NoofLedPerdevice == 3 ? ColorPalette.Green : ColorPaletteone.Green;
+            climbHandler.DeviceList[i] = config.NoofLedPerdevice == 3 ? ColorPalette.Green : ColorPaletteone.Green;
         }
         ActivateLevel();
         ActivateRandomLights();
     }
     protected override void OnStart()
     {
-        handler.BeginReceive(data => ReceiveCallback(data));
+        climbHandler.BeginReceive(data => ReceiveCallback(data));
         if (targetTask == null || targetTask.IsCompleted)
         {
             if (targetTask != null && !targetTask.IsCompleted)
@@ -68,41 +70,58 @@ public class Climb : BaseGameClimb
     private void ActivateLevel()
     {
         int totalColumns = config.columns;
-        int totalRows = handler.DeviceList.Count / totalColumns;
+        int totalRows = climbHandler.DeviceList.Count / totalColumns;
 
         switch (Level)
         {
             case 1:
                 // Level 1: Simple horizontal line obstacle at mid-height
-                for (int col = 0; col < totalColumns; col++)
+                for (int row = 0; row < totalRows; row++)
                 {
-                    int index = GetIndexFromRowCol(totalRows / 2, col, totalRows);
-                    obstacles.Add(index);
-                    handler.activeDevices.Add(index);
+                    int index = GetIndexFromRowCol(row, totalColumns / 2, totalRows);
+                    if (index >= 0 && index < climbHandler.DeviceList.Count)
+                    {
+                        obstacles.Add(index);
+                        climbHandler.activeDevices.Add(index);
+                    }
                 }
                 break;
 
             case 2:
                 // Level 2: Two horizontal barriers at different heights
-                for (int col = 0; col < totalColumns; col++)
+                for (int row = 0; row < totalRows; row++)
                 {
-                    int index = GetIndexFromRowCol(totalRows / 3, col, totalRows);
-                    obstacles.Add(index);
-                    handler.activeDevices.Add(index);
-                    index = GetIndexFromRowCol(2 * totalRows / 3, col, totalRows);
-                    obstacles.Add(index);
-                    handler.activeDevices.Add(index);
+                    int index = GetIndexFromRowCol(row, totalColumns / 3, totalRows);
+                    if (index >= 0 && index < climbHandler.DeviceList.Count)
+                    {
+                        obstacles.Add(index);
+                        climbHandler.activeDevices.Add(index);
+                    }
+                    index = GetIndexFromRowCol(row, 2 * totalColumns / 3, totalRows);
+                    if (index >= 0 && index < climbHandler.DeviceList.Count)
+                    {
+                        obstacles.Add(index);
+                        climbHandler.activeDevices.Add(index);
+                    }
                 }
                 break;
 
             case 3:
                 // Level 3: Zigzag pattern
-                for (int row = 0; row < totalRows; row += 2)
+                for (int row = 0; row < totalRows; row++)
                 {
-                    int col = row % 2 == 0 ? 0 : totalColumns - 1; // Alternate column positions
-                    int index = GetIndexFromRowCol(row, col, totalRows);
-                    obstacles.Add(index);
-                    handler.activeDevices.Add(index);
+                    for (int col = 0; col < totalColumns; col++)
+                    {
+                        if ((row + col) % 2 == 0) // Create a zigzag pattern
+                        {
+                            int index = GetIndexFromRowCol(row, col, totalRows);
+                            if (index >= 0 && index < climbHandler.DeviceList.Count)
+                            {
+                                obstacles.Add(index);
+                                climbHandler.activeDevices.Add(index);
+                            }
+                        }
+                    }
                 }
                 break;
 
@@ -111,11 +130,17 @@ public class Climb : BaseGameClimb
                 for (int i = 0; i < Math.Min(totalRows, totalColumns); i++)
                 {
                     int index = GetIndexFromRowCol(i, i, totalRows);
-                    obstacles.Add(index); // Top-left to bottom-right diagonal
-                    handler.activeDevices.Add(index);
-                    index = GetIndexFromRowCol(i, totalColumns - 1 - i, totalRows);
-                    obstacles.Add(GetIndexFromRowCol(i, totalColumns - 1 - i, totalRows)); // Top-right to bottom-left diagonal
-                    handler.activeDevices.Add(index);
+                    if (index >= 0 && index < climbHandler.DeviceList.Count)
+                    {
+                        obstacles.Add(index); // Top-left to bottom-right diagonal
+                        climbHandler.activeDevices.Add(index);
+                    }
+                    index = GetIndexFromRowCol(totalRows - 1 - i, i, totalRows);
+                    if (index >= 0 && index < climbHandler.DeviceList.Count)
+                    {
+                        obstacles.Add(index); // Bottom-left to top-right diagonal
+                        climbHandler.activeDevices.Add(index);
+                    }
                 }
                 break;
 
@@ -126,19 +151,31 @@ public class Climb : BaseGameClimb
                     for (int row = 0; row < totalRows; row++)
                     {
                         if (random.NextDouble() > 0.2) // Leave some gaps
-                            obstacles.Add(GetIndexFromRowCol(row, col, totalRows));
+                        {
+                            int index = GetIndexFromRowCol(row, col, totalRows);
+                            if (index >= 0 && index < climbHandler.DeviceList.Count)
+                            {
+                                obstacles.Add(index);
+                            }
+                        }
                     }
                 }
                 break;
 
             default:
                 // Higher levels: Dense obstacles with small gaps
-                for (int row = totalRows / 4; row < 3 * totalRows / 4; row++)
+                for (int col = totalColumns / 4; col < 3 * totalColumns / 4; col++)
                 {
-                    for (int col = 0; col < totalColumns; col++)
+                    for (int row = 0; row < totalRows; row++)
                     {
                         if (random.NextDouble() > 0.3) // Make it more difficult
-                            obstacles.Add(GetIndexFromRowCol(row, col, totalRows));
+                        {
+                            int index = GetIndexFromRowCol(row, col, totalRows);
+                            if (index >= 0 && index < climbHandler.DeviceList.Count)
+                            {
+                                obstacles.Add(index);
+                            }
+                        }
                     }
                 }
                 break;
@@ -147,10 +184,13 @@ public class Climb : BaseGameClimb
         // Apply obstacle colors
         foreach (var index in obstacles)
         {
-            handler.DeviceList[index] = obstacleColor;
+            if (index >= 0 && index < climbHandler.DeviceList.Count)
+            {
+                climbHandler.DeviceList[index] = obstacleColor;
+            }
         }
 
-        handler.SendColorsToUdp(handler.DeviceList);
+        climbHandler.SendColorsToUdp(climbHandler.DeviceList);
     }
 
     // Utility function to convert row and column to index considering snake-wise numbering
@@ -161,28 +201,28 @@ public class Climb : BaseGameClimb
 
     private void ActivateRandomLights()
     {
-        targetCount = this.config.MaxPlayers * 2 * level;
+        targetCount = this.config.MaxPlayers * 2 ;
         
 
         while (targets.Count < targetCount)
         {
-            int index = random.Next(handler.DeviceList.Count());
-            if (!handler.activeDevices.Contains(index))
+            int index = random.Next(climbHandler.DeviceList.Count());
+            if (!climbHandler.activeDevices.Contains(index))
             {
-                handler.DeviceList[index] = targetColor; // Green indicates the target light
-                handler.activeDevices.Add(index);
+                climbHandler.DeviceList[index] = targetColor; // Green indicates the target light
+                climbHandler.activeDevices.Add(index);
                 targets.Add(index);
             }
         }
 
-        handler.SendColorsToUdp(handler.DeviceList);
+        climbHandler.SendColorsToUdp(climbHandler.DeviceList);
 
     }
 
     private void ReceiveCallback(byte[] receivedBytes)
 
     {
-        if (!isGameRunning)
+        if (!isGameRunning && coolDown.Flag)
             return;
         string receivedData = Encoding.UTF8.GetString(receivedBytes);
         //LogData($"Received data from {this.handler.RemoteEndPoint}: {BitConverter.ToString(receivedBytes)}");
@@ -192,31 +232,33 @@ public class Climb : BaseGameClimb
                                 .Where(x => x.Byte == 0xCC) // Filter where byte equals 0xCC
                                 .Select(x => x.Index-1) // Select only the indices
                                 .ToList();
-        if (positions.Count > 0)
-            LogData("a");
-        LogData($"Received data from {String.Join(",", positions)}: active positions:{string.Join(",", handler.activeDevices)}");
-        var touchedActiveDevices = handler.activeDevices.FindAll(x => positions.Contains(x));
+        
+        LogData($"Received data from {String.Join(",", positions)}: active positions:{string.Join(",", climbHandler.activeDevices)}");
+        var touchedActiveDevices = climbHandler.activeDevices.FindAll(x => positions.Contains(x));
         
         if (touchedActiveDevices.Count > 0)
         {
-            if (!isGameRunning)
+            if (!isGameRunning && coolDown.Flag)
                 return;
-            foreach (var device in touchedActiveDevices) { handler.DeviceList[device] = ColorPaletteone.NoColor; }
-            handler.SendColorsToUdp(handler.DeviceList);
-            handler.activeDevices.RemoveAll(x => touchedActiveDevices.Contains(x));
+            foreach (var device in touchedActiveDevices) { climbHandler.DeviceList[device] = ColorPaletteone.NoColor; }
+            climbHandler.SendColorsToUdp(climbHandler.DeviceList);
+            climbHandler.activeDevices.RemoveAll(x => touchedActiveDevices.Contains(x));
             foreach (var device in touchedActiveDevices)
             {
-                if (targets.Contains(device))
+                if (targets.Contains(device) && !coolDown.Flag)
                 {
                     targets.Remove(device);
                     updateScore(Score + Level + LifeLine);
-                    LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", handler.activeDevices)}");
+                    LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", climbHandler.activeDevices)}");
+                    
                 }
-                else if(obstacles.Contains(device))
+                else if(obstacles.Contains(device) && !coolDown.Flag)
                 {
+                    coolDown.SetFlagTrue(500);
                     obstacles.Remove(device);
                     updateScore(Score - level);
-                    LogData($"Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", handler.activeDevices)}");
+                    LogData($"Iteration Lost:Score updated: {Score}  position {String.Join(",", positions)} active positions:{string.Join(",", climbHandler.activeDevices)}");
+                    
                     IterationLost(null);
                 }
             }
@@ -233,7 +275,7 @@ public class Climb : BaseGameClimb
         else
         {
 
-            handler.BeginReceive(data => ReceiveCallback(data));
+            climbHandler.BeginReceive(data => ReceiveCallback(data));
         }
 
     }

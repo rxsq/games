@@ -149,7 +149,7 @@ public abstract class BaseGame
 
 
     }
-    protected void RunGameInSequence()
+    protected virtual void RunGameInSequence()
     {
         Status = GameStatus.Running;
         udpHandlers.ForEach(x => x.StartReceive());
