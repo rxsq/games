@@ -196,6 +196,7 @@ namespace scorecard.games.Basket
             musicPlayer.Dispose();
             gameEnded = true;
             LogData("Game has ended. No further iterations will be run.");
+            Status = GameStatus.Completed;
         }
 
         /// <summary>

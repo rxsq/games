@@ -364,6 +364,9 @@
     <Content Include="content\voicelines\BlitzBasket.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\voicelines\ColorCountdown.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="content\voicelines\CyberShotArena.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
