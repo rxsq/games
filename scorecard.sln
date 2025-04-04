@@ -25,7 +25,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "serial[port", "serial[port\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LockTester", "LockTester\LockTester.csproj", "{8BF21E32-CACD-4933-8141-1D1FE29F3E9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegistrationMobile", "RegistrationMobile\RegistrationMobile.csproj", "{F1E3168F-C494-48A7-AA1C-269DDAED2FD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RegistrationMobile", "RegistrationMobile\RegistrationMobile.csproj", "{F1E3168F-C494-48A7-AA1C-269DDAED2FD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Simulator", "Simulator\Simulator.csproj", "{BCE2D9D1-7A98-43FA-BA57-BCAB36AFF888}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,10 @@ Global
 		{F1E3168F-C494-48A7-AA1C-269DDAED2FD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1E3168F-C494-48A7-AA1C-269DDAED2FD3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F1E3168F-C494-48A7-AA1C-269DDAED2FD3}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{BCE2D9D1-7A98-43FA-BA57-BCAB36AFF888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCE2D9D1-7A98-43FA-BA57-BCAB36AFF888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCE2D9D1-7A98-43FA-BA57-BCAB36AFF888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCE2D9D1-7A98-43FA-BA57-BCAB36AFF888}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
