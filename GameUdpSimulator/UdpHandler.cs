@@ -18,6 +18,7 @@ public class UdpHandler
     private System.Threading.Timer relayTimer;
     private System.Threading.Timer receiveTimer;
     private string relayMessage;
+    private Boolean isReceiving = true;
 
     public event Action<byte[]> DataReceived;
 
@@ -46,20 +47,38 @@ public class UdpHandler
         try
         {
            
-            udpClientReceiver.BeginReceive(ar =>
+            if(isReceiving)
             {
-              
-                    byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref remoteEndPoint);
-                    receiveCallback(receivedBytes);
-                
+                udpClientReceiver.BeginReceive(ar =>
+                {
 
-            }, null);
+                    if(isReceiving)
+                    {
+                        byte[] receivedBytes = udpClientReceiver.EndReceive(ar, ref remoteEndPoint);
+                        receiveCallback(receivedBytes);
+                    }
+
+
+                }, null);
+            }
         }
         catch (Exception ex)
         {
             logger.Log($"Error receiving data: {ex.Message}");
 
         }
+    }
+    public void StopReceiving()
+    {
+        isReceiving = false;
+        udpClientReceiver.Close();
+        relayTimer.Dispose();
+    }
+    public void StartReceiving()
+    {
+        isReceiving = true;
+        //udpClientReceiver = new UdpClient(remoteEndPoint);
+        relayTimer = new System.Threading.Timer(TargetTimeElapsed, null, 1000, 200);
     }
 
     public async Task SendAsync(string message)
