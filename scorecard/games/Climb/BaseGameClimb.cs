@@ -7,15 +7,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml.Schema;
-
 namespace scorecard
 {
     public class BaseGameClimb : BaseGame
     {
         protected int rows = 0;
-        private UdpHandlerWeTop climbHandler;
+        protected UdpHandlerWeTop climbHandler;
         public BaseGameClimb(GameConfig config) : base(config)
         {
             if (climbHandler == null)
@@ -94,6 +92,51 @@ namespace scorecard
 
             // Convert the list back to a byte array
             return result.ToArray();
+        }
+        protected override void RunGameInSequence()
+        {
+            Status = GameStatus.Running;
+            climbHandler.StartReceive();
+            remainingTime = IterationTime; // Initialize remaining time
+            OnIteration();
+            isGameRunning = true;
+
+            if (config.timerPointLoss)
+                iterationTimer = new Timer(UpdateRemainingTime, null, 1000, 1000); // Update every second
+            OnStart();
+        }
+        override protected void IterationLost(object state)
+        {
+            isGameRunning = false;
+            climbHandler.StartReceive();
+            if (!config.timerPointLoss && state == null)
+            {
+                IterationWon();
+                return;
+            }
+
+            LogData($"iteration failed within {IterationTime} second");
+            if (config.timerPointLoss)
+                iterationTimer.Dispose();
+            LifeLine = LifeLine - 1;
+            Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
+            if (lifeLine <= 0)
+            {
+                //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
+                musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
+                LogData("GAME OVER");
+                Status = GameStatus.Completed;
+
+
+            }
+            else
+            {
+
+                musicPlayer.Announcement($"content/voicelines/lives_left_{LifeLine}.mp3");
+                //iterations = iterations + 1;
+                RunGameInSequence();
+            }
+
         }
     }
 }

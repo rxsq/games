@@ -212,19 +212,19 @@ class Program
     }
     private static GameConfig FetchGameConfig(string gameType)
     {
-        if (gameType == "Climb")
-        {
-            GameConfig gameConfig1 = new GameConfig();
-            gameConfig1.IpAddress = "169.254.255.255";
-            gameConfig1.LocalPort = 4626;
-            gameConfig1.SocketBReceiverPort = 7800;
-            gameConfig1.NoOfControllers = 1;
-            gameConfig1.NoofLedPerdevice = 1;
-            gameConfig1.columns = 5;
-            gameConfig1.MaxPlayers = 3;
-            gameConfig1.GameType = "team";
-            return gameConfig1;
-        }
+        //if (gameType == "Climb")
+        //{
+        //    GameConfig gameConfig1 = new GameConfig();
+        //    gameConfig1.IpAddress = "169.254.255.255";
+        //    gameConfig1.LocalPort = 4626;
+        //    gameConfig1.SocketBReceiverPort = 7800;
+        //    gameConfig1.NoOfControllers = 1;
+        //    gameConfig1.NoofLedPerdevice = 1;
+        //    gameConfig1.columns = 5;
+        //    gameConfig1.MaxPlayers = 3;
+        //    gameConfig1.GameType = "team";
+        //    return gameConfig1;
+        //}
         using (var httpClient = new HttpClient())
         {
             try
