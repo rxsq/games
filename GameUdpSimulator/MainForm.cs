@@ -72,8 +72,22 @@ public partial class MainForm : Form
 
     private void btnGenerateButtons_Click(object sender, EventArgs e)
     {
+        // Clear UI
         panelContainer.Controls.Clear();
 
+        // Dispose of existing UDP handlers
+        if (udpHandlers != null)
+        {
+            foreach (var handler in udpHandlers)
+            {
+                handler.StopReceiving(); // Or handler.Close(); depending on your implementation
+            }
+            udpHandlers.Clear();
+        }
+
+        handlerDevices?.Clear();
+
+        // Input validation
         if (int.TryParse(txtNumberOfButtons.Text, out numberOfButtons) && numberOfButtons > 0 &&
             int.TryParse(txtButtonsPerRow.Text, out buttonsPerRow) && buttonsPerRow > 0 &&
             int.TryParse(txtControllersCount.Text, out controllersCount) && controllersCount > 0)
@@ -102,6 +116,7 @@ public partial class MainForm : Form
             MessageBox.Show("Please enter valid numbers for buttons, buttons per row, and controllers count.");
         }
     }
+
 
     private void GeneratePanels(int count)
     {
