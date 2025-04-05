@@ -18,9 +18,6 @@ namespace Simulator.Forms
         private List<UdpHandler> udpHandlers;
         private List<Panel> panels;
         private Dictionary<UdpHandler, Panel> handlerDevices;
-        private int selectedPlayer = -1;
-
-        private string[] playerMap = new string[] { "0A", "0B", "0C", "0D", "0E" };
 
         public DefaultForm()
         {
@@ -204,8 +201,7 @@ namespace Simulator.Forms
             {
                 if (i == buttonNumber)
                 {
-                    if (selectedPlayer >= 0) sb.Append(playerMap[selectedPlayer]);
-                    else sb.Append("0A");
+                    sb.Append("0A");
                 }
                 else
                 {

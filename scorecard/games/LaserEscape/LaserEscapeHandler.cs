@@ -25,7 +25,8 @@ public class LaserEscapeHandler
     private bool startReceive = false;
 
     //exception lasers and sensors
-    private List<int> exceptionLasers = new List<int> { 0, 12, 21, 39, 45, 28, 34, 23, 41, 13, 61, 72, 84, 57, 63, 81, 58, 82, 59, 77, 56, 74, 92, 18, 20, 62, 80, 26, 32 };
+    //private List<int> exceptionLasers = new List<int> { 0, 12, 21, 39, 45, 28, 34, 23, 41, 13, 61, 72, 84, 57, 63, 81, 58, 82, 59, 77, 56, 74, 92, 18, 20, 62, 80, 26, 32 };
+    private List<int> exceptionLasers = new List<int> { };
     //private List<int> alwaysZero = new List<int> { 12, 17, 19, 26, 28, 30, 33, 38, 40, 43, 45, 57, 68,69,62,64,69,73,78,80,88 };
     //private List<int> alwaysOne = new List<int> { 5, 25, 66, 96 };
     //private List<int> notTurningOff = new List<int> { 42, 61, 68, 75 };
