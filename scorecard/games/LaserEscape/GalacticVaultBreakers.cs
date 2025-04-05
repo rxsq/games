@@ -20,7 +20,7 @@ class GalacticVaultBreakers : BaseSingleDevice
     public GalacticVaultBreakers(GameConfig co) : base(co)
     {
         coolDown = new CoolDown();
-        laserEscapeHandler = new LaserEscapeHandler(ConfigurationSettings.AppSettings["LaserControllerComPort"], 96, 2, 6, ReceiveCallBackLaser);
+        laserEscapeHandler = new LaserEscapeHandler(co.isTestMode?"COM112":ConfigurationSettings.AppSettings["LaserControllerComPort"], 96, 2, 6, ReceiveCallBackLaser);
     }
     protected override void Initialize()
     {
