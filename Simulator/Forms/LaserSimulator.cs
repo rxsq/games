@@ -106,16 +106,18 @@ namespace Simulator.Forms
                     Size = new Size(panelWidth, panelHeight + 5),
                     Location = new Point((panelContainer.Width - panelWidth) / 2, i * (panelHeight + 10)),
                     BorderStyle = BorderStyle.FixedSingle,
-                    Padding = new Padding(5),
+                    Padding = new Padding(10),
+                    Margin = new Padding(10),
                 };
 
                 panelContainer.Controls.Add(panel);
                 panels.Add(panel);
             }
 
-            // Center the panelContainer
-            panelContainer.Left = (this.ClientSize.Width - panelContainer.Width) / 2;
-            panelContainer.Top = (this.ClientSize.Height - panelContainer.Height) / 2;
+            // Adjust the padding of the FlowLayoutPanel to center the child panels
+            int totalPanelWidth = count * (panelWidth + 20); // 20 is the sum of left and right margins
+            int paddingLeft = (panelContainer.ClientSize.Width - totalPanelWidth) / 2;
+            panelContainer.Padding = new Padding(paddingLeft, 0, 0, 0);
         }
 
         private void ReceiveCallback(SerialPort serialPort)
