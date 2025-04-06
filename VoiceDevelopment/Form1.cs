@@ -5,9 +5,32 @@ namespace VoiceDevelopment
         public Form1()
         {
             InitializeComponent();
-            //ElevenLabsTTS.TextToSpeechAsync("Welcome to Tile Siege. To play, players must hunt all the red targets before stepping into the green safezone. The levels only get harder over time. Good luck! 3... 2... 1... GO!", @"C:\\code\gameintro.mp3");
+        }
 
-            ElevenLabsTTS.CreateVoiceFiles(null);
+        private async void buttonSubmit_Click(object sender, EventArgs e)
+        {
+            string filename = textBoxFilename.Text;
+            string voiceline = textBoxVoiceline.Text;
+
+            if (!string.IsNullOrEmpty(filename) && !string.IsNullOrEmpty(voiceline))
+            {
+                progressBar.Visible = true;
+                buttonSubmit.Enabled = false;
+
+                await ElevenLabsTTS.CreateVoiceFiles(filename, voiceline);
+
+                progressBar.Visible = false;
+                buttonSubmit.Enabled = true;
+
+                textBoxFilename.Clear();
+                textBoxVoiceline.Clear();
+
+                MessageBox.Show("Voice file created successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("Please enter both filename and voiceline.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
