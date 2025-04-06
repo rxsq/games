@@ -22,6 +22,7 @@ namespace Simulator.Forms
         private int controllersCount;
         private SerialPort serialPort;
         private List<Panel> panels;
+        int totalPanelWidth;
         private Dictionary<Panel, SerialPort> handlerDevices;
 
         public LaserSimulator()
@@ -115,7 +116,7 @@ namespace Simulator.Forms
             }
 
             // Adjust the padding of the FlowLayoutPanel to center the child panels
-            int totalPanelWidth = count * (panelWidth + 20); // 20 is the sum of left and right margins
+            totalPanelWidth = count * (panelWidth + 20); // 20 is the sum of left and right margins
             int paddingLeft = (panelContainer.ClientSize.Width - totalPanelWidth) / 2;
             panelContainer.Padding = new Padding(paddingLeft, 0, 0, 0);
         }

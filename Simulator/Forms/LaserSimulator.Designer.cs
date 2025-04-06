@@ -19,7 +19,8 @@
 
             // panelContainer
             this.panelContainer.Name = "panelContainer";
-            this.panelContainer.Size = new Size(1920, 900); // Adjusted size
+            //this.panelContainer.Size = new Size(1920, 900); // Adjusted size
+            this.panelContainer.Dock = DockStyle.Fill; // Fill the form
             this.panelContainer.FlowDirection = FlowDirection.LeftToRight;
             this.panelContainer.WrapContents = false;
             this.panelContainer.TabIndex = 1;
@@ -40,9 +41,8 @@
 
         private void DefaultForm_Resize(object sender, EventArgs e)
         {
-            // Center the panelContainer within the DefaultForm
-            panelContainer.Left = (this.ClientSize.Width - panelContainer.Width) / 2;
-            panelContainer.Top = (this.ClientSize.Height - panelContainer.Height) / 2;
+            int paddingLeft = (panelContainer.ClientSize.Width - totalPanelWidth) / 2;
+            panelContainer.Padding = new Padding(paddingLeft, 0, 0, 0);
         }
         private Button btnConfig;
         private FlowLayoutPanel panelContainer;

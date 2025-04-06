@@ -5,7 +5,7 @@
         private void InitializeComponent()
         {
             this.btnConfig = new Button();
-            this.panelContainer = new Panel();
+            this.panelContainer = new FlowLayoutPanel();
             this.SuspendLayout();
 
             // btnConfig
@@ -19,7 +19,10 @@
 
             // panelContainer
             this.panelContainer.Name = "panelContainer";
-            this.panelContainer.Size = new Size(1920, 900); // Adjusted size
+            //this.panelContainer.Size = new Size(1920, 900); // Adjusted size
+            this.panelContainer.Dock = DockStyle.Fill; // Fill the form
+            this.panelContainer.FlowDirection = FlowDirection.TopDown;
+            this.panelContainer.WrapContents = false;
             this.panelContainer.TabIndex = 1;
             this.panelContainer.AutoScroll = true;
             this.panelContainer.Padding = new Padding(0, 0, 0, 50); // Added padding at the bottom
@@ -38,13 +41,13 @@
 
         private void DefaultForm_Resize(object sender, EventArgs e)
         {
-            // Center the panelContainer within the DefaultForm
-            panelContainer.Left = (this.ClientSize.Width - panelContainer.Width) / 2;
-            panelContainer.Top = (this.ClientSize.Height - panelContainer.Height) / 2;
+            // Center the panelContainer
+            int paddingLeft = (panelContainer.ClientSize.Width - panelWidth+20) / 2;
+            panelContainer.Padding = new Padding(paddingLeft, 0, 0, 0);
         }
 
         private Button btnConfig;
-        private Panel panelContainer;
+        private FlowLayoutPanel panelContainer;
         private Panel playersContainer;
         private Label lblNumberOfButtons;
         private TextBox txtNumberOfButtons;

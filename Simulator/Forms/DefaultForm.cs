@@ -18,6 +18,7 @@ namespace Simulator.Forms
         private List<UdpHandler> udpHandlers;
         private List<Panel> panels;
         private Dictionary<UdpHandler, Panel> handlerDevices;
+        int panelWidth = 0;
 
         public DefaultForm()
         {
@@ -89,7 +90,7 @@ namespace Simulator.Forms
             int maxRows = (int)Math.Ceiling((double)(buttonsPerPanel + (remainingButtons > 0 ? 1 : 0)) / buttonsPerRow);
 
             // Calculate panel width and height based on the number of buttons per row and the maximum number of rows
-            int panelWidth = (buttonsPerRow * (buttonSize + margin)) - margin + 50;
+            panelWidth = (buttonsPerRow * (buttonSize + margin)) - margin + 50;
             int panelHeight = (maxRows * (buttonSize + margin)) - margin + 50;
 
             for (int i = 0; i < count; i++)
@@ -107,8 +108,8 @@ namespace Simulator.Forms
             }
 
             // Center the panelContainer
-            panelContainer.Left = (this.ClientSize.Width - panelContainer.Width) / 2;
-            panelContainer.Top = (this.ClientSize.Height - panelContainer.Height) / 2;
+            int paddingLeft = (panelContainer.ClientSize.Width - panelWidth + 20) / 2;
+            panelContainer.Padding = new Padding(paddingLeft, 0, 0, 0);
         }
 
         private void StartReceivingMessages()
