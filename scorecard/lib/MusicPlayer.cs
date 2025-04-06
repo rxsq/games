@@ -17,6 +17,7 @@ public class MusicPlayer
     private bool isPlayingEffect;
     string backgroundFilePath;
     private readonly object effectsLock = new object();
+    public bool playBackgroundMusic = true;
     //Logger logger;
 
     public MusicPlayer(string backgroundFile)
@@ -245,6 +246,38 @@ public class MusicPlayer
         {
             effectsPlayer = null;
         }
+    }
+
+    public async Task PlaySoundAsync(string filePath, WaveOutEvent player, bool playbckMusic)
+    {
+        string absolutePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filePath);
+        logger.Log($"Announcement: {filePath}");
+
+        StopAllMusic();
+
+        if (File.Exists(absolutePath))
+        {
+            //LogData($"Playing sound: {absolutePath}");
+            using (var audioFile = new AudioFileReader(absolutePath))
+            {
+                player.Init(audioFile);
+                player.Play();
+
+                while (player.PlaybackState == PlaybackState.Playing)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        }
+        else
+        {
+            logger.Log($"ERROR: Sound file not found at {absolutePath}");
+        }
+        if (playbckMusic && playBackgroundMusic)
+        {
+            PlayBackgroundMusic(backgroundFilePath, true);
+        }
+        logger.Log("Announcement finished");
     }
 
     // bool ifAnnouncementPlaying = false;

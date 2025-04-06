@@ -490,6 +490,9 @@
     <Content Include="content\you failed.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="content\LaserEscape\Return.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="logs\TextFile1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

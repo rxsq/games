@@ -12,7 +12,7 @@ public class LaserEscapeHandler
     private SerialPort serialPort;
     //private StringBuilder buffer = new StringBuilder();  // Store incomplete messages
     private List<byte> dataBuffer = new List<byte>(); // Global buffer to hold received data
-    private int numberOfLasers;
+    public int numberOfLasers;
     private int numberOfControllers;
     public int rows;
     public int columns;
