@@ -27,27 +27,28 @@ namespace scorecard.games.Basket
         private List<int> lastActiveIndices = new List<int>();
 
         // Audio file paths
+        private WaveOutEvent audioPlayer = new WaveOutEvent();
         private string hitSoundPath = "content/Basket/ColorCountdown/hit-sound.mp3";
         private string missSoundPath = "content/Basket/ColorCountdown/miss-sound.mp3";
         private string roundEndSoundPath = "content/Basket/ColorCountdown/round-end.mp3";
         private string backgroundMusicPath = "content/Basket/ColorCountdown/background-music.mp3";
         private string gameEndSoundPath = "content/Basket/ColorCountdown/game-over.mp3";
 
-        public ColorCountdown(GameConfig co) : base(co)
+        public ColorCountdown(GameConfig co) : base(co, "content/Basket/ColorCountdown/background-music.mp3")
         {
 
-            Task.Run(() =>
-            {
-                Thread.Sleep(100); 
-                musicPlayer.StopBackgroundMusic();
-            });
+            //Task.Run(() =>
+            //{
+            //    Thread.Sleep(100); 
+            //    musicPlayer.StopBackgroundMusic();
+            //});
 
             targetColor = config.NoofLedPerdevice == 3 ? ColorPalette.Green : ColorPaletteone.Green;
             backgroundColor = config.NoofLedPerdevice == 3 ? ColorPalette.Red : ColorPaletteone.Red;
             coolDown = new CoolDown();
             currentHitStatus = new Dictionary<int, bool>();
 
-            OverrideBackgroundMusic();
+            //OverrideBackgroundMusic();
         }
 
         protected override void Initialize()
@@ -130,8 +131,8 @@ namespace scorecard.games.Basket
 
             ClearAllHoops();
 
-            Task.Run(() => PlaySoundAsync(roundEndSoundPath));
-
+            //Task.Run(() => PlaySoundAsync(roundEndSoundPath));
+            musicPlayer.PlayEffect(roundEndSoundPath);
             BlinkAllHoops(2);
 
             if (iterations >= config.Maxiterations) 
@@ -153,10 +154,10 @@ namespace scorecard.games.Basket
                     EndGame();
                     return;
                 }
-                else
-                {
-                    OverrideBackgroundMusic();
-                }
+                //else
+                //{
+                //    OverrideBackgroundMusic();
+                //}
             }
             else
             {
@@ -168,7 +169,7 @@ namespace scorecard.games.Basket
             // This will reapply custom background music on new iteration
             if (!gameEnded)
             {
-                OverrideBackgroundMusic();
+                //OverrideBackgroundMusic();
                 RunGameInSequence();
             }
         }
