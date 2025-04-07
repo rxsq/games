@@ -5,6 +5,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace SerialMonitorWPF
@@ -14,7 +15,8 @@ namespace SerialMonitorWPF
         private SerialPort serialPort = new SerialPort();
         private int numberOfLasersPerController = 48;
         public List<int> activeDevices = new List<int>();
-        private const byte HEADER_BYTE = 0xCB;
+        private const byte HEADER_BYTE_A = 0xCA;
+        private const byte HEADER_BYTE_B = 0xCB;
         private const byte FOOTER_BYTE = 0x0A;
 
         public MainWindow()
@@ -44,7 +46,7 @@ namespace SerialMonitorWPF
                 try
                 {
                     serialPort.PortName = comboBoxPorts.SelectedItem.ToString();
-                    serialPort.BaudRate = 115200; 
+                    serialPort.BaudRate = 115200;
                     serialPort.Open();
                     buttonConnect.Content = "Disconnect";
                     statusText.Text = $"Connected to {serialPort.PortName}";
@@ -70,15 +72,15 @@ namespace SerialMonitorWPF
                 System.Threading.Thread.Sleep(50);
 
                 int bytesToRead = serialPort.BytesToRead;
-                if (bytesToRead < 6) // We need at least 6 bytes for 48 sensors
+                if (bytesToRead < 8) // We need at least 8 bytes for a valid message
                 {
                     return; // Not enough data yet
                 }
 
-                byte[] receivedPacket = new byte[bytesToRead];
-                int bytesRead = serialPort.Read(receivedPacket, 0, bytesToRead);
+                byte[] receivedPacket = new byte[8];
+                int bytesRead = serialPort.Read(receivedPacket, 0, 8);
 
-                if (bytesRead >= 6) // Only process if we have enough data
+                if (bytesRead == 8) // Only process if we have exactly 8 bytes
                 {
                     ProcessDataPacket(receivedPacket);
                 }
@@ -87,26 +89,20 @@ namespace SerialMonitorWPF
             {
                 Dispatcher.Invoke(() =>
                 {
-                    textBoxOutput.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR: {ex.Message}{Environment.NewLine}");
+                    textBoxOutputA.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR: {ex.Message}{Environment.NewLine}");
+                    textBoxOutputB.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR: {ex.Message}{Environment.NewLine}");
                 });
             }
         }
 
-
-        private List<int> GetCutLasers(byte[] message)
+        private List<int> GetCutLasers(byte[] message, byte headerByte)
         {
             List<int> cutLasers = new List<int>();
 
             try
             {
                 // Validate message format
-                if (message == null || message.Length != 8)  // Must be exactly 8 bytes
-                {
-                    throw new ArgumentException($"Invalid message length: {message?.Length ?? 0}, expected 8 bytes");
-                }
-
-                // Verify header and footer
-                if (message[0] != HEADER_BYTE || message[7] != FOOTER_BYTE)
+                if (message[0] != headerByte || message[7] != FOOTER_BYTE)
                 {
                     throw new ArgumentException($"Invalid message format. Header: 0x{message[0]:X2}, Footer: 0x{message[7]:X2}");
                 }
@@ -143,17 +139,34 @@ namespace SerialMonitorWPF
         {
             try
             {
-                List<int> cutLasers = GetCutLasers(data);
+                List<int> cutLasers = new List<int>();
+                TextBox targetTextBox;
+
+                // Identify the controller based on the header byte
+                if (data[0] == HEADER_BYTE_A)
+                {
+                    cutLasers = GetCutLasers(data, HEADER_BYTE_A);
+                    targetTextBox = textBoxOutputA;
+                }
+                else if (data[0] == HEADER_BYTE_B)
+                {
+                    cutLasers = GetCutLasers(data, HEADER_BYTE_B);
+                    targetTextBox = textBoxOutputB;
+                }
+                else
+                {
+                    throw new ArgumentException($"Unknown header byte: 0x{data[0]:X2}");
+                }
 
                 Dispatcher.Invoke(() =>
                 {
                     try
                     {
-                        int rows = 8, cols = 6;
+                        int rows = 6, cols = 8;
                         if (!int.TryParse(textBoxRows.Text, out rows))
-                            rows = 8;
+                            rows = 6;
                         if (!int.TryParse(textBoxCols.Text, out cols))
-                            cols = 6;
+                            cols = 8;
 
                         StringBuilder displayBuilder = new StringBuilder();
                         displayBuilder.AppendLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Sensor Grid Data:");
@@ -215,20 +228,20 @@ namespace SerialMonitorWPF
                         displayBuilder.AppendLine($"Total Sensors: {cutLasers.Count}");
                         displayBuilder.AppendLine($"Active Sensors: {cutLasers.Count(x => x > 0)}");
                         displayBuilder.AppendLine($"Grid Size: {rows}x{cols}");
-                        displayBuilder.AppendLine($"Message Format: Header[0xCB] + 6 Data Bytes + Footer[0x0A]");
+                        displayBuilder.AppendLine($"Message Format: Header[0x{data[0]:X2}] + 6 Data Bytes + Footer[0x0A]");
                         displayBuilder.AppendLine();
 
-                        if (textBoxOutput.Text.Length > 5000)
+                        if (targetTextBox.Text.Length > 5000)
                         {
-                            textBoxOutput.Text = textBoxOutput.Text.Substring(textBoxOutput.Text.Length - 4000);
+                            targetTextBox.Text = targetTextBox.Text.Substring(targetTextBox.Text.Length - 4000);
                         }
-                        textBoxOutput.AppendText(displayBuilder.ToString());
-                        textBoxOutput.ScrollToEnd();
+                        targetTextBox.AppendText(displayBuilder.ToString());
+                        targetTextBox.ScrollToEnd();
                     }
                     catch (Exception ex)
                     {
-                        textBoxOutput.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR in UI update: {ex.Message}{Environment.NewLine}");
-                        textBoxOutput.ScrollToEnd();
+                        targetTextBox.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR in UI update: {ex.Message}{Environment.NewLine}");
+                        targetTextBox.ScrollToEnd();
                     }
                 });
             }
@@ -236,8 +249,8 @@ namespace SerialMonitorWPF
             {
                 Dispatcher.Invoke(() =>
                 {
-                    textBoxOutput.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR in ProcessDataPacket: {ex.Message}{Environment.NewLine}");
-                    textBoxOutput.ScrollToEnd();
+                    textBoxOutputA.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR in ProcessDataPacket: {ex.Message}{Environment.NewLine}");
+                    textBoxOutputB.AppendText($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ERROR in ProcessDataPacket: {ex.Message}{Environment.NewLine}");
                 });
             }
         }
