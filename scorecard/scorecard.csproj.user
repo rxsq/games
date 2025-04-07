@@ -4,6 +4,6 @@
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>"ColorCountdown" 3 1</StartArguments>
+    <StartArguments>"BasketQuest" 3 1</StartArguments>
   </PropertyGroup>
 </Project>

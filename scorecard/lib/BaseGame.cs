@@ -338,6 +338,7 @@ public abstract class BaseGame
                 LogData(Status);
                 //Text to speech : Congratulations! 🎉You’ve won the game! You’ve completed all the levels. You’re a champion! 🏆
                 musicPlayer.Announcement("content/GameWinAlllevelPassed.mp3");
+                Status = GameStatus.Completed;
                 EndGame();
                 return;
             }

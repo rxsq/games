@@ -151,6 +151,7 @@ namespace scorecard
                     Status = $"Reached to last Level {config.MaxLevel} ending game. Player {highest + 1} wins";
                     LogData(Status);
                     musicPlayer.Announcement($"content/voicelines/winPlayer{highest + 1}.mp3");
+                    Status = GameStatus.Completed;
                     EndGame();
                     return;
                 }
