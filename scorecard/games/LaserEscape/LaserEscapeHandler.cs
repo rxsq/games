@@ -70,13 +70,11 @@ public class LaserEscapeHandler
         for (int i = 0; i < 48; i++)
         {
             laserControllerA[i] = '1';
-            Thread.Sleep(100);
             SendData();
         }
         for (int i = 0; i < 48; i++)
         {
             laserControllerB[i] = '1';
-            Thread.Sleep(100);
             SendData();
         }
         
@@ -496,99 +494,6 @@ public class LaserEscapeHandler
         {
             logger.LogError($"Failed to send command: {ex.Message}");
         }
-    }
-    public int ActivateLevel(int level)
-    {
-        TurnOffAllTheLasers(); // Ensure previous state is cleared
-        int activatedLasers = 0;
-
-        if (level == 1)
-        {
-            // Turn on first row with alternating lasers
-            for (int col = 0; col < columns; col += 2)
-            {
-                int laserIndex = (col * rows);
-                SetLaserState(laserIndex, true);
-
-                laserIndex = (col * rows + 1);
-                SetLaserState(laserIndex, true);
-
-                activatedLasers+=2;
-            }
-        }
-        else if (level == 2)
-        {
-            // Turn on all rows except the first three
-            for (int row = 3; row < rows; row++)
-            {
-                TurnOnRow(row);
-                activatedLasers += columns;
-            }
-        }
-        else if (level == 3)
-        {
-            // Turn on first row with alternating lasers
-            for (int col = 0; col < columns; col += 3)
-            {
-                int laserIndex = (col * rows);
-                SetLaserState(laserIndex, true);
-
-                laserIndex = (col * rows + 1);
-                SetLaserState(laserIndex, true);
-
-                laserIndex = (col * rows + 2);
-                SetLaserState(laserIndex, true);
-
-                activatedLasers += 3;
-            }
-        }
-        else if (level == 4)
-        {
-            // Turn on all rows except the first 2
-            for (int row = 2; row < rows; row++)
-            {
-                TurnOnRow(row);
-                activatedLasers += columns;
-            }
-        }
-        else if (level == 5)
-        {
-            // First 2 lasers in the first 2 columns
-            for (int col = 0; col < 2; col++)
-            {
-                for (int row = 0; row < 2; row++)
-                {
-                    int laserIndex = (col * rows) + row;
-                    SetLaserState(laserIndex, true);
-                    activatedLasers++;
-                }
-            }
-
-            // Last 4 lasers in the next 4 columns, repeating pattern with a 3-column gap
-            for (int col = 4; col < columns; col += 7) // Start from 2nd col, 3-column gap
-            {
-                for (int repeat = 0; repeat < 4; repeat++) // 4 columns in each repeat
-                {
-                    int currentCol = col + repeat;
-                    if (currentCol < columns)
-                    {
-                        for (int row = rows - 4; row < rows; row++) // Last 4 rows
-                        {
-                            int laserIndex = (currentCol * rows) + row;
-                            SetLaserState(laserIndex, true);
-                            activatedLasers++;
-                        }
-                    }
-                }
-            }
-        }
-
-        SendData();
-        Thread.Sleep(1000);
-        StartReceive();
-        logger.Log($"Activated level {level}, total lasers activated: {activatedLasers}");
-
-        return activatedLasers;
     }
 
     private byte[] BuildLaserCommand(char[] laserArray, byte controllerId)

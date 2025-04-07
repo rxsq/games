@@ -21,6 +21,12 @@ namespace scorecard
            
             handler = udpHandlers[0];
            
-        }       
+        }
+        public BaseSingleDevice(GameConfig config, string backgroundMusic) : base(config, backgroundMusic)
+        {
+
+            handler = udpHandlers[0];
+
+        }
     }   
 }

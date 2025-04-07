@@ -22,7 +22,9 @@ class GalacticVaultBreakers : BaseSingleDevice
     List<int> activeLasers = new List<int>();
     Boolean barricadeActive = false;
     private WaveOutEvent audioPlayer = new WaveOutEvent();
-    public GalacticVaultBreakers(GameConfig co) : base(co)
+    private bool gameOver = false;
+    private bool barricadeTripped = false;
+    public GalacticVaultBreakers(GameConfig co) : base(co, "content/LaserEscape/GalacticVaultBreakers/background.mp3")
     {
         coolDown = new CoolDown();
         laserEscapeHandler = new LaserEscapeHandler(co.isTestMode?"COM112":ConfigurationSettings.AppSettings["LaserControllerComPort"], 96, 2, 6, ReceiveCallBackLaser);
@@ -99,6 +101,7 @@ class GalacticVaultBreakers : BaseSingleDevice
             {
                 if (handler.activeDevices.Contains(device))
                 {
+                    musicPlayer.PlayEffect("content/LaserEscape/GalacticVaultBreakers/unlock.mp3");
                     handler.activeDevices.Remove(device);
                     handler.DeviceList[device] = touchedColor;
                     handler.SendColorsToUdp(handler.DeviceList);
@@ -108,7 +111,7 @@ class GalacticVaultBreakers : BaseSingleDevice
             {
                 updateScore(iterationScore * lifeLine);
                 iterationCount++;
-                laserEscapeHandler.StopReceive();
+                //laserEscapeHandler.StopReceive();
                 IterationWon();
             }
             else
@@ -133,10 +136,11 @@ class GalacticVaultBreakers : BaseSingleDevice
                     logger.Log("Laser cut: " + lase);
                     iterationScore--;
                     iterationLives--;
+                    musicPlayer.PlayEffect("content/LaserEscape/GalacticVaultBreakers/warning.mp3");
                     
                     if (iterationLives <= 0)
                     {
-                        iterationCount++;
+                        //iterationCount++;
                         //laserEscapeHandler.StopReceive();
                         IterationLost(null);
                     }
@@ -146,8 +150,8 @@ class GalacticVaultBreakers : BaseSingleDevice
         }
         else if(barricadeActive)
         {
-            LifeLine = 0;
-            IterationLost(null);
+            barricadeTripped = true;
+            GameOver();
         }
     }
     public int ActivateLevel(int level)
@@ -237,7 +241,6 @@ class GalacticVaultBreakers : BaseSingleDevice
         }
 
         laserEscapeHandler.SendData();
-        Thread.Sleep(1000);
         laserEscapeHandler.StartReceive();
         logger.Log($"Activated level {level}, total lasers activated: {activatedLasers}");
 
@@ -262,46 +265,115 @@ class GalacticVaultBreakers : BaseSingleDevice
             }
         }
         laserEscapeHandler.SendData();
+        barricadeActive = true;
     }
     protected override async void IterationLost(object state)
     {
-        barricadeActive = true;
-        // Stop all music and processes except laser sensor processing for the barricade
-        musicPlayer.StopAllMusic();
-        ActivateBarricadeLasers();
+        if(!barricadeActive)
+        {
+            // Stop all music and processes except laser sensor processing for the barricade
+            isGameRunning = false;
+            ActivateBarricadeLasers();
+            await musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/tripped.mp3", new WaveOutEvent(), true);
+            musicPlayer.StopAllMusic();
 
+
+            
+            udpHandlers.ForEach(x => x.StopReceive());
+            if (!config.timerPointLoss && state == null)
+            {
+                IterationWon();
+                return;
+            }
+
+            LogData($"iteration failed within {IterationTime} second");
+            if (config.timerPointLoss)
+                iterationTimer.Dispose();
+            LifeLine = LifeLine - 1;
+            Status = GameStatus.Running;
+            if (lifeLine <= 0)
+            {
+                GameOver();
+            }
+            else
+            {
+                // iterations = iterations + 1;
+                if(!gameOver)
+                {
+                    await musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/Return.mp3", audioPlayer, true);
+                    if(!gameOver) RunGameInSequence();
+                }
+
+            }
+        }
+    }
+    private void GameOver()
+    {
+        gameOver = true;
+        audioPlayer.Stop();
+        musicPlayer.playBackgroundMusic = false;
+        musicPlayer.StopAllMusic();
+        // TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
+        musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/fail_0.mp3", audioPlayer, true);
+        if (barricadeTripped) musicPlayer.Announcement("content/LaserEscape/GalacticVaultBreakers/barricade.mp3", false); 
+        else musicPlayer.Announcement("content/LaserEscape/GalacticVaultBreakers/fail.mp3", false);
+        LogData("GAME OVER");
+        EndGame();
+        Status = GameStatus.Completed;
+    }
+    protected override void IterationWon()
+    {
         isGameRunning = false;
         udpHandlers.ForEach(x => x.StopReceive());
-        if (!config.timerPointLoss && state == null)
-        {
-            IterationWon();
-            return;
-        }
-
-        LogData($"iteration failed within {IterationTime} second");
+        LogData($"All targets hit iterations:{iterations} passed");
         if (config.timerPointLoss)
             iterationTimer.Dispose();
-        LifeLine = LifeLine - 1;
-        Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
-        if (lifeLine <= 0)
+        iterations = iterations + 1;
+        if (iterations >= config.Maxiterations)
         {
-            audioPlayer.Stop();
-            musicPlayer.playBackgroundMusic = false;
-            // TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
-            musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
-            LogData("GAME OVER");
-            EndGame();
-            Status = GameStatus.Completed;
-        }
-        else
-        {
-            // iterations = iterations + 1;
-            await musicPlayer.PlaySoundAsync("content/LaserEscape/Return.mp3", audioPlayer, true);
-            if(Status == GameStatus.Running)
+
+            Status = $"{GameStatus.Running}: Moved to Next Level {Level}";
+            LogData($"Game Win level: {Level}");
+            Level = Level + 1;
+            iterations = 1;
+            if (Level >= config.MaxLevel)
             {
-                RunGameInSequence();
+                Status = $"Reached to last Level {config.MaxLevel} ending game";
+                LogData(Status);
+                audioPlayer.Stop();
+                musicPlayer.playBackgroundMusic = false;
+                laserEscapeHandler.TurnOffAllTheLasers();
+                //Text to speech : Congratulations! 🎉You’ve won the game! You’ve completed all the levels. You’re a champion! 🏆
+                musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/win_0.mp3", audioPlayer, true);
+                musicPlayer.Announcement("content/LaserEscape/GalacticVaultBreakers/win.mp3");
+                Status = GameStatus.Completed;
+                EndGame();
+                return;
             }
-            
+            else
+            {
+                //   musicPlayer.StopBackgroundMusic();
+                //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
+                LogData(Status);
+                TurnOnAllLasers();
+                musicPlayer.Announcement($"content/LaserEscape/GalacticVaultBreakers/Level{Level-1}.mp3");
+                //                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
+            }
+            //labelScore.Text = $"Score: {score}";
+
         }
+        else { BlinkAllAsync(1); }
+        if(!barricadeTripped)
+        {
+            Status = GameStatus.Running;
+            RunGameInSequence();
+            LogData($"moving to next iterations: {iterations} Iteration time: {IterationTime} ");
+        }
+    }
+
+    protected void TurnOnAllLasers()
+    {
+        barricadeActive = true;
+        laserEscapeHandler.TurnOnAllTheLasers();
     }
 }

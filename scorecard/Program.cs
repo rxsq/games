@@ -19,7 +19,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 class Program
 {
     private static RestartButton restartButton = new RestartButton(ConfigurationSettings.AppSettings["RestartButtonComPort"]);
-    private static MusicPlayer musicPlayer = new MusicPlayer("content/background_music.wav");
+    private static MusicPlayer musicPlayer = new MusicPlayer("");
     private static GameStatusPublisher statusPublisher = GameStatusPublisher.Instance;
 
     static void Main(string[] p)

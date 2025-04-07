@@ -10,12 +10,13 @@ public class MusicPlayer
 {
     private WaveOutEvent backgroundMusicPlayer;
     private WaveOutEvent effectsPlayer;
+    private WaveOutEvent announcementPlayer = new WaveOutEvent();
     private AudioFileReader backgroundAudioFile;
     private bool repeatBackgroundMusic;
     private ConcurrentQueue<string> effectQueue;
     private Task effectPlayingTask;
     private bool isPlayingEffect;
-    string backgroundFilePath;
+    public string backgroundFilePath;
     private readonly object effectsLock = new object();
     public bool playBackgroundMusic = true;
     //Logger logger;
@@ -254,6 +255,7 @@ public class MusicPlayer
         logger.Log($"Announcement: {filePath}");
 
         StopAllMusic();
+        player.Stop();
 
         if (File.Exists(absolutePath))
         {
@@ -291,8 +293,7 @@ public class MusicPlayer
         }
 
         StopAllMusic();
-
-        using (var announcementPlayer = new WaveOutEvent())
+        announcementPlayer.Stop();
         using (var announcementFile = new AudioFileReader(filePath))
         {
             announcementPlayer.Init(announcementFile);
@@ -309,7 +310,7 @@ public class MusicPlayer
         // Resume background music if it was playing
         // if (backgroundAudioFile != null)
         // {
-        if(playbckMusic )
+        if(playbckMusic && playBackgroundMusic)
         {
             PlayBackgroundMusic(backgroundFilePath, true);
         }
