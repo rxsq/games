@@ -201,7 +201,7 @@ public class Climb : BaseGameClimb
 
     private void ActivateRandomLights()
     {
-        targetCount = this.config.MaxPlayers * 2 ;
+        targetCount = this.config.MaxPlayers * 5 ;
         
 
         while (targets.Count < targetCount)
@@ -233,7 +233,7 @@ public class Climb : BaseGameClimb
                                 .Select(x => x.Index-1) // Select only the indices
                                 .ToList();
         
-        LogData($"Received data from {String.Join(",", positions)}: active positions:{string.Join(",", climbHandler.activeDevices)}");
+        //LogData($"Received data from {String.Join(",", positions)}=");
         var touchedActiveDevices = climbHandler.activeDevices.FindAll(x => positions.Contains(x));
         
         if (touchedActiveDevices.Count > 0)

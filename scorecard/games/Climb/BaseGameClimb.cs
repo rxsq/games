@@ -122,12 +122,11 @@ namespace scorecard
             Status = $"{GameStatus.Running} : Lost Lifeline {LifeLine}";
             if (lifeLine <= 0)
             {
+                climbHandler.StopReceive();
                 //TexttoSpeech: Oh no! You’ve lost all your lives. Game over! 🎮
                 musicPlayer.Announcement("content/voicelines/GameOver.mp3", false);
                 LogData("GAME OVER");
                 Status = GameStatus.Completed;
-
-
             }
             else
             {
