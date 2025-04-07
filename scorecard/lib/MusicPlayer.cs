@@ -10,13 +10,15 @@ public class MusicPlayer
 {
     private WaveOutEvent backgroundMusicPlayer;
     private WaveOutEvent effectsPlayer;
+    private WaveOutEvent announcementPlayer = new WaveOutEvent();
     private AudioFileReader backgroundAudioFile;
     private bool repeatBackgroundMusic;
     private ConcurrentQueue<string> effectQueue;
     private Task effectPlayingTask;
     private bool isPlayingEffect;
-    string backgroundFilePath;
+    public string backgroundFilePath;
     private readonly object effectsLock = new object();
+    public bool playBackgroundMusic = true;
     //Logger logger;
 
     public MusicPlayer(string backgroundFile)
@@ -247,6 +249,39 @@ public class MusicPlayer
         }
     }
 
+    public async Task PlaySoundAsync(string filePath, WaveOutEvent player, bool playbckMusic)
+    {
+        string absolutePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filePath);
+        logger.Log($"Announcement: {filePath}");
+
+        StopAllMusic();
+        player.Stop();
+
+        if (File.Exists(absolutePath))
+        {
+            //LogData($"Playing sound: {absolutePath}");
+            using (var audioFile = new AudioFileReader(absolutePath))
+            {
+                player.Init(audioFile);
+                player.Play();
+
+                while (player.PlaybackState == PlaybackState.Playing)
+                {
+                    await Task.Delay(100);
+                }
+            }
+        }
+        else
+        {
+            logger.Log($"ERROR: Sound file not found at {absolutePath}");
+        }
+        if (playbckMusic && playBackgroundMusic)
+        {
+            PlayBackgroundMusic(backgroundFilePath, true);
+        }
+        logger.Log("Announcement finished");
+    }
+
     // bool ifAnnouncementPlaying = false;
     public void Announcement(string filePath, bool playbckMusic)
     {
@@ -258,8 +293,7 @@ public class MusicPlayer
         }
 
         StopAllMusic();
-
-        using (var announcementPlayer = new WaveOutEvent())
+        announcementPlayer.Stop();
         using (var announcementFile = new AudioFileReader(filePath))
         {
             announcementPlayer.Init(announcementFile);
@@ -276,7 +310,7 @@ public class MusicPlayer
         // Resume background music if it was playing
         // if (backgroundAudioFile != null)
         // {
-        if(playbckMusic )
+        if(playbckMusic && playBackgroundMusic)
         {
             PlayBackgroundMusic(backgroundFilePath, true);
         }

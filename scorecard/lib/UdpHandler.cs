@@ -29,7 +29,10 @@ public  class UdpHandler: BaseUdpHandler
             byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
             try
             {
-                udpSender.Send(data, data.Length, destinationIpAddress, destinationPort);
+                if (udpSender != null)
+                {
+                    udpSender.Send(data, data.Length, destinationIpAddress, destinationPort);
+                }
             }
             catch (Exception ex)
             {
@@ -42,7 +45,10 @@ public  class UdpHandler: BaseUdpHandler
             byte[] data = HexStringToByteArray($"ffff{string.Join("", colorList.ToArray())}");
             try
             {
-                await udpSender.SendAsync(data, data.Length, destinationIpAddress, destinationPort);
+                if (udpSender != null)
+                {
+                    await udpSender.SendAsync(data, data.Length, destinationIpAddress, destinationPort);
+                }
                 //Console.WriteLine($"Sent data to {destinationIpAddress}:{destinationPort} - {BitConverter.ToString(data)}");
             }
             catch (Exception ex)

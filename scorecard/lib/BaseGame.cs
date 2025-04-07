@@ -139,6 +139,28 @@ public abstract class BaseGame
         Task.Run(() => StartAnimition());
         musicPlayer.Announcement(config.isTestMode ? "content/hit2.wav" : config.introAudio);
     }
+    public BaseGame(GameConfig co, string backgroundMusic)
+    {
+        logger.Log("basegame constructor");
+        this.config = co;
+        statusPublisher.PublishStatus(score, config.MaxLifeLines, Level, GameStatus.Running, remainingTime, config.GameName, iterations);
+        gameColors = getColorList();
+        musicPlayer = new MusicPlayer(backgroundMusic);
+        Thread.Sleep(3000); // Countdown 
+        udpHandlers = new List<UdpHandler>();
+        if (config.IpAddress != "169.254.255.255" && config.GameName != "Climb")
+        {
+
+            udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1"));
+            for (int i = 1; i < config.NoOfControllers; i++)
+            {
+                udpHandlers.Add(new UdpHandler(config.IpAddress, config.LocalPort + i, config.RemotePort + i, config.SocketBReceiverPort + i, config.NoofLedPerdevice, config.columns, $"handler-{i + 1}"));
+            }
+        }
+        Console.WriteLine("Game starting in 3... 2... 1...");
+        Task.Run(() => StartAnimition());
+        musicPlayer.Announcement(config.isTestMode ? "content/hit2.wav" : config.introAudio);
+    }
 
 
     public void StartGame()
