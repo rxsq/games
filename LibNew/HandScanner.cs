@@ -22,7 +22,7 @@ namespace Lib
             try
             {
                 serialPort.Open();
-                SetBackgroundBlinkingBlue();
+                SetBackgroundGreen();
                 process(mode, serverurl);
                 SendAck();
             }
@@ -110,8 +110,7 @@ namespace Lib
             }
             else
             {
-                if (numberOfPlayers == 0) SetBackgroundBlinkingBlue();
-                else SetBackgroundGreen(); // Set background to green for all other statuses
+                SetBackgroundGreen(); // Set background to green for all other statuses
                 SetNumberOfPlayersInGreen(numberOfPlayers);
             }
         }
