@@ -1,0 +1,75 @@
+﻿<Window x:Class="SerialMonitorWPF.DebugWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Debug Mode" Height="500" Width="600">
+    <Grid Margin="10">
+        <TabControl>
+            <TabItem Header="Raw Data">
+                <StackPanel Margin="10" Orientation="Vertical">
+                    <Label Content="Enter Raw Hex Data:"/>
+                    <TextBox x:Name="txtRawData" Width="400" Height="25" Margin="0,5,0,5"/>
+                    <Button Content="Simulate Raw Data"
+                            Click="btnSimulateRaw_Click"
+                            Width="150"
+                            Margin="0,0,0,10"
+                            HorizontalAlignment="Center"/>
+
+                    <Separator Margin="0,10,0,10" />
+
+                    <Label Content="Continuous Simulation:" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,5" HorizontalAlignment="Center">
+                        <Button Content="All On Continuous"
+                                Click="btnSimAllOn_Click"
+                                Margin="0,0,5,0"/>
+                        <Button Content="Ctrl A Continuous"
+                                Click="btnSimCtrlA_Click"
+                                Width="150"
+                                Margin="0,0,5,0"/>
+                        <Button Content="Ctrl B Continuous"
+                                Click="btnSimCtrlB_Click"
+                                Width="150"/>
+                    </StackPanel>
+                    <Button Content="Stop Continuous Simulation"
+                            Click="btnStopContinuous_Click"
+                            Width="200"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"/>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="Visual Grid">
+                <StackPanel Margin="10">
+                    <Label Content="Select Controller:" HorizontalAlignment="Center"/>
+                    <ComboBox x:Name="cmbController" Width="150" Margin="0,5,0,5" HorizontalAlignment="Center">
+                        <ComboBoxItem Content="Controller A (0xCA)" IsSelected="True"/>
+                        <ComboBoxItem Content="Controller B (0xCB)"/>
+                    </ComboBox>
+                    <Label Content="Select Sensor States:" HorizontalAlignment="Center"/>
+                    <UniformGrid x:Name="ugSensorGrid" Rows="8" Columns="6" Margin="0,5,0,5"/>
+
+                    <Button Content="Toggle Select All"
+                            x:Name="btnToggleSelectAll"
+                            Click="btnToggleSelectAll_Click"
+                            Width="150"
+                            Margin="0,5,0,5"
+                            HorizontalAlignment="Center"/>
+
+                    <Button Content="Simulate Grid Data" 
+                            Click="btnSimulateGrid_Click" 
+                            Width="150" 
+                            Margin="0,5,0,5" 
+                            HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                        <Button Content="Start Continuous Grid" 
+                                Click="btnStartContinuousGrid_Click" 
+                                Width="180" 
+                                Margin="0,0,5,0"/>
+                        <Button Content="Stop Continuous Grid" 
+                                Click="btnStopContinuousGrid_Click" 
+                                Width="180"/>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

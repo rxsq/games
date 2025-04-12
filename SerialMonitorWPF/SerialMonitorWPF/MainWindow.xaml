@@ -8,10 +8,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Top Controls -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
             <Label Content="COM Port:" VerticalAlignment="Center"/>
             <ComboBox x:Name="comboBoxPorts" Width="150" Margin="5,0"/>
@@ -22,25 +21,39 @@
             <TextBox x:Name="textBoxCols" Width="40" Text="6" Margin="5,0"/>
         </StackPanel>
 
-        <!-- Connect/Disconnect Button -->
-        <Button x:Name="buttonConnect" Grid.Row="1" Content="Connect" Width="100" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
+            <Button x:Name="buttonConnect" Content="Connect" Width="100" Margin="0,0,10,0"/>
+            <Button x:Name="buttonAllOn" Content="All Lights On" Width="120" Margin="0,0,10,0"/>
+            <Button x:Name="buttonCtrlAOn" Content="Controller A On" Width="140" Margin="0,0,10,0"/>
+            <Button x:Name="buttonCtrlBOn" Content="Controller B On" Width="140" Margin="0,0,10,0"/>
+        </StackPanel>
 
-        <!-- Output TextBox for Controller A -->
-        <TextBox x:Name="textBoxOutputA" Grid.Row="2" Margin="0,0,0,10"
-                 AcceptsReturn="True" TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas" FontSize="12" IsReadOnly="True" />
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="textBoxOutputA" Grid.Column="0" Margin="0,0,5,0"
+                     AcceptsReturn="True" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas" FontSize="12" IsReadOnly="True" />
+            <TextBox x:Name="textBoxOutputB" Grid.Column="2" Margin="5,0,0,0"
+                     AcceptsReturn="True" TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas" FontSize="12" IsReadOnly="True" />
+        </Grid>
 
-        <!-- Output TextBox for Controller B -->
-        <TextBox x:Name="textBoxOutputB" Grid.Row="4" Margin="0,0,0,10"
-                 AcceptsReturn="True" TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas" FontSize="12" IsReadOnly="True" />
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,10,0,10">
+            <Label Content="Raw Hex Data:" VerticalAlignment="Center"/>
+            <TextBox x:Name="textBoxRawHex" Width="400" Margin="5,0"/>
+            <Button x:Name="buttonSendRaw" Content="Send Raw" Width="100" Margin="5,0"/>
+            <Button x:Name="buttonOpenDebug" Content="Open Debug Window" Width="150" Margin="5,0"/>
+        </StackPanel>
 
-        <!-- StatusBar -->
-        <StatusBar Grid.Row="3">
+        <StatusBar Grid.Row="4">
             <StatusBarItem>
                 <TextBlock x:Name="statusText" Text="Disconnected"/>
             </StatusBarItem>
