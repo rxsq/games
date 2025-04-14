@@ -39,7 +39,9 @@ class Program
     
     public static void StartGame(string gameVariant, string numberofplayers, string IsTestMode)
     {
+        #if (!DEBUG)
         Thread.Sleep(10000);
+        #endif
         statusPublisher.BeginReceive(data => ReceiveCallback(data));
         bool restart = false;
         bool restarting = false;

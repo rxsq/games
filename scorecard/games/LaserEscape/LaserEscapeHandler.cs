@@ -26,7 +26,7 @@ public class LaserEscapeHandler
 
     //exception lasers and sensors
     //private List<int> exceptionLasers = new List<int> { 0, 12, 21, 39, 45, 28, 34, 23, 41, 13, 61, 72, 84, 57, 63, 81, 58, 82, 59, 77, 56, 74, 92, 18, 20, 62, 80, 26, 32 };
-    private List<int> exceptionLasers = new List<int> { };
+    private List<int> exceptionLasers = new List<int> { 41 };
     //private List<int> alwaysZero = new List<int> { 12, 17, 19, 26, 28, 30, 33, 38, 40, 43, 45, 57, 68,69,62,64,69,73,78,80,88 };
     //private List<int> alwaysOne = new List<int> { 5, 25, 66, 96 };
     //private List<int> notTurningOff = new List<int> { 42, 61, 68, 75 };
@@ -152,10 +152,12 @@ public class LaserEscapeHandler
     public void StartReceive()
     {
         startReceive = true;
+        SendCommand(new byte[] { 0xCC, 0xFF, 0x0A }); // Send a command to start receiving data
     }
     public void StopReceive()
     {
         startReceive = false;
+        SendCommand(new byte[] { 0xCC, 0x00, 0x0A }); // Send a command to stop receiving data
     }
     //public void BeginReceive(Action<List<int>> receiveCallback)
     //{
@@ -299,13 +301,14 @@ public class LaserEscapeHandler
         //        dataBuffer.RemoveRange(0, endIndex + 1);
         //    }
         //}
-        if (receivedData.Length > 1 && receivedData[0] == 0xCA)
+        int messageLength = ((int)Math.Ceiling(numberOfLasersPerController / 8.0))+2;
+        if (receivedData.Length > 1 && receivedData[receivedData.Length-messageLength] == 0xCA)
         {
             List<int> cutLasers = GetCutLasers(receivedData, 0);
             if(cutLasers.Count>0)
                 receiveCallback(cutLasers);
         }
-        else if (receivedData.Length > 1 && receivedData[0] == 0xCB)
+        else if (receivedData.Length > 1 && receivedData[receivedData.Length-messageLength] == 0xCB)
         {
             List<int> cutLasers = GetCutLasers(receivedData, 1);
             if (cutLasers.Count > 0)
@@ -328,7 +331,7 @@ public class LaserEscapeHandler
         byte[] sensorBytes = new byte[messageLength];
 
         // Extract the 6 sensor bytes from the message (excluding the controller header and footer)
-        Array.Copy(message, 1, sensorBytes, 0, messageLength);
+        Array.Copy(message, message.Length-messageLength-1, sensorBytes, 0, 6);
 
         List<int> activeDevicesCopy = new List<int>(activeDevices);
 

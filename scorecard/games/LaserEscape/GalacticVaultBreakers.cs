@@ -24,6 +24,8 @@ class GalacticVaultBreakers : BaseSingleDevice
     private WaveOutEvent audioPlayer = new WaveOutEvent();
     private bool gameOver = false;
     private bool barricadeTripped = false;
+    private CancellationTokenSource barricadeCancellationTokenSource = new CancellationTokenSource();
+
     public GalacticVaultBreakers(GameConfig co) : base(co, "content/LaserEscape/GalacticVaultBreakers/background.mp3")
     {
         coolDown = new CoolDown();
@@ -50,7 +52,6 @@ class GalacticVaultBreakers : BaseSingleDevice
         ActivateLasers();
         coolDown.SetFlagTrue(500);
         laserEscapeHandler.StartReceive();
-
     }
 
 
@@ -64,6 +65,7 @@ class GalacticVaultBreakers : BaseSingleDevice
     {
 
         iterationScore = ActivateLevel(Level);
+        Thread.Sleep(200);
     }
     private void ActivatePush()
     {
@@ -241,44 +243,56 @@ class GalacticVaultBreakers : BaseSingleDevice
         }
 
         laserEscapeHandler.SendData();
-        laserEscapeHandler.StartReceive();
         logger.Log($"Activated level {level}, total lasers activated: {activatedLasers}");
 
         return activatedLasers;
     }
-    private void ActivateBarricadeLasers()
+    private void ActivateBarricadeLasers(CancellationToken cancellationToken)
     {
+        laserEscapeHandler.StopReceive();
         laserEscapeHandler.TurnOffAllTheLasers();
-        if(iterationCount%2 == 0)
+        for (int i = 0; i < laserEscapeHandler.columns; i++)
         {
-            for (int i = 0; i < laserEscapeHandler.rows; i++)
+            if (cancellationToken.IsCancellationRequested)
             {
-                laserEscapeHandler.SetLaserState(i, true);
+                logger.Log("ActivateBarricadeLasers task was canceled.");
+                return; // Exit the method if cancellation is requested
             }
-        }
-        else
-        {
-            for (int i = 0; i < laserEscapeHandler.rows; i++)
+
+            laserEscapeHandler.StopReceive();
+            
+            if (iterationCount % 2 == 0)
             {
-                int laserIndex = laserEscapeHandler.numberOfLasers - i -1;
-                laserEscapeHandler.SetLaserState(laserIndex, true);
+                laserEscapeHandler.TurnOnColumn(i);
             }
+            else
+            {
+                laserEscapeHandler.TurnOnColumn(laserEscapeHandler.columns - i);
+            }
+            laserEscapeHandler.SendData();
+            Thread.Sleep(50);
+            barricadeActive = true;
+            laserEscapeHandler.StartReceive();
+            Thread.Sleep(150);
         }
-        laserEscapeHandler.SendData();
-        barricadeActive = true;
     }
+
     protected override async void IterationLost(object state)
     {
         if(!barricadeActive)
         {
             // Stop all music and processes except laser sensor processing for the barricade
             isGameRunning = false;
-            ActivateBarricadeLasers();
+            barricadeCancellationTokenSource = new CancellationTokenSource();
+
+            // Run ActivateBarricadeLasers as a task with cancellation support
+            Task.Run(() => ActivateBarricadeLasers(barricadeCancellationTokenSource.Token));
+
             await musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/tripped.mp3", new WaveOutEvent(), true);
             musicPlayer.StopAllMusic();
 
-
             
+
             udpHandlers.ForEach(x => x.StopReceive());
             if (!config.timerPointLoss && state == null)
             {
@@ -301,7 +315,9 @@ class GalacticVaultBreakers : BaseSingleDevice
                 if(!gameOver)
                 {
                     await musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/Return.mp3", audioPlayer, true);
-                    if(!gameOver) RunGameInSequence();
+                    barricadeCancellationTokenSource?.Cancel();
+                    Thread.Sleep(500);
+                    if (!gameOver) RunGameInSequence();
                 }
 
             }
@@ -318,8 +334,9 @@ class GalacticVaultBreakers : BaseSingleDevice
         if (barricadeTripped) musicPlayer.Announcement("content/LaserEscape/GalacticVaultBreakers/barricade.mp3", false); 
         else musicPlayer.Announcement("content/LaserEscape/GalacticVaultBreakers/fail.mp3", false);
         LogData("GAME OVER");
-        EndGame();
         Status = GameStatus.Completed;
+        Thread.Sleep(2000);
+        EndGame();
     }
     protected override void IterationWon()
     {
@@ -347,6 +364,7 @@ class GalacticVaultBreakers : BaseSingleDevice
                 musicPlayer.PlaySoundAsync("content/LaserEscape/GalacticVaultBreakers/win_0.mp3", audioPlayer, true);
                 musicPlayer.Announcement("content/LaserEscape/GalacticVaultBreakers/win.mp3");
                 Status = GameStatus.Completed;
+                Thread.Sleep(2000);
                 EndGame();
                 return;
             }
@@ -355,8 +373,17 @@ class GalacticVaultBreakers : BaseSingleDevice
                 //   musicPlayer.StopBackgroundMusic();
                 //Text to speech: Great job, Team! 🎉You’ve won this level! Now, get ready for the next one.Expect more energy and excitement.  Let’s go! 🚀 one two three go 
                 LogData(Status);
-                TurnOnAllLasers();
+                laserEscapeHandler.StopReceive();
+                // Run ActivateBarricadeLasers as a task without waiting for it
+                barricadeCancellationTokenSource = new CancellationTokenSource();
+
+                // Run ActivateBarricadeLasers as a task with cancellation support
+                Task.Run(() => ActivateBarricadeLasers(barricadeCancellationTokenSource.Token));
+                Thread.Sleep(200);
+                laserEscapeHandler.StartReceive();
                 musicPlayer.Announcement($"content/LaserEscape/GalacticVaultBreakers/Level{Level-1}.mp3");
+                barricadeCancellationTokenSource?.Cancel();
+                Thread.Sleep(500);
                 //                musicPlayer.PlayBackgroundMusic("content/background_music.wav", true);
             }
             //labelScore.Text = $"Score: {score}";
