@@ -108,22 +108,22 @@ void POST()
 {
   for(int j=0; j<MAX_LEDS_ARROW; j++)
   {
-    strip_arrow.setPixelColor(j, strip_arrow.Color(255, 0, 0)); //R
+    strip_arrow.setPixelColor(j, strip_arrow.Color(10, 0, 0)); //R
     strip_arrow.show(); 
   }
   for(int j=0; j<MAX_LEDS_RING; j++)
   {
-    strip_ring.setPixelColor(j, strip_ring.Color(255, 0, 0)); //R
+    strip_ring.setPixelColor(j, strip_ring.Color(10, 0, 0)); //R
     strip_ring.show(); 
   }
   for(int j=0; j<MAX_LEDS_PROG; j++)
   {
-    strip_progress.setPixelColor(j, strip_progress.Color(255, 0, 0)); //R
+    strip_progress.setPixelColor(j, strip_progress.Color(10, 0, 0)); //R
     strip_progress.show(); 
   }
   for(int j=0; j<MAX_LEDS_BG; j++)
   {
-    strip_bg.setPixelColor(j, strip_bg.Color(255, 0, 0)); //R
+    strip_bg.setPixelColor(j, strip_bg.Color(10, 0, 0)); //R
     strip_bg.show(); 
   }
   delay(200);
@@ -132,22 +132,22 @@ void POST()
 
   for(int j=0; j<MAX_LEDS_ARROW; j++)
   {
-    strip_arrow.setPixelColor(j, strip_arrow.Color(0, 255, 0)); //G
+    strip_arrow.setPixelColor(j, strip_arrow.Color(0, 10, 0)); //G
     strip_arrow.show(); 
   }
   for(int j=0; j<MAX_LEDS_RING; j++)
   {
-    strip_ring.setPixelColor(j, strip_ring.Color(0, 255, 0)); //G
+    strip_ring.setPixelColor(j, strip_ring.Color(0, 10, 0)); //G
     strip_ring.show(); 
   }
   for(int j=0; j<MAX_LEDS_PROG; j++)
   {
-    strip_progress.setPixelColor(j, strip_progress.Color(0, 255, 0)); //G
+    strip_progress.setPixelColor(j, strip_progress.Color(0, 10, 0)); //G
     strip_progress.show(); 
   }
   for(int j=0; j<MAX_LEDS_BG; j++)
   {
-    strip_bg.setPixelColor(j, strip_bg.Color(0, 255, 0)); //G
+    strip_bg.setPixelColor(j, strip_bg.Color(0, 10, 0)); //G
     strip_bg.show(); 
   }
   delay(200);
@@ -155,47 +155,47 @@ void POST()
 
   for(int j=0; j<MAX_LEDS_ARROW; j++)
   {
-    strip_arrow.setPixelColor(j, strip_arrow.Color(0, 0, 255)); //B
+    strip_arrow.setPixelColor(j, strip_arrow.Color(0, 0, 10)); //B
     strip_arrow.show(); 
   }
   for(int j=0; j<MAX_LEDS_RING; j++)
   {
-    strip_ring.setPixelColor(j, strip_ring.Color(0, 0, 255)); //B
+    strip_ring.setPixelColor(j, strip_ring.Color(0, 0, 10)); //B
     strip_ring.show(); 
   }
   for(int j=0; j<MAX_LEDS_PROG; j++)
   {
-    strip_progress.setPixelColor(j, strip_progress.Color(0, 0, 255)); //B
+    strip_progress.setPixelColor(j, strip_progress.Color(0, 0, 10)); //B
     strip_progress.show(); 
   }
   for(int j=0; j<MAX_LEDS_BG; j++)
   {
-    strip_bg.setPixelColor(j, strip_bg.Color(0, 0, 255)); //B
+    strip_bg.setPixelColor(j, strip_bg.Color(0, 0, 10)); //B
     strip_bg.show(); 
   }
 
 delay(200);
     for(int j=0; j<MAX_LEDS_ARROW; j++)
   {
-    strip_arrow.setPixelColor(j, strip_arrow.Color(255, 255, 255)); //W
-    strip_arrow.show(); 
+    strip_arrow.setPixelColor(j, strip_arrow.Color(10, 10, 10)); //W
+    // strip_arrow.show(); 
   }
   for(int j=0; j<MAX_LEDS_RING; j++)
   {
-    strip_ring.setPixelColor(j, strip_ring.Color(255, 255, 255)); //W
-    strip_ring.show(); 
+    strip_ring.setPixelColor(j, strip_ring.Color(10, 10, 10)); //W
+    // strip_ring.show(); 
   }
   for(int j=0; j<MAX_LEDS_PROG; j++)
   {
-    strip_progress.setPixelColor(j, strip_progress.Color(255, 255, 255)); //W
-    strip_progress.show(); 
+    strip_progress.setPixelColor(j, strip_progress.Color(10, 10, 10)); //W
+    // strip_progress.show(); 
   }
   for(int j=0; j<MAX_LEDS_BG; j++)
   {
-    strip_bg.setPixelColor(j, strip_bg.Color(255, 255, 255)); //W
+    strip_bg.setPixelColor(j, strip_bg.Color(10, 10, 10)); //W
     strip_bg.show(); 
   }
-  delay(200);
+  // delay(200);
 
 
   for(int j=0; j<MAX_LEDS_ARROW; j++)
@@ -238,7 +238,7 @@ int getID()
 #ifdef DEBUG
   Serial.println("Scanning PICC's UID.........");
 #endif
-  for (int i = 0; i < mfrc522.uid.size; i++) 
+  for (int i = 0; i < 4; i++) 
   {  //
     g_readCard[i] = mfrc522.uid.uidByte[i];
 // #ifdef DEBUG_RFID
