@@ -21,18 +21,17 @@ public class Climb : BaseGameClimb
     Task targetTask;
     public Climb(GameConfig config) : base(config)
     {
-        if (climbHandler == null)
-            climbHandler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
-
         this.config.MaxPlayers = 1;
         targetColor = config.NoofLedPerdevice != 3 ? ColorPaletteone.White : ColorPalette.White;
         obstacleColor = config.NoofLedPerdevice != 3 ? ColorPaletteone.Red : ColorPalette.Red;
         BlinkAllAsync(5);
+        
     }
     protected override void OnIteration()
     {
         coolDown.SetFlagTrue(200);
         climbHandler.activeDevices.Clear();
+        SendSameColorToAllDevice(ColorPaletteone.Red, true);
         obstacles.Clear();
         targets.Clear();
         for (int i = 0; i < climbHandler.DeviceList.Count(); i++)
@@ -45,6 +44,10 @@ public class Climb : BaseGameClimb
     protected override void OnStart()
     {
         climbHandler.BeginReceive(data => ReceiveCallback(data));
+        foreach (var handler in udpHandlers)
+        {
+            handler.BeginReceive(data => ReceiveCallback(data, handler));
+        }
         if (targetTask == null || targetTask.IsCompleted)
         {
             if (targetTask != null && !targetTask.IsCompleted)
@@ -280,5 +283,37 @@ public class Climb : BaseGameClimb
 
     }
 
+    private void ReceiveCallback(byte[] receivedBytes, UdpHandler handler)
+    {
+        if (!isGameRunning)
+            return;
 
+        string receivedData = Encoding.UTF8.GetString(receivedBytes);
+        var positions = receivedData
+            .Select((value, index) => new { value, index })
+            .Where(x => x.value == 0x0A)
+            .Select(x => x.index - 2)
+            .Where(position => position >= 0)
+            .ToList();
+
+        try
+        {
+            if (positions.Count > 0)
+            {
+                foreach (var position in positions)
+                {
+                    handler.DeviceList[position] = ColorPaletteone.NoColor;
+                }
+                handler.SendColorsToUdp(handler.DeviceList);
+                IterationLost(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogData($"Exception in ReceiveCallback: {ex.Message}");
+        }
+
+        handler.BeginReceive(data => ReceiveCallback(data, handler));
+
+    }
 }

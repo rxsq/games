@@ -14,10 +14,50 @@ namespace scorecard
     {
         protected int rows = 0;
         protected UdpHandlerWeTop climbHandler;
+        protected Dictionary<int, Mapping> deviceMapping;
         public BaseGameClimb(GameConfig config) : base(config)
         {
             if (climbHandler == null)
                 climbHandler = new UdpHandlerWeTop(config.IpAddress, config.LocalPort, config.RemotePort, config.SocketBReceiverPort, config.NoofLedPerdevice, config.columns, "handler-1");
+            if (udpHandlers == null)
+            {
+                udpHandlers.Add(new UdpHandler("169.254.255.7", 22, 7113, 10105, 1, 18, "floor-1"));
+                udpHandlers.Add(new UdpHandler("169.254.255.7", 23, 7114, 10106, 1, 9, "floor-2"));
+            }
+            deviceMapping = new Dictionary<int, Mapping>();
+            int k = 0;
+            foreach (UdpHandler handler in udpHandlers)
+            {
+                for (int i = 0; i < handler.DeviceList.Count; i++)
+                {
+                    deviceMapping.Add(k, new Mapping((UdpHandler)handler, false, Resequencer(i, handler.columns)));
+                    k += 1;
+                }
+                rows += handler.Rows;
+            }
+        }
+        protected int Resequencer(int index, int columns)
+        {
+            if ((index / columns) % 2 == 0)
+            {
+                return index;
+            }
+
+            int row = index / columns;
+            int column = index % columns;
+            int dest = (row + 1) * columns - 1 - column;
+            return dest;
+        }
+        protected void SendColorToUdpAsync()
+        {
+
+            var tasks = new List<Task>();
+            foreach (var handler in udpHandlers)
+            {
+                tasks.Add(handler.SendColorsToUdpAsync(handler.DeviceList));
+            }
+            Task.WhenAll(tasks);
+
 
         }
         protected override void BlinkAllAsync(int nooftimes)

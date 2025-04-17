@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Simulator", "Simulator\Simu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialMonitorWPF", "SerialMonitorWPF\SerialMonitorWPF\SerialMonitorWPF.csproj", "{58498253-1B45-42A1-8E12-89AEB940C992}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoorLock", "DoorLock\DoorLock.csproj", "{CC4F352C-E800-4C27-9F1E-9AFC36B1F9DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{58498253-1B45-42A1-8E12-89AEB940C992}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58498253-1B45-42A1-8E12-89AEB940C992}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58498253-1B45-42A1-8E12-89AEB940C992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC4F352C-E800-4C27-9F1E-9AFC36B1F9DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC4F352C-E800-4C27-9F1E-9AFC36B1F9DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC4F352C-E800-4C27-9F1E-9AFC36B1F9DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC4F352C-E800-4C27-9F1E-9AFC36B1F9DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
