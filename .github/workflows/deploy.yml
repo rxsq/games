@@ -2,7 +2,7 @@ name: Build and Deploy Scorecard
 
 on:
   push:
-    branches: [main]  # Trigger on main push
+    branches: [main]  # Trigger on every push to main
 
 jobs:
   build:
@@ -16,13 +16,14 @@ jobs:
       uses: microsoft/setup-msbuild@v1.1
 
     - name: Build Scorecard project
-      run: msbuild games/scorecard.sln /p:Configuration=Debug
+      run: msbuild scorecard.sln /p:Configuration=Debug
+      working-directory: games
 
     - name: Copy full build output and version.txt
       run: |
         mkdir deploy
         xcopy games\scorecard\bin\Debug deploy\ /E /I /Y
-        copy games\scorecard\version.txt deploy\
+        if exist games\scorecard\version.txt copy games\scorecard\version.txt deploy\
 
     - name: Push deploy folder to deploy branch
       run: |
