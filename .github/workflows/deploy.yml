@@ -1,4 +1,4 @@
-name: Build and Deploy Scorecard
+name: Build and Deploy Scorecard & GameRoomScoreboard
 
 on:
   push:
@@ -23,15 +23,35 @@ jobs:
       - name: Set up MSBuild
         uses: microsoft/setup-msbuild@v1.1
 
-      - name: Build Scorecard project only
+      # Build both projects
+      - name: Build Scorecard
         run: msbuild scorecard\scorecard.csproj /p:Configuration=Debug
 
-      - name: Copy build output
+      - name: Build GameRoomScoreboard
+        run: msbuild GameRoomScoreboard\GameRoomScoreboard.csproj /p:Configuration=Debug
+
+      # Copy scorecard to GameEngine folder
+      - name: Copy Scorecard build output to GameEngine
         shell: cmd
         run: |
-          mkdir deploy
-          xcopy scorecard\bin\Debug\* deploy\ /E /I /Y
-          if exist scorecard\version.txt copy scorecard\version.txt deploy\
+          mkdir deploy\GameEngine
+          xcopy scorecard\bin\Debug\* deploy\GameEngine\ /E /I /Y
+          if exist scorecard\version.txt copy scorecard\version.txt deploy\GameEngine\
+
+      # Selective copy of GameRoomScoreboard files to GameSelection
+      - name: Copy GameRoomScoreboard selected files to GameSelection
+        shell: cmd
+        run: |
+          mkdir deploy\GameSelection
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\GameRoomScoreboard.deps.json deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\GameRoomScoreboard.dll.config deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\GameRoomScoreboard.pdb deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\GameRoomScoreboard.runtimeconfig.json deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\LibNew.pdb deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\log4net.xml deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\Microsoft.Web.WebView2.Core.xml deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\Microsoft.Web.WebView2.WinForms.xml deploy\GameSelection\
+          copy GameRoomScoreboard\bin\Debug\net8.0-windows\Microsoft.Web.WebView2.Wpf.xml deploy\GameSelection\
 
       - name: Push deploy folder to deploy branch
         shell: cmd
@@ -45,3 +65,4 @@ jobs:
           git branch -M deploy
           git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push --force origin deploy
+
