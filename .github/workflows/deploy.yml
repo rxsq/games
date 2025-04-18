@@ -43,5 +43,5 @@ jobs:
           git add .
           git commit -m "Deploy latest build"
           git branch -M deploy
-          git remote add origin https://rxsq:${{ secrets.PERSONAL_PAT }}@github.com/${{ github.repository }}
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push --force origin deploy
