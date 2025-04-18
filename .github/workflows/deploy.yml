@@ -2,7 +2,7 @@ name: Build and Deploy Scorecard
 
 on:
   push:
-    branches: [main]
+    branches: [main]  # Trigger on main push
 
 jobs:
   build:
@@ -15,22 +15,23 @@ jobs:
     - name: Set up MSBuild
       uses: microsoft/setup-msbuild@v1.1
 
-    - name: Build project
+    - name: Build Scorecard project
       run: msbuild games/scorecard.sln /p:Configuration=Debug
 
-    - name: Copy full build output to deploy folder
+    - name: Copy full build output and version.txt
       run: |
         mkdir deploy
         xcopy games\scorecard\bin\Debug deploy\ /E /I /Y
+        copy games\scorecard\version.txt deploy\
 
-    - name: Commit and push to deploy branch
+    - name: Push deploy folder to deploy branch
       run: |
         cd deploy
         git init
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         git add .
-        git commit -m "Deploy full build output"
+        git commit -m "Deploy latest build"
         git branch -M deploy
         git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         git push --force origin deploy
