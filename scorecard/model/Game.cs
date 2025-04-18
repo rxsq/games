@@ -8,7 +8,7 @@ namespace scorecard.model
 {
     public class Game
     {
-        public int GameID { get; set; }
+        public int GameID { get; set;  }
         public string gameCode { get; set; }
         public string gameName { get; set; }
         public string gameDescription { get; set; }
